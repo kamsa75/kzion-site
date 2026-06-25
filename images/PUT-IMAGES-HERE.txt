@@ -1,0 +1,5 @@
+이 폴더에 아래 4개 이미지를 넣으세요 (README.md 참고):
+- favicon.png
+- young2.jpg
+- pastor.jpg
+- book-cover.jpg

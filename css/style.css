@@ -1,0 +1,269 @@
+/* =========================================================
+   시애틀 시온장로교회 — 공용 스타일
+   디자인: 태평양 북서부 상록수 녹색 + 따뜻한 빛(금색)
+   ========================================================= */
+
+:root {
+  --bg: #FBF9F4;          /* 따뜻한 종이빛 배경 */
+  --bg-sand: #F3EDE1;     /* 카드/섹션 모래빛 */
+  --ink: #23231F;         /* 본문 글자 */
+  --ink-soft: #5C5A50;    /* 보조 글자 */
+  --pine: #1E3A33;        /* 상록수 녹색 (메인) */
+  --pine-deep: #142A24;
+  --gold: #BE8A3D;        /* 따뜻한 금색 (강조) */
+  --gold-soft: #E7CF9E;
+  --line: #E4DCCC;        /* 가는 구분선 */
+  --white: #ffffff;
+
+  --serif: 'Nanum Myeongjo', serif;
+  --sans: 'Noto Sans KR', system-ui, sans-serif;
+
+  --maxw: 1080px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  font-weight: 400;
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+/* ---------- 헤더 / 내비게이션 ---------- */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(251,249,244,0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 24px; max-width: var(--maxw); margin: 0 auto;
+  flex-wrap: wrap;
+}
+.brand {
+  font-family: var(--serif); font-weight: 800;
+  font-size: 1.25rem; color: var(--pine); text-decoration: none;
+  letter-spacing: -0.01em; white-space: nowrap;
+}
+.nav-links { display: flex; gap: 4px; flex-wrap: wrap; }
+.nav-links a {
+  text-decoration: none; color: var(--ink-soft);
+  font-size: 1rem; font-weight: 500;
+  padding: 8px 14px; border-radius: 999px;
+  transition: background .2s, color .2s;
+}
+.nav-links a:hover { background: var(--bg-sand); color: var(--pine); }
+.nav-links a[aria-current="page"] { color: var(--pine); background: var(--bg-sand); }
+
+/* ---------- 히어로 (시그니처) ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  background: var(--pine-deep);
+  color: #F5F1E8;
+  text-align: center;
+  padding: 110px 24px 120px;
+}
+/* 천국의 빛 — 따뜻한 금색 광원 */
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% -10%, rgba(231,207,158,0.42), rgba(231,207,158,0) 55%),
+    radial-gradient(80% 60% at 50% 120%, rgba(30,58,51,0.6), rgba(20,42,36,0) 70%);
+  pointer-events: none;
+}
+.hero-inner { position: relative; max-width: 760px; margin: 0 auto; }
+.hero .eyebrow { color: var(--gold-soft); }
+.hero h1 {
+  font-family: var(--serif); font-weight: 800;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  line-height: 1.25; letter-spacing: -0.02em;
+  margin: 14px 0 18px;
+}
+.hero p.lead {
+  font-family: var(--serif);
+  font-size: clamp(1.15rem, 2.6vw, 1.5rem);
+  color: #EDE6D6; line-height: 1.7; font-weight: 400;
+}
+.hero .btn { margin-top: 34px; }
+
+.eyebrow {
+  font-size: .82rem; font-weight: 700; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gold);
+}
+
+/* ---------- 버튼 ---------- */
+.btn {
+  display: inline-block; text-decoration: none;
+  font-weight: 700; font-size: 1.02rem;
+  padding: 14px 30px; border-radius: 999px;
+  transition: transform .15s, box-shadow .2s, background .2s;
+}
+.btn-gold { background: var(--gold); color: #2a1d07; }
+.btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(190,138,61,.35); }
+.btn-pine { background: var(--pine); color: #F5F1E8; }
+.btn-pine:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(30,58,51,.3); }
+.btn-outline { border: 1.5px solid var(--pine); color: var(--pine); }
+.btn-outline:hover { background: var(--pine); color: #F5F1E8; }
+
+/* ---------- 일반 섹션 ---------- */
+.section { padding: 84px 0; }
+.section-sand { background: var(--bg-sand); }
+.section-pine { background: var(--pine); color: #EFEADD; }
+.section-head { text-align: center; max-width: 640px; margin: 0 auto 50px; }
+.section-head h2 {
+  font-family: var(--serif); font-weight: 800;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--pine); letter-spacing: -0.01em; margin: 12px 0 0;
+}
+.section-pine .section-head h2 { color: #fff; }
+.section-pine .eyebrow { color: var(--gold-soft); }
+
+/* 페이지 헤더 (서브 페이지 상단) */
+.page-head {
+  background: var(--pine-deep); color: #F5F1E8;
+  text-align: center; padding: 76px 24px 70px;
+  position: relative; overflow: hidden;
+}
+.page-head::before {
+  content:""; position:absolute; inset:0;
+  background: radial-gradient(110% 80% at 50% -20%, rgba(231,207,158,.28), rgba(231,207,158,0) 60%);
+}
+.page-head h1 {
+  position: relative; font-family: var(--serif); font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.02em;
+}
+
+/* ---------- 설교 영상 ---------- */
+.video-frame {
+  position: relative; width: 100%; max-width: 820px; margin: 0 auto;
+  aspect-ratio: 16 / 9; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 16px 40px rgba(20,42,36,.16); background: #000;
+}
+.video-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-meta { text-align: center; margin-top: 22px; }
+.video-meta .title { font-family: var(--serif); font-size: 1.2rem; color: var(--pine); font-weight: 700; }
+.video-actions { text-align: center; margin-top: 26px; }
+
+/* ---------- 성도 이야기 (testimonials) ---------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+.card {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 16px; padding: 28px 26px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.card .quote { font-size: 1.02rem; line-height: 1.85; color: var(--ink); }
+.card .who { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--gold-soft); color: var(--pine-deep);
+  display: grid; place-items: center; font-weight: 800; font-family: var(--serif);
+  flex: 0 0 auto;
+}
+.who .name { font-weight: 600; color: var(--pine); }
+
+/* ---------- 헌금 ---------- */
+.giving { text-align: center; max-width: 620px; margin: 0 auto; }
+.giving .note {
+  font-size: .92rem; color: #CFE0D8; margin-top: 22px; line-height: 1.7;
+}
+
+/* ---------- eBook ---------- */
+.ebook { display: grid; grid-template-columns: 220px 1fr; gap: 40px; align-items: center; }
+.ebook .cover {
+  border-radius: 10px; overflow: hidden; box-shadow: 0 14px 34px rgba(20,42,36,.2);
+  background: var(--bg-sand); aspect-ratio: 793/1024;
+}
+.ebook .cover img { width: 100%; height: 100%; object-fit: cover; }
+.ebook h3 { font-family: var(--serif); font-size: 1.5rem; color: var(--pine); margin-bottom: 6px; }
+.ebook .sub { color: var(--ink-soft); margin-bottom: 18px; }
+.ebook .howto { font-size: .92rem; color: var(--ink-soft); line-height: 1.7; margin-top: 18px; }
+.ebook .howto strong { color: var(--pine); }
+
+/* ---------- 예배 안내 ---------- */
+.worship-list { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+.worship-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  background: var(--white); border: 1px solid var(--line); border-left: 4px solid var(--gold);
+  border-radius: 12px; padding: 20px 24px; flex-wrap: wrap;
+}
+.worship-item .name { font-family: var(--serif); font-size: 1.25rem; font-weight: 700; color: var(--pine); }
+.worship-item .time { color: var(--ink); font-weight: 500; }
+.worship-item .place { color: var(--ink-soft); font-size: .92rem; }
+.map-frame {
+  width: 100%; max-width: 820px; margin: 46px auto 0; aspect-ratio: 16/9;
+  border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
+}
+.map-frame iframe { width: 100%; height: 100%; border: 0; }
+
+/* ---------- 섬기는 이들 / 담임목사 ---------- */
+.profile { max-width: 720px; margin: 0 auto; }
+.profile-top { display: grid; grid-template-columns: 200px 1fr; gap: 36px; align-items: center; }
+.profile-photo {
+  border-radius: 14px; overflow: hidden; aspect-ratio: 4/5;
+  background: var(--bg-sand); box-shadow: 0 12px 30px rgba(20,42,36,.15);
+}
+.profile-photo img { width: 100%; height: 100%; object-fit: cover; }
+.profile h2 { font-family: var(--serif); font-size: 1.7rem; color: var(--pine); }
+.profile .role { color: var(--ink-soft); margin: 4px 0 18px; }
+.cv { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.cv li { padding-left: 18px; position: relative; color: var(--ink); }
+.cv li::before { content: ""; position: absolute; left: 0; top: .8em; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+
+.message { max-width: 680px; margin: 0 auto; }
+.message p { margin-bottom: 1.4em; font-size: 1.08rem; line-height: 1.95; }
+.message .accent { font-family: var(--serif); font-weight: 700; color: var(--pine); font-size: 1.18rem; }
+.message .sign { text-align: right; font-family: var(--serif); font-weight: 700; color: var(--pine); font-size: 1.2rem; margin-top: 30px; }
+.message-photo { border-radius: 16px; overflow: hidden; margin: 0 auto 44px; max-width: 540px; box-shadow: 0 14px 34px rgba(20,42,36,.18); }
+
+/* ---------- 푸터 ---------- */
+.site-footer { background: var(--pine-deep); color: #CFE0D8; padding: 56px 24px 44px; text-align: center; }
+.footer-socials { display: flex; justify-content: center; gap: 14px; margin-bottom: 26px; flex-wrap: wrap; }
+.footer-socials a {
+  text-decoration: none; color: #F5F1E8; border: 1px solid rgba(245,241,232,.25);
+  padding: 9px 18px; border-radius: 999px; font-size: .92rem; transition: background .2s, border-color .2s;
+}
+.footer-socials a:hover { background: rgba(245,241,232,.1); border-color: rgba(245,241,232,.5); }
+.footer-name { font-family: var(--serif); font-size: 1.2rem; color: #fff; font-weight: 700; }
+.footer-addr { font-size: .92rem; margin-top: 8px; color: #AEC4BB; }
+.footer-copy { font-size: .82rem; margin-top: 20px; color: #87A096; }
+
+/* ---------- 반응형 ---------- */
+@media (max-width: 720px) {
+  body { font-size: 17px; }
+  .section { padding: 60px 0; }
+  .hero { padding: 80px 20px 84px; }
+  .ebook { grid-template-columns: 1fr; gap: 26px; justify-items: center; text-align: center; }
+  .ebook .cover { max-width: 200px; }
+  .ebook .howto { text-align: left; }
+  .profile-top { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 22px; }
+  .profile-photo { max-width: 220px; }
+  .cv li { text-align: left; }
+  .worship-item { flex-direction: column; gap: 4px; }
+}
+
+/* ---------- 접근성 ---------- */
+a:focus-visible, .btn:focus-visible {
+  outline: 3px solid var(--gold); outline-offset: 3px; border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* 로드 시 히어로 페이드업 */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.hero-inner > * { animation: fadeUp .7s ease both; }
+.hero-inner > *:nth-child(2) { animation-delay: .08s; }
+.hero-inner > *:nth-child(3) { animation-delay: .16s; }
+.hero-inner > *:nth-child(4) { animation-delay: .24s; }
