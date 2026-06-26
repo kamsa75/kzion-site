@@ -137,6 +137,21 @@
       var open = transitToggle.classList.toggle('open');
       transitBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
+    // 버스가 텍스트 옆 → 오른쪽 끝 화살표까지 주행하도록 거리 계산 (화면 폭 변화 대응, 속도 일정)
+    var transitBus = transitToggle.querySelector('.transit-bus');
+    var transitChev = transitToggle.querySelector('.transit-chevron');
+    function sizeBusTravel() {
+      if (!transitBus || !transitChev) return;
+      transitBus.style.animation = 'none';        // 변형 제거 후 정지 위치 측정
+      var br = transitBus.getBoundingClientRect();
+      var cr = transitChev.getBoundingClientRect();
+      var travel = Math.max(24, Math.round(cr.left - br.right - 6));
+      transitBus.style.setProperty('--bus-travel', travel + 'px');
+      transitBus.style.animation = '';            // 스타일시트 애니메이션 복원
+      transitBus.style.animationDuration = Math.min(6, Math.max(2.6, travel / 110)).toFixed(2) + 's'; // 속도 일정
+    }
+    sizeBusTravel();
+    var bt; window.addEventListener('resize', function () { clearTimeout(bt); bt = setTimeout(sizeBusTravel, 150); });
   }
 
   /* ---------- 처음 오시는 분 플립 카드 (모바일) ---------- */
