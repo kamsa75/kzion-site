@@ -40,6 +40,21 @@
     });
   }
 
+  /* ---------- 히어로 사진 갤러리 cross-fade ---------- */
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) {
+    document.querySelectorAll('.gframe').forEach(function (frame, fi) {
+      var imgs = frame.querySelectorAll('img');
+      if (imgs.length < 2) return;
+      var i = 0;
+      setInterval(function () {
+        imgs[i].classList.remove('active');
+        i = (i + 1) % imgs.length;
+        imgs[i].classList.add('active');
+      }, 5000 + fi * 1700);
+    });
+  }
+
   /* ---------- 마음 날씨 (index 전용) ---------- */
   var moodsEl = document.getElementById('moods');
   if (moodsEl) {

@@ -96,6 +96,15 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(13px)}}
 @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 
+/* 히어로 사진 갤러리 (성도 사진 cross-fade) */
+.hero-gallery{position:relative;height:440px;z-index:1;opacity:0;animation:riseIn .9s ease .5s forwards}
+.gframe{position:absolute;border-radius:24px;overflow:hidden;box-shadow:0 30px 60px rgba(8,40,45,.5);border:1px solid rgba(255,255,255,.16)}
+.gframe::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(8,40,45,.35));pointer-events:none}
+.gframe img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.07);transition:opacity 1.3s ease,transform 7s ease}
+.gframe img.active{opacity:1;transform:scale(1)}
+.gframe-a{width:312px;height:392px;top:6px;right:0;animation:floatB 6.6s ease-in-out infinite}
+.gframe-b{width:212px;height:176px;left:6px;bottom:8px;animation:floatA 5.4s ease-in-out infinite}
+
 .block{padding:78px 0}
 .light{background:var(--ivory)}
 .two{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:start}
@@ -146,19 +155,21 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .w-result .verse{font-family:var(--serif);font-weight:700;font-size:clamp(21px,3vw,28px);line-height:1.42;color:var(--ivory)}
 .w-result .ref{font-size:14px;color:var(--gold-l);margin-top:14px}
 
-/* ---------- 성도 이야기 (voices/reviews) ---------- */
-.voices{background:#E4F0F1}
+/* ---------- Google 리뷰 (가로 자동 스크롤 마퀴) ---------- */
+.voices{background:#E4F0F1;padding:44px 0 48px;overflow:hidden}
 .vhead{display:flex;align-items:center;justify-content:center;gap:11px}
 .stars{color:#F2A03C;letter-spacing:3px;font-size:21px;line-height:1}
-.stars.sm{font-size:15px;letter-spacing:2px;display:block;margin-bottom:11px}
-.vlabel{font-size:13.5px;color:var(--soft);font-weight:500}
-.tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
-.tgrid .quote{background:#fff}
-.tgrid .quote:nth-child(2){transition-delay:.05s}
-.tgrid .quote:nth-child(3){transition-delay:.1s}
-.tgrid .quote:nth-child(4){transition-delay:.15s}
-.tgrid .quote:nth-child(5){transition-delay:.2s}
-@media(max-width:840px){.tgrid{grid-template-columns:1fr}}
+.stars.sm{font-size:14px;letter-spacing:2px;display:block;margin-bottom:9px}
+.vlabel{font-size:14px;color:var(--soft);font-weight:600}
+.marquee{margin-top:24px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.marquee-track{display:flex;gap:16px;width:max-content;animation:marquee 44s linear infinite}
+.marquee:hover .marquee-track{animation-play-state:paused}
+.marquee .quote{flex:0 0 auto;width:340px;background:#fff;border-radius:14px;margin:0;transform:none;opacity:1}
+.marquee .quote:hover{transform:translateY(-4px)}
+.marquee .quote p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(max-width:560px){.marquee .quote{width:280px}}
+@media(prefers-reduced-motion:reduce){.marquee{overflow-x:auto}.marquee-track{animation:none}}
 
 /* ---------- 설교 ---------- */
 .sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start;margin-top:34px}
@@ -245,6 +256,10 @@ footer.site-footer{background:var(--night);color:#B6D2D2;padding:60px 0 38px}
   .photo-cluster{height:auto;display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:8px 0}
   .pcard{position:static!important;animation:none}
   .pc1,.pc2,.pc3{width:120px;height:120px}
+  .hero-gallery{height:auto;display:flex;justify-content:center;padding:6px 0}
+  .gframe{position:static;animation:none}
+  .gframe-a{width:100%;max-width:420px;height:clamp(220px,56vw,300px)}
+  .gframe-b{display:none}
   .ebook{justify-items:center;text-align:center}
   .ebook .cover{max-width:210px}
   .ebook .howto{text-align:left}
