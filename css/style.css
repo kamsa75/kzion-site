@@ -176,12 +176,12 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .stars{color:#F2A03C;letter-spacing:3px;font-size:21px;line-height:1}
 .stars.sm{font-size:14px;letter-spacing:2px;display:block;margin-bottom:9px}
 .vlabel{font-size:14px;color:var(--soft);font-weight:600}
-.marquee{margin-top:24px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.marquee{margin-top:14px;padding:12px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
 .marquee-track{display:flex;gap:16px;width:max-content;animation:marquee 44s linear infinite}
 .marquee:hover .marquee-track{animation-play-state:paused}
-.marquee .quote{flex:0 0 auto;width:336px;background:#fff;border:none;border-radius:20px;margin:0;padding:26px 26px 22px;box-shadow:0 14px 34px rgba(15,58,64,.09);transform:none;opacity:1;position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.marquee .quote{flex:0 0 auto;width:336px;background:#fff;border:none;border-radius:20px;margin:0;padding:26px 26px 22px;box-shadow:none;transform:none;opacity:1;position:relative;overflow:hidden;transition:transform .25s}
 .marquee .quote::before{content:"\201C";position:absolute;top:6px;right:20px;font-family:var(--serif);font-weight:700;font-size:60px;line-height:1;color:var(--teal);opacity:.1;pointer-events:none}
-.marquee .quote:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(15,58,64,.14)}
+.marquee .quote:hover{transform:translateY(-5px)}
 .marquee .quote .stars.sm{margin-bottom:13px}
 .marquee .quote p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;position:relative;color:var(--ink)}
 .marquee .quote .who{margin-top:14px;color:var(--teal-d);font-weight:600}
