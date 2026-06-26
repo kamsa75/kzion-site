@@ -116,6 +116,7 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .step:hover .n{transform:scale(1.25) rotate(-6deg)}
 .step h3{font-size:16px;font-weight:600;margin-bottom:6px}
 .step p{font-size:13.5px;opacity:.66;line-height:1.5}
+.step-inner{display:contents}
 .info-card{background:var(--night);color:var(--ivory);border-radius:18px;padding:28px;font-size:14.5px}
 .info-card h3{font-size:16px;font-weight:600;margin-bottom:16px;color:var(--gold-l)}
 .info-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -335,13 +336,20 @@ footer.site-footer{background:var(--night);color:#B6D2D2;padding:60px 0 38px}
   .nav-give{margin:8px 30px 4px;text-align:center}
   .nav-toggle{display:block}
   .block,.hero{padding:54px 0}
-  /* 처음 오시는 분 4단계 — 모바일에선 한 줄(번호+제목+설명) 컴팩트 카드 */
-  .steps{grid-template-columns:1fr;gap:10px}
-  .step{display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center;padding:15px 16px}
-  .step .n{grid-row:1/3;align-self:center;margin:0;font-size:22px}
+  /* 처음 오시는 분 4단계 — 모바일: 2×2 정사각 플립 카드 (탭하면 뒤집힘) */
+  .steps{grid-template-columns:1fr 1fr;gap:11px}
+  .step{background:transparent;border:none;padding:0;aspect-ratio:1/1;perspective:900px;cursor:pointer}
+  .step:hover{transform:none;box-shadow:none}
+  .step-inner{display:block;position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+  .step.flipped .step-inner{transform:rotateY(180deg)}
+  .step-front,.step-back{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;padding:14px;border-radius:16px;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+  .step-front{background:var(--paper);border:1px solid var(--line)}
+  .step-front .n{margin:0;font-size:27px}
+  .step-front h3{margin:0;font-size:15.5px}
   .step:hover .n{transform:none}
-  .step h3{grid-column:2;margin:0 0 2px}
-  .step p{grid-column:2;margin:0}
+  .step-back{background:var(--night);border:1px solid var(--night);transform:rotateY(180deg)}
+  .step-back p{margin:0;color:#DCEBE9;opacity:1;font-size:12.5px;line-height:1.55}
+  .step-front::after{content:"↻";position:absolute;bottom:8px;right:10px;font-size:12px;color:var(--soft);opacity:.55}
   /* 예배시간 카드 — 라벨/값 세로로 쌓아 안정적으로 */
   .info-row{flex-direction:column;align-items:flex-start;gap:2px}
   .info-row span:first-child{font-size:13px}

@@ -39,7 +39,7 @@
       { q: '주차는 어디에 하나요?', k: ['주차', 'parking', '차 댈', '차를', '주차장'], a: '넓은 교회 주차장이 있어 무료로 편하게 대실 수 있어요.' },
       { q: '아이를 데려가도 되나요?', k: ['아이', '자녀', '아기', '유아', '어린이', '애기', '키즈'], a: '물론이죠! 예배 동안 주일학교에서 아이들을 돌봐드려서 부모님도 편히 예배드리실 수 있어요.' },
       { q: '교회가 어디에 있나요?', k: ['어디', '위치', '주소', '오시는', '오는 길', '찾아', '지도', '길'], a: '17920 Meridian Ave N, Shoreline, WA 98133 (시애틀 북쪽 쇼어라인)이에요.<br><a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도에서 보기</a>' },
-      { q: '대중교통으로 갈 수 있나요? (버스·라이트레일)', k: ['대중교통', '버스', '지하철', '전철', '기차', '라이트레일', 'light rail', 'link', 'transit', '교통', '여행'], a: '대중교통으로 오기 편해요! 🚉<br>· <b>라이트레일</b>: 1 Line <b>Shoreline North/185th</b>역이 가장 가까워요(교회까지 차로 약 5분). 역에서 Metro 348번 버스나 짧은 우버로 연결돼요.<br>· <b>버스</b>: 시애틀 도심 쪽에서 오신다면 Aurora Ave의 <b>RapidRide E Line</b>이 자주 다녀요.<br>여행 중이시라면 아래 실시간 길찾기가 가장 정확해요.<br><a href="https://www.google.com/maps/dir/?api=1&destination=17920+Meridian+Ave+N+Shoreline+WA+98133&travelmode=transit" target="_blank" rel="noopener">실시간 대중교통 길찾기 →</a>' },
+      { q: '대중교통으로 갈 수 있나요? (버스·라이트레일)', k: ['대중교통', '버스', '지하철', '전철', '기차', '라이트레일', 'light rail', 'link', 'transit', '교통', '여행'], a: '대중교통으로 오기 편해요! 🚉<br>· <b>라이트레일</b>: 1 Line <b>Shoreline North/185th</b>역에서 교회까지 <b>도보 약 15~20분</b>이에요. 조금 머니 역에서 버스 환승이나 우버(약 5분)도 좋아요.<br>· <b>버스</b>: Aurora Ave의 <b>RapidRide E Line</b>이 자주 다녀요. 가까운 정류장에서 내려 교회까지 <b>도보 약 12~15분</b>.<br>정확한 실시간 도보·환승 경로는 아래 링크가 가장 정확해요.<br><a href="https://www.google.com/maps/dir/?api=1&destination=17920+Meridian+Ave+N+Shoreline+WA+98133&travelmode=transit" target="_blank" rel="noopener">실시간 대중교통 길찾기 →</a>' },
       { q: '예배 분위기는 어떤가요?', k: ['분위기', '어떤 교회', '어떤 곳', '느낌'], a: '마음 문이 열린 따뜻한 공동체예요. 예배 후엔 함께 떡과 커피를 나누는 교제가 있어요.<br><span style="opacity:.72;font-size:13px">— “정말 사람들이 마음 문이 열린 교회 같아요!” (성도 후기)</span>' },
       { q: '헌금은 어떻게 하나요?', k: ['헌금', '후원', 'offering', '봉헌', '기부'], a: '본당에 들어가기 전, 입구에 비치된 헌금함이 있습니다. 또한 홈페이지 PayPal로도 안전하게 가능해요.<br><a href="https://www.paypal.com/donate/?hosted_button_id=ZRCRQD95SA2VU" target="_blank" rel="noopener">온라인 헌금하기</a>' },
       { q: '설교를 미리 들어볼 수 있나요?', k: ['설교', '유튜브', '말씀', '영상', '예배 영상', '미리'], a: '네, 유튜브 채널 @kzionchurch에서 지난 설교를 언제든 보실 수 있어요.<br><a href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener">유튜브 채널 보기</a>' }
@@ -137,25 +137,43 @@
     });
   }
 
+  /* ---------- 처음 오시는 분 플립 카드 (모바일) ---------- */
+  document.querySelectorAll('.steps .step').forEach(function (card) {
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.addEventListener('click', function () { card.classList.toggle('flipped'); });
+    card.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.classList.toggle('flipped'); }
+    });
+  });
+
   /* ---------- 최근 설교 자동 추출 (유튜브 RSS, index 전용) ---------- */
   var sermonFrame = document.getElementById('sermonFrame');
   if (sermonFrame) {
-    var CHANNEL_ID = 'UCy4IfDFFaaDszT8R_BDmLOA';
-    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + CHANNEL_ID;
+    var SUNDAY_PLAYLIST_ID = 'PLPzvxbIUN0KXbeQey49_OLQ-T7VKMXSmc'; // 유튜브 '주일예배' 재생목록
+    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + SUNDAY_PLAYLIST_ID;
     var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
     fetch(proxyUrl)
       .then(function (r) { if (!r.ok) throw 0; return r.text(); })
       .then(function (xml) {
         var doc = new DOMParser().parseFromString(xml, 'text/xml');
-        var entry = doc.querySelector('entry');
-        if (!entry) return;
+        var entries = doc.querySelectorAll('entry');
+        if (!entries.length) return;
+        // '주일예배' 재생목록 안에서 게시일이 가장 최근인 영상 선택 (정렬 순서와 무관하게 안전)
+        var entry = null, best = -1;
+        entries.forEach(function (en) {
+          var p = en.querySelector('published');
+          var t = p ? Date.parse(p.textContent) : 0;
+          if (t >= best) { best = t; entry = en; }
+        });
+        if (!entry) entry = entries[0];
         var link = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
         var href = link ? link.getAttribute('href') : '';
         var m = href.match(/[?&]v=([^&]+)/);
         var id = m ? m[1] : null;
         if (!id) return;
         sermonFrame.src = 'https://www.youtube.com/embed/' + id;
-        var titleEl = doc.querySelector('entry > title') || entry.querySelector('title');
+        var titleEl = entry.querySelector('title');
         var tEl = document.getElementById('sermonTitle');
         if (titleEl && tEl) {
           var t = titleEl.textContent.replace(/^\d{4}[.\-]\d{2}[.\-]\d{2}\s*/, '').trim();
