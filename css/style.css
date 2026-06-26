@@ -179,9 +179,12 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .marquee{margin-top:24px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
 .marquee-track{display:flex;gap:16px;width:max-content;animation:marquee 44s linear infinite}
 .marquee:hover .marquee-track{animation-play-state:paused}
-.marquee .quote{flex:0 0 auto;width:340px;background:#fff;border-radius:14px;margin:0;transform:none;opacity:1}
-.marquee .quote:hover{transform:translateY(-4px)}
-.marquee .quote p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.marquee .quote{flex:0 0 auto;width:336px;background:#fff;border:none;border-radius:20px;margin:0;padding:26px 26px 22px;box-shadow:0 14px 34px rgba(15,58,64,.09);transform:none;opacity:1;position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.marquee .quote::before{content:"\201C";position:absolute;top:6px;right:20px;font-family:var(--serif);font-weight:700;font-size:60px;line-height:1;color:var(--teal);opacity:.1;pointer-events:none}
+.marquee .quote:hover{transform:translateY(-5px);box-shadow:0 20px 44px rgba(15,58,64,.14)}
+.marquee .quote .stars.sm{margin-bottom:13px}
+.marquee .quote p{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;position:relative;color:var(--ink)}
+.marquee .quote .who{margin-top:14px;color:var(--teal-d);font-weight:600}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(max-width:560px){.marquee .quote{width:280px}}
 @media(prefers-reduced-motion:reduce){.marquee{overflow-x:auto}.marquee-track{animation:none}}
