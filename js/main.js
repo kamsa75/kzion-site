@@ -137,6 +137,34 @@
     });
   }
 
+  /* ---------- 최근 설교 자동 추출 (유튜브 RSS, index 전용) ---------- */
+  var sermonFrame = document.getElementById('sermonFrame');
+  if (sermonFrame) {
+    var CHANNEL_ID = 'UCy4IfDFFaaDszT8R_BDmLOA';
+    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + CHANNEL_ID;
+    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
+    fetch(proxyUrl)
+      .then(function (r) { if (!r.ok) throw 0; return r.text(); })
+      .then(function (xml) {
+        var doc = new DOMParser().parseFromString(xml, 'text/xml');
+        var entry = doc.querySelector('entry');
+        if (!entry) return;
+        var link = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
+        var href = link ? link.getAttribute('href') : '';
+        var m = href.match(/[?&]v=([^&]+)/);
+        var id = m ? m[1] : null;
+        if (!id) return;
+        sermonFrame.src = 'https://www.youtube.com/embed/' + id;
+        var titleEl = doc.querySelector('entry > title') || entry.querySelector('title');
+        var tEl = document.getElementById('sermonTitle');
+        if (titleEl && tEl) {
+          var t = titleEl.textContent.replace(/^\d{4}[.\-]\d{2}[.\-]\d{2}\s*/, '').trim();
+          if (t) tEl.textContent = t;
+        }
+      })
+      .catch(function () { /* 실패 시 기존(폴백) 영상 유지 */ });
+  }
+
   /* ---------- 마음 날씨 (index 전용) ---------- */
   var moodsEl = document.getElementById('moods');
   if (moodsEl) {
