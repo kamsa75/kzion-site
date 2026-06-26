@@ -49,16 +49,22 @@
     panel.className = 'chat-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', '처음 오시나요? 문의');
+    var FACE = '<span class="chat-face"><svg class="face-svg" viewBox="0 0 48 48" aria-hidden="true">' +
+      '<circle cx="24" cy="24" r="23" fill="#F7CBA0"/>' +
+      '<path d="M5 21a19 19 0 0 1 38 0c0 1-2 1-3 .6C36 16 30 13 24 13S12 16 8 21.6C7 22 5 22 5 21z" fill="#4A3328"/>' +
+      '<circle class="cheek" cx="14.5" cy="29" r="3.2" fill="#F2997A" opacity=".55"/>' +
+      '<circle class="cheek" cx="33.5" cy="29" r="3.2" fill="#F2997A" opacity=".55"/>' +
+      '<g class="eyes" fill="#3A2A22"><ellipse cx="17.5" cy="24" rx="2.4" ry="3.1"/><ellipse cx="30.5" cy="24" rx="2.4" ry="3.1"/></g>' +
+      '<path d="M18 31.5 Q24 36.5 30 31.5" stroke="#3A2A22" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
+      '</svg></span>';
     panel.innerHTML =
-      '<div class="chat-head"><h2>처음 오시나요?</h2><p>예배·주차·아이 동반까지, 편하게 물어보세요.</p><button class="chat-close" aria-label="닫기">&times;</button></div>' +
+      '<div class="chat-head"><div class="chat-id">' + FACE + '<div><h2>처음 오시나요?</h2><p>예배·주차·아이 동반까지, 편하게 물어보세요.</p></div></div><button class="chat-close" aria-label="닫기">&times;</button></div>' +
       '<div class="chat-body"></div>' +
-      '<div class="chat-chips"></div>' +
       '<div class="chat-foot"><textarea rows="1" placeholder="궁금한 점을 적어주세요…" aria-label="메시지 입력"></textarea><button class="chat-send" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>' +
       '<div class="chat-disclaimer">자세한 안내는 예배 때나 교회 SNS로도 도와드려요.</div>';
     document.body.appendChild(panel);
 
     var body = panel.querySelector('.chat-body');
-    var chipsBox = panel.querySelector('.chat-chips');
     var input = panel.querySelector('textarea');
     var sendBtn = panel.querySelector('.chat-send');
     var closeBtn = panel.querySelector('.chat-close');
@@ -72,14 +78,17 @@
       body.scrollTop = body.scrollHeight;
     }
     function renderChips() {
-      chipsBox.innerHTML = '';
+      var box = document.createElement('div');
+      box.className = 'chat-chips';
       FAQ.forEach(function (f) {
         var b = document.createElement('button');
         b.className = 'chat-chip';
         b.textContent = f.q;
         b.onclick = function () { addMsg('user', f.q); setTimeout(function () { addMsg('bot', f.a); }, 220); };
-        chipsBox.appendChild(b);
+        box.appendChild(b);
       });
+      body.appendChild(box);
+      body.scrollTop = body.scrollHeight;
     }
     function matchAnswer(text) {
       var t = text.toLowerCase();
