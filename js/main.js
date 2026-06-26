@@ -129,6 +129,16 @@
     });
   }
 
+  /* ---------- 대중교통 토글 (예배안내) ---------- */
+  var transitToggle = document.getElementById('transitToggle');
+  if (transitToggle) {
+    var transitBtn = transitToggle.querySelector('.transit-btn');
+    transitBtn.addEventListener('click', function () {
+      var open = transitToggle.classList.toggle('open');
+      transitBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  }
+
   /* ---------- 처음 오시는 분 플립 카드 (모바일) ---------- */
   var stepCards = document.querySelectorAll('.steps .step');
   var flipTimer = null;
