@@ -28,16 +28,91 @@
     });
   }
 
-  /* ---------- AI 안내자 오브 (1차 배포: 안내 토스트) ---------- */
+  /* ---------- 문의 상담창 (처음 오시나요?) ---------- */
   var orb = document.getElementById('orb');
-  var toast = document.getElementById('toast');
-  if (orb && toast) {
-    var tt;
-    orb.addEventListener('click', function () {
-      toast.classList.add('show');
-      clearTimeout(tt);
-      tt = setTimeout(function () { toast.classList.remove('show'); }, 4200);
-    });
+  if (orb) {
+    var GREETING = '안녕하세요! 시온교회에 관심 가져 주셔서 감사해요. 😊 예배 시간·주차·아이 동반까지, 아래에서 골라보시거나 궁금한 점을 편하게 적어주세요.';
+    var FALLBACK = '그 부분은 제가 정확히 알지 못해서요. 교회 <a href="https://www.facebook.com/kzionchurch" target="_blank" rel="noopener">페이스북</a>·<a href="https://www.instagram.com/seattlezionchurch" target="_blank" rel="noopener">인스타그램</a>으로 메시지 주시거나, 주일에 직접 오셔서 물어봐 주시면 정확히 안내받으실 수 있어요.';
+    var FAQ = [
+      { q: '처음 방문하는데 뭘 준비하나요?', k: ['처음', '방문', '준비', '뭐 가', '뭘'], a: '아무것도 준비하지 않으셔도 돼요. 편한 차림으로 오시면 입구에서 따뜻하게 맞아드려요. 처음 오신 분도 어색하지 않게 자연스럽게 안내해 드립니다.' },
+      { q: '예배는 언제 드리나요?', k: ['예배', '시간', '몇시', '몇 시', '언제', '주일'], a: '주일예배는 일요일 <b>오전 10:45</b>, 본당에서 드려요.<br>· 주일학교 일요일 10:45 (교육관)<br>· 수요통독 수요일 10:00 / 오후 7:30 (두란노실)<br>· 토요예배 매주 오전 7:00 (본당)<br><a href="worship.html">예배안내 자세히 보기</a>' },
+      { q: '주차는 어디에 하나요?', k: ['주차', 'parking', '차 댈', '차를'], a: '교회 자체 주차장이 있어 무료로 편하게 주차하실 수 있어요.' },
+      { q: '아이를 데려가도 되나요?', k: ['아이', '자녀', '아기', '유아', '어린이', '애기', '키즈'], a: '물론이에요! 예배 시간 동안 주일학교에서 아이들을 따뜻하게 돌봐 드려서, 부모님도 편안히 예배드리실 수 있어요.' },
+      { q: '어떤 옷을 입어야 하나요?', k: ['옷', '복장', '드레스코드', '입어', '차림'], a: '정해진 복장 규정이 없어요. 평소 편안한 차림으로 오시면 충분합니다.' },
+      { q: '교회가 어디에 있나요?', k: ['어디', '위치', '주소', '오시는', '오는 길', '찾아', '지도', '길'], a: '17920 Meridian Ave N, Shoreline, WA 98133 (시애틀 북쪽 쇼어라인)이에요.<br><a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도에서 보기</a>' },
+      { q: '예배 분위기는 어떤가요?', k: ['분위기', '어떤 교회', '어떤 곳', '느낌'], a: '마음 문이 열린 따뜻한 공동체예요. 처음 오셔도 부담 없이, 예배 후엔 함께 차와 음식을 나누는 따뜻한 교제가 있어요.' },
+      { q: '새가족인데 어떻게 등록해요?', k: ['새가족', '등록', '가입', '처음 등록'], a: '예배 후 새가족을 맞아 안내해 드리는 분이 계세요. 편하게 인사 나누시면 됩니다.' },
+      { q: '소그룹·성경공부가 있나요?', k: ['소그룹', '성경공부', '모임', '구역', '제자', '셀'], a: '네, 평신도 리더를 위한 소그룹 성경공부(교재 ‘부르심’)를 비롯해 함께 말씀을 나누는 모임들이 있어요. 참여 방법은 예배 후 편하게 문의해 주세요.' },
+      { q: '헌금은 어떻게 하나요?', k: ['헌금', '후원', 'offering', '봉헌', '기부'], a: '현장 헌금 외에도 홈페이지에서 PayPal로 안전하게 온라인 헌금하실 수 있어요.<br><a href="https://www.paypal.com/donate/?hosted_button_id=ZRCRQD95SA2VU" target="_blank" rel="noopener">온라인 헌금하기</a>' },
+      { q: '지난 설교를 듣고 싶어요', k: ['설교', '유튜브', '말씀', '영상', '예배 영상'], a: '교회 유튜브 채널에서 지난 설교를 언제든 다시 들으실 수 있어요.<br><a href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener">유튜브 채널 보기</a>' }
+    ];
+
+    var panel = document.createElement('div');
+    panel.className = 'chat-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-label', '처음 오시나요? 문의');
+    panel.innerHTML =
+      '<div class="chat-head"><h2>처음 오시나요?</h2><p>예배·주차·아이 동반까지, 편하게 물어보세요.</p><button class="chat-close" aria-label="닫기">&times;</button></div>' +
+      '<div class="chat-body"></div>' +
+      '<div class="chat-chips"></div>' +
+      '<div class="chat-foot"><textarea rows="1" placeholder="궁금한 점을 적어주세요…" aria-label="메시지 입력"></textarea><button class="chat-send" aria-label="보내기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>' +
+      '<div class="chat-disclaimer">자세한 안내는 예배 때나 교회 SNS로도 도와드려요.</div>';
+    document.body.appendChild(panel);
+
+    var body = panel.querySelector('.chat-body');
+    var chipsBox = panel.querySelector('.chat-chips');
+    var input = panel.querySelector('textarea');
+    var sendBtn = panel.querySelector('.chat-send');
+    var closeBtn = panel.querySelector('.chat-close');
+    var started = false;
+
+    function addMsg(role, html) {
+      var d = document.createElement('div');
+      d.className = 'cmsg ' + role;
+      if (role === 'user') { d.textContent = html; } else { d.innerHTML = html; }
+      body.appendChild(d);
+      body.scrollTop = body.scrollHeight;
+    }
+    function renderChips() {
+      chipsBox.innerHTML = '';
+      FAQ.forEach(function (f) {
+        var b = document.createElement('button');
+        b.className = 'chat-chip';
+        b.textContent = f.q;
+        b.onclick = function () { addMsg('user', f.q); setTimeout(function () { addMsg('bot', f.a); }, 220); };
+        chipsBox.appendChild(b);
+      });
+    }
+    function matchAnswer(text) {
+      var t = text.toLowerCase();
+      for (var i = 0; i < FAQ.length; i++) {
+        for (var j = 0; j < FAQ[i].k.length; j++) {
+          if (t.indexOf(FAQ[i].k[j]) >= 0) return FAQ[i].a;
+        }
+      }
+      return FALLBACK;
+    }
+    function ask(text) {
+      text = (text || '').trim();
+      if (!text) return;
+      addMsg('user', text);
+      input.value = ''; input.style.height = 'auto';
+      var a = matchAnswer(text);
+      setTimeout(function () { addMsg('bot', a); }, 260);
+    }
+    function open() {
+      panel.classList.add('open');
+      if (!started) { addMsg('bot', GREETING); renderChips(); started = true; }
+      setTimeout(function () { input.focus(); }, 300);
+    }
+    function close() { panel.classList.remove('open'); }
+
+    orb.setAttribute('aria-label', '문의 열기 — 처음 오시나요?');
+    orb.addEventListener('click', function () { panel.classList.contains('open') ? close() : open(); });
+    closeBtn.addEventListener('click', close);
+    sendBtn.addEventListener('click', function () { ask(input.value); });
+    input.addEventListener('input', function () { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 80) + 'px'; });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(input.value); } });
   }
 
   /* ---------- 히어로 사진 갤러리 cross-fade ---------- */
