@@ -146,6 +146,17 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .mood{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:18px;width:118px;height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;cursor:pointer;color:var(--ivory);font-family:var(--sans);font-size:14.5px;font-weight:500;transition:transform .2s,background .2s,border-color .2s}
 .mood:hover{transform:translateY(-5px);background:rgba(255,255,255,.12)}
 .mood.active{background:var(--gold);color:var(--night);border-color:var(--gold)}
+/* 건드리지 않아도 가볍게 통통 튀는 idle 모션 (데스크톱) */
+@keyframes moodBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media(min-width:561px){
+  .moods .mood{animation:moodBob 2.6s ease-in-out infinite}
+  .moods .mood:nth-child(2){animation-delay:.16s}
+  .moods .mood:nth-child(3){animation-delay:.32s}
+  .moods .mood:nth-child(4){animation-delay:.48s}
+  .moods .mood:nth-child(5){animation-delay:.64s}
+  .mood:hover{animation:none}
+}
+.mood.active{animation:none}
 .mood svg{width:34px;height:34px;transform-box:fill-box;transform-origin:center}
 .mood[data-w="sun"]:hover svg,.mood[data-w="sun"].active svg{animation:spin 7s linear infinite}
 .mood[data-w="cloud"]:hover svg,.mood[data-w="cloud"].active svg{animation:drift 3s ease-in-out infinite}
@@ -376,7 +387,10 @@ footer.site-footer{background:var(--night);color:#B6D2D2;padding:60px 0 38px}
   .info-row span:first-child{font-size:13px}
   /* 예배안내 타임라인 — 이름/시간을 세로로 */
   .ws-main{flex-direction:column;align-items:flex-start;gap:6px}
-  .mood{width:104px;height:104px}
+  /* 마음 날씨 아이콘 — 모바일: 한 줄 가로 스크롤(드래그/스와이프) + 자동 흐름 */
+  .moods{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;gap:10px;margin-top:30px;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .moods::-webkit-scrollbar{display:none}
+  .mood{width:94px;height:94px;flex:0 0 auto}
   .foot-grid{grid-template-columns:1fr}
   .give .wrap{padding:40px 24px}
   .br-m{display:inline}

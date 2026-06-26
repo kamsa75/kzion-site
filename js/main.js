@@ -232,6 +232,27 @@
       moodsEl.appendChild(b);
     });
 
+    /* 모바일: 아이콘 줄이 오른쪽→왼쪽으로 천천히 자동 흐름 (드래그/터치 시 멈춤, 잠시 후 재개) */
+    if (!reduce) {
+      var flowPaused = false, flowResume = null, flowDir = 1, flowPos = 0;
+      function pauseFlow() {
+        flowPaused = true; flowPos = moodsEl.scrollLeft; // 사용자 스크롤 위치에 맞춤
+        clearTimeout(flowResume); flowResume = setTimeout(function () { flowPaused = false; }, 2600);
+      }
+      ['pointerdown', 'touchstart', 'wheel'].forEach(function (ev) {
+        moodsEl.addEventListener(ev, pauseFlow, { passive: true });
+      });
+      setInterval(function () {
+        if (flowPaused) return;
+        var max = moodsEl.scrollWidth - moodsEl.clientWidth;
+        if (max <= 4) return; // 넘치지 않으면(데스크톱) 아무것도 안 함
+        flowPos += flowDir * 0.5;
+        if (flowPos >= max) { flowPos = max; flowDir = -1; }
+        else if (flowPos <= 0) { flowPos = 0; flowDir = 1; }
+        moodsEl.scrollLeft = flowPos;
+      }, 16);
+    }
+
     var WX_ICONS = {
       sun: '<circle cx="12" cy="12" r="4.2"/><line x1="12" y1="2" x2="12" y2="4.4"/><line x1="12" y1="19.6" x2="12" y2="22"/><line x1="2" y1="12" x2="4.4" y2="12"/><line x1="19.6" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.6" y2="6.6"/><line x1="17.4" y1="17.4" x2="19.1" y2="19.1"/><line x1="19.1" y1="4.9" x2="17.4" y2="6.6"/><line x1="6.6" y1="17.4" x2="4.9" y2="19.1"/>',
       cloud: '<path d="M7 17h9a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 6 9.5 3.75 3.75 0 0 0 7 17z"/>',
