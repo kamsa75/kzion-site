@@ -266,9 +266,9 @@ html.js .worship-schedule.in .ws-row{opacity:1;transform:none}
 @keyframes busDrive{0%{transform:translateX(0);opacity:0}8%{opacity:1}88%{opacity:1}100%{transform:translateX(var(--bus-travel,48px));opacity:0}}
 .transit-toggle.open .transit-btn{background:var(--night);border-bottom-left-radius:0;border-bottom-right-radius:0}
 .transit-toggle.open .transit-chevron{transform:rotate(180deg)}
-.transit-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.2,.7,.2,1);background:#fff;border-radius:0 0 14px 14px}
-.transit-toggle.open .transit-panel{grid-template-rows:1fr;border:1px solid var(--line);border-top:none}
-.transit-inner{overflow:hidden;padding:0 18px}
+.transit-panel{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.2,.7,.2,1);background:#fff;border-radius:0 0 14px 14px}
+.transit-toggle.open .transit-panel{max-height:680px;border:1px solid var(--line);border-top:none}
+.transit-inner{padding:0 18px}
 .transit-inner p,.transit-inner ul{margin:14px 0 0;font-size:14.5px;line-height:1.65;color:var(--ink)}
 .transit-inner ul{list-style:none;display:flex;flex-direction:column;gap:10px;padding:0}
 .transit-inner li{position:relative;padding-left:16px}
