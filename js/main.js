@@ -137,18 +137,20 @@
       var open = transitToggle.classList.toggle('open');
       transitBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
-    // 버스가 텍스트 옆 → 오른쪽 끝 화살표까지 주행하도록 거리 계산 (화면 폭 변화 대응, 속도 일정)
-    var transitBus = transitToggle.querySelector('.transit-bus');
+    // 버스·경전철이 텍스트 옆 → 오른쪽 끝 화살표까지 번갈아 주행 (거리 자동 측정, 속도 일정)
+    var transitVeh = transitToggle.querySelector('.transit-veh');
     var transitChev = transitToggle.querySelector('.transit-chevron');
+    var transitBus = transitToggle.querySelector('.transit-bus');
+    var transitRail = transitToggle.querySelector('.transit-rail');
     function sizeBusTravel() {
-      if (!transitBus || !transitChev) return;
-      transitBus.style.animation = 'none';        // 변형 제거 후 정지 위치 측정
-      var br = transitBus.getBoundingClientRect();
+      if (!transitVeh || !transitChev) return;
+      var vr = transitVeh.getBoundingClientRect();   // 래퍼는 변형되지 않으므로 정지 위치
       var cr = transitChev.getBoundingClientRect();
-      var travel = Math.max(24, Math.round(cr.left - br.right - 6));
-      transitBus.style.setProperty('--bus-travel', travel + 'px');
-      transitBus.style.animation = '';            // 스타일시트 애니메이션 복원
-      transitBus.style.animationDuration = Math.min(6, Math.max(2.6, travel / 110)).toFixed(2) + 's'; // 속도 일정
+      var travel = Math.max(24, Math.round(cr.left - vr.right - 6));
+      transitVeh.style.setProperty('--bus-travel', travel + 'px'); // 자식들이 상속
+      var dur = Math.min(11, Math.max(5, travel / 28));            // 주행 구간(절반)이 ~110px/s 되도록
+      if (transitBus) transitBus.style.animationDuration = dur.toFixed(2) + 's';
+      if (transitRail) { transitRail.style.animationDuration = dur.toFixed(2) + 's'; transitRail.style.animationDelay = (-dur / 2).toFixed(2) + 's'; }
     }
     sizeBusTravel();
     var bt; window.addEventListener('resize', function () { clearTimeout(bt); bt = setTimeout(sizeBusTravel, 150); });

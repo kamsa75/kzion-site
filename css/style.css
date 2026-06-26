@@ -261,9 +261,10 @@ html.js .worship-schedule.in .ws-row{opacity:1;transform:none}
 .transit-lead{display:inline-flex;align-items:center;gap:12px;min-width:0}
 .transit-q svg{color:var(--ivory);flex:0 0 auto}
 .transit-chevron{color:var(--ivory);flex:0 0 auto;display:inline-flex;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
-.transit-bus{display:inline-flex;color:var(--ivory);flex:0 0 auto;animation:busDrive 3.8s linear infinite}
-.transit-bus svg{display:block}
-@keyframes busDrive{0%{transform:translateX(0);opacity:0}8%{opacity:1}88%{opacity:1}100%{transform:translateX(var(--bus-travel,48px));opacity:0}}
+.transit-veh{display:inline-grid;align-items:center;flex:0 0 auto}
+.transit-bus,.transit-rail{grid-area:1/1;display:inline-flex;color:var(--ivory);animation:vehiclePass 7s linear infinite}
+.transit-bus svg,.transit-rail svg{display:block}
+@keyframes vehiclePass{0%{transform:translateX(0);opacity:0}3%{opacity:1}44%{opacity:1}50%{transform:translateX(var(--bus-travel,48px));opacity:0}100%{transform:translateX(var(--bus-travel,48px));opacity:0}}
 .transit-toggle.open .transit-btn{background:var(--night);border-bottom-left-radius:0;border-bottom-right-radius:0}
 .transit-toggle.open .transit-chevron{transform:rotate(180deg)}
 .transit-panel{max-height:0;overflow:hidden;transition:max-height .45s cubic-bezier(.2,.7,.2,1);background:#fff;border-radius:0 0 14px 14px}
