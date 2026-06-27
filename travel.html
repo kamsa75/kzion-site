@@ -29,7 +29,7 @@
     --sans:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
     --wrap:1080px;--r:18px;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html{scroll-behavior:smooth}
   body{font-family:var(--sans);background:var(--ivory);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
   a{color:inherit}
@@ -81,6 +81,7 @@
   .presets{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
   .preset{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px 16px;cursor:pointer;text-align:left;transition:transform .16s,box-shadow .16s,border-color .16s;position:relative;overflow:hidden}
   .preset:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(20,50,48,.1);border-color:var(--teal)}
+  .preset:active{transform:scale(.97)}
   .preset .pic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--teal),var(--teal-2));margin-bottom:13px}
   .preset.sunset .pic{background:linear-gradient(135deg,var(--orange),var(--orange-l))}
   .preset.today .pic{background:linear-gradient(135deg,#3a8fb0,#6bbbd0)}
