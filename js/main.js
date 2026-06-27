@@ -49,6 +49,12 @@
     window.addEventListener('resize', function () {
       if (piToggle.getAttribute('aria-expanded') === 'true') piPanel.style.maxHeight = 'none';
     });
+    // FAQ '담임목사' 답변에서 staff.html#pastor 로 들어오면 인사말을 자동으로 펼쳐 보여줌
+    if (/^#(pastor|pastorMsg)$/.test(location.hash)) {
+      piToggle.setAttribute('aria-expanded', 'true');
+      piPanel.style.maxHeight = piPanel.scrollHeight + 'px';
+      setTimeout(function () { piToggle.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 250);
+    }
   }
 
   /* ---------- 문의 상담창 (처음 오시나요?) ---------- */
@@ -59,6 +65,7 @@
     var FAQ = [
       { q: '처음 방문하는데 뭘 준비해야 하나요?', k: ['처음', '방문', '준비', '뭘', '뭐 가', '옷', '복장', '차림', '입어'], a: '아무것도요. 편한 차림으로 오시면 입구에서 따뜻하게 맞아드려요. 처음 오신 분도 어색하지 않게 자연스럽게 안내해드려요.' },
       { q: '예배는 언제 드리나요?', k: ['예배', '시간', '몇시', '몇 시', '언제', '주일'], a: '주일예배 일요일 <b>오전 10:45</b>(본당). 주일학교도 같은 시간(교육관), 수요통독 수 10:00·오후 7:30, 토요예배 오전 7:00.<br><a href="worship.html">예배안내 자세히 보기</a>' },
+      { q: '담임목사님은 어떤 분인가요?', k: ['목사', '담임', '목사님', '이영래', '설교자', '목회자', 'pastor'], a: '담임은 <b>이영래 목사</b>님이세요. “약점이 많지만, 함께 울어주고 함께 웃어줄 친구가 되어 드리겠다”는 마음으로 섬기시는, 생각하는 그리스도인이자 행복을 전하는 분이에요. 😊<br>장로회신학대학교(Th.B.·M.Div.)와 McCormick 신학교(M.A.T.S.)에서 공부하셨고, 서울 영락교회 전도사, 시카고 한인연합장로교회 부목사, 시카고 하나교회 담임목사를 거치셨어요.<br><a href="staff.html#pastor">이력과 인사말 전문 보기</a>' },
       { q: '주차는 어디에 하나요?', k: ['주차', 'parking', '차 댈', '차를', '주차장'], a: '넓은 교회 주차장이 있어 무료로 편하게 대실 수 있어요.' },
       { q: '아이를 데려가도 되나요?', k: ['아이', '자녀', '아기', '유아', '어린이', '애기', '키즈'], a: '물론이죠! 예배 동안 주일학교에서 아이들을 돌봐드려서 부모님도 편히 예배드리실 수 있어요.' },
       { q: '교회가 어디에 있나요?', k: ['어디', '위치', '주소', '오시는', '오는 길', '찾아', '지도', '길'], a: '17920 Meridian Ave N, Shoreline, WA 98133 (시애틀 북쪽 쇼어라인)이에요.<br><a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도에서 보기</a>' },
