@@ -444,3 +444,23 @@ a:focus-visible,.btn:focus-visible,button:focus-visible{outline:3px solid var(--
   .reveal,html.js .reveal{transition:none;opacity:1;transform:none}
   .hero h1 span,.hero .lead,.cta-row,.badge,.hero .slot,.photo-cluster{opacity:1}
 }
+
+/* ---------- 터치 기기: hover 효과 끄기 (첫 탭에 바로 동작) ---------- */
+@media (hover: none){
+  .nav-give:hover{background:var(--gold);transform:none}
+  .btn:hover .ar{transform:none}
+  .btn-teal:hover{background:var(--teal);transform:none}
+  .btn-line:hover{background:transparent;transform:none}
+  .btn-dark:hover{background:var(--night);transform:none}
+  .btn-gold:hover{background:var(--gold);transform:none}
+  .pcard:hover .pin{transform:none;border-color:rgba(255,255,255,.5)}
+  .step:hover{transform:none;box-shadow:none}
+  .step:hover .n{transform:none}
+  .gift:hover .gx-lid{transform:none}
+  .gift:hover .gx-spark{opacity:0}
+  .gift:hover .gift-msg{color:var(--ink)}
+  .mood:hover{transform:none;background:rgba(255,255,255,.06)}
+  .marquee .quote:hover,.quote:hover{transform:none}
+  .ws-row:hover .ws-main{transform:none}
+  .socials a:hover{transform:none}
+}
