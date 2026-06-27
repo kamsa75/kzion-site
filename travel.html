@@ -78,7 +78,7 @@
   .stage-label::after{content:"";flex:1;height:1px;background:var(--line)}
 
   /* preset cards */
-  .presets{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}
+  .presets{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
   .preset{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px 16px;cursor:pointer;text-align:left;transition:transform .16s,box-shadow .16s,border-color .16s;position:relative;overflow:hidden}
   .preset:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(20,50,48,.1);border-color:var(--teal)}
   .preset .pic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--teal),var(--teal-2));margin-bottom:13px}
@@ -87,7 +87,13 @@
   .preset .pic svg{width:22px;height:22px;color:#fff}
   .preset h3{font-size:15.5px;font-weight:700;margin-bottom:3px}
   .preset p{font-size:12.5px;color:var(--soft);line-height:1.45}
-  @media(max-width:720px){
+  .preset.local{background:var(--night);border-color:var(--night)}
+  .preset.local h3{color:#fff}
+  .preset.local p{color:#CFE2DB}
+  .preset.local .pic{background:linear-gradient(135deg,var(--orange),var(--orange-l))}
+  .preset.local:hover{border-color:var(--orange-l)}
+  .ptag{position:absolute;top:9px;right:9px;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.02em}
+  @media(max-width:840px){
     .presets{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px;padding:2px 22px 10px}
     .presets::-webkit-scrollbar{display:none}
     .preset{flex:0 0 150px;scroll-snap-align:start;padding:13px 13px 12px;border-radius:14px}
@@ -132,6 +138,7 @@
   .stats{display:flex;gap:20px;flex-wrap:wrap}
   .stat .n{font-family:var(--serif);font-weight:800;font-size:21px;color:var(--teal-d)}
   .stat .l{font-size:11.5px;color:var(--soft)}
+  .res-note{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--teal-d);margin:2px 0 14px;line-height:1.5}
   .disclaim{font-size:12px;color:var(--soft);margin:0 0 18px;line-height:1.5}
   .res-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:24px;align-items:start}
   @media(max-width:840px){.res-grid{grid-template-columns:1fr}}
@@ -162,7 +169,10 @@
   .tl-time{font-size:12.5px;color:var(--orange-d);font-weight:600;margin-bottom:3px}
   .tl-name{font-size:16.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .tl-badge{font-size:11px;font-weight:700;color:#fff;background:var(--orange);padding:2px 9px;border-radius:999px;letter-spacing:.03em}
+  .tl-badge.local{background:var(--teal)}
   .tl-desc{font-size:13.5px;color:var(--ink);opacity:.82;margin-top:6px;line-height:1.55}
+  .tl-tip{margin-top:9px;font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--ink);line-height:1.55;display:flex;flex-wrap:wrap;gap:5px 8px;align-items:baseline}
+  .tl-tip-l{font-family:var(--sans);font-style:normal;font-size:10.5px;font-weight:700;color:var(--teal);background:rgba(36,146,160,.1);padding:2px 8px;border-radius:999px;letter-spacing:.02em}
   .tl-meta{font-size:12.5px;color:var(--soft);margin-top:9px;display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center}
   .tl-meta b{color:var(--teal-d);font-weight:600}
   .hours-link{font-size:12px;font-weight:600;color:var(--teal);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
@@ -276,6 +286,7 @@
   <div class="print-head"><div class="ph-brand">시애틀 시온장로교회 · 시애틀 하루 코스</div><div class="ph-sub">일요일 · 예배 후 오후 1:00 출발 · kzion.net/travel</div></div>
   <div class="wxnote" id="wxnote"></div>
   <div class="res-head"><h2 id="resTitle">오늘의 추천 코스</h2><div class="stats" id="stats"></div></div>
+  <p class="res-note" id="resNote" style="display:none"></p>
   <p class="disclaim" id="disclaim"></p>
   <div class="res-grid">
     <div class="mapcard">
@@ -345,12 +356,20 @@
     {n:"프리몬트 트롤",lat:47.65106,lng:-122.3475,dur:20,rate:4.5,access:10,open:0,close:1440,hours:"상시 · 무료",gpid:"ChIJvYSnKAEVkFQR35lxzvEE250",indoor:false,sunset:false,cats:["photo","landmark"],desc:"다리 밑에 숨은 거대한 콘크리트 트롤 조형물. 개성 있는 프리몬트 동네 산책과 함께 들르기 좋다."},
     {n:"우드랜드 파크 동물원",lat:47.66844,lng:-122.35088,dur:170,rate:4.6,access:12,open:570,close:960,hours:"일 09:30–18:00(여름)·16:00(겨울)",gpid:"ChIJydSuSkkUkFQRsqhB-cEtYnw",indoor:false,sunset:false,cats:["family"],desc:"그린레이크 인근의 대형 동물원. 넓어서 가족 나들이라면 최소 2~3시간은 잡아야 한다."},
     {n:"에드먼즈 워터프론트",lat:47.81365,lng:-122.38156,dur:55,rate:4.7,access:8,open:420,close:1260,hours:"일 07:00–해질녘 (대략)",gpid:"ChIJ_8cf4fwakFQRuSUmleTexf0",indoor:false,sunset:true,cats:["view","photo","family"],desc:"교회에서 북쪽으로 가까운 항구 마을. 페리와 일몰, 해변 산책이 좋고 썰물 땐 불가사리를 볼 수 있다."},
-    {n:"마리나 비치 파크 (에드먼즈)",lat:47.80509,lng:-122.39398,dur:45,rate:4.7,access:8,open:420,close:1290,hours:"일 07:00–21:30 (대략·직접 확인)",gpid:"ChIJ109wK1cakFQRaPf5LgupFXQ",indoor:false,sunset:true,cats:["view","family"],desc:"올림픽 산맥이 보이는 해변·반려견 공원. 일몰 사진 명소로, 에드먼즈 워터프론트와 묶기 좋다."}
+    {n:"마리나 비치 파크 (에드먼즈)",lat:47.80509,lng:-122.39398,dur:45,rate:4.7,access:8,open:420,close:1290,hours:"일 07:00–21:30 (대략·직접 확인)",gpid:"ChIJ109wK1cakFQRaPf5LgupFXQ",indoor:false,sunset:true,cats:["view","family"],desc:"올림픽 산맥이 보이는 해변·반려견 공원. 일몰 사진 명소로, 에드먼즈 워터프론트와 묶기 좋다."},
+    {n:"골든 가든스 파크",lat:47.6926,lng:-122.4032,dur:45,rate:4.8,access:12,open:360,close:1320,hours:"일 06:00–22:00 · 무료",q:"Golden Gardens Park, Seattle",gpid:"",indoor:false,sunset:true,local:true,cats:["view","family","photo"],tip:"노을 30분 전에 도착해 바닷가 모닥불 자리부터 맡아보세요.",desc:"밸러드의 모래 해변. 현지인들이 노을과 모닥불을 즐기는 시애틀 대표 선셋 스폿."},
+    {n:"디스커버리 파크",lat:47.6573,lng:-122.4065,dur:75,rate:4.8,access:14,open:360,close:1320,hours:"일 06:00–22:00 · 무료",q:"Discovery Park, Seattle",gpid:"",indoor:false,sunset:true,local:true,cats:["view","family","photo"],tip:"주차장에서 등대까지 꽤 걸어요. 편한 신발은 필수예요.",desc:"시애틀에서 가장 큰 공원. 절벽 트레일과 웨스트포인트 등대, 바다·산 전망이 일품."},
+    {n:"밸러드 록스",lat:47.6656,lng:-122.3972,dur:50,rate:4.7,access:12,open:420,close:1260,hours:"일 07:00–21:00 · 무료 (변동·구글 확인)",q:"Hiram M. Chittenden Locks, Seattle",gpid:"",indoor:false,sunset:false,local:true,cats:["landmark","family","photo"],tip:"물고기 사다리(어도) 유리창에서 연어가 지나가는지 노려보세요.",desc:"민물과 바닷물을 잇는 수문. 배가 오르내리고 연어 사다리·작은 식물원까지 볼 수 있는 무료 명소."},
+    {n:"카키크 파크",lat:47.7118,lng:-122.3772,dur:45,rate:4.7,access:12,open:360,close:1320,hours:"일 06:00–22:00 · 무료",q:"Carkeek Park, Seattle",gpid:"",indoor:false,sunset:true,local:true,cats:["view","family","photo"],tip:"철길 위 육교를 건너야 진짜 해변이 나와요. 썰물엔 게도 보여요.",desc:"교회에서 가까운 북쪽 동네 해변 공원. 기찻길 육교를 건너 내려가는 숨은 바닷가와 연어 하천."},
+    {n:"그린 레이크",lat:47.6806,lng:-122.3286,dur:40,rate:4.7,access:10,open:360,close:1320,hours:"일 06:00–22:00 · 무료",q:"Green Lake Park, Seattle",gpid:"",indoor:false,sunset:false,local:true,cats:["family","view"],tip:"한 바퀴(약 4.8km) 다 돌기보다 호숫가 한쪽만 걸어도 충분해요.",desc:"현지인들이 산책·조깅하는 도심 속 호수. 평지 둘레길이라 가족 산책에 부담이 없다."},
+    {n:"볼런티어 파크",lat:47.6303,lng:-122.3160,dur:40,rate:4.8,access:10,open:360,close:1320,hours:"일 06:00–22:00 · 무료 (온실 시간 별도)",q:"Volunteer Park, Seattle",gpid:"",indoor:false,sunset:false,local:true,cats:["view","museum","photo"],tip:"무료 급수탑 꼭대기에서 'Black Sun' 조형 사이로 스페이스 니들을 담아보세요.",desc:"캐피톨힐의 고전적인 공원. 무료 급수탑 전망대와 유리온실, 예술 조형이 한자리에."},
+    {n:"호세 리잘 파크",lat:47.5919,lng:-122.3193,dur:20,rate:4.6,access:8,open:360,close:1320,hours:"상시(낮 권장) · 무료",q:"Dr. Jose Rizal Park, Seattle",gpid:"",indoor:false,sunset:true,local:true,cats:["view","photo"],tip:"케리 파크보다 한산한 스카이라인 뷰. 도심과 경기장이 함께 잡혀요.",desc:"비컨힐의 한적한 비밀 전망 공원. 다운타운 스카이라인과 경기장이 한눈에 들어온다."}
   ];
 
   var WET_POOL=["스카이뷰 전망대","치훌리 가든 앤 글래스","팝 컬처 박물관 (MoPOP)","시애틀 아쿠아리움"];
   var CLEAR_POOL=["케리 파크 전망대","가스웍스 파크","스페이스 니들","올림픽 조각공원","에드먼즈 워터프론트"];
   var PRESETS=[
+    {id:"local",cls:"local",tag:"현지인 추천",title:"찐 시애틀",sub:"관광객은 모르는 진짜 시애틀",icon:'<path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3l3 6 3-6M9 9l3 12 3-12"/>',cfg:{len:"evening",prio:"near",pace:"relaxed"},note:"관광 명소 대신, 시애틀 토박이들이 즐겨 찾는 곳들로 담았어요.",pool:["골든 가든스 파크","디스커버리 파크","밸러드 록스","카키크 파크","그린 레이크","볼런티어 파크","호세 리잘 파크"]},
     {id:"firstvisit",cls:"",title:"첫 방문 베스트",sub:"시애틀 핵심만 쏙쏙",icon:'<path d="M12 2l2.9 6.3L22 9.3l-5 4.8 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.8 7.1-1z"/>',cfg:{len:"evening",prio:"popular",pace:"relaxed"},pool:["파이크 플레이스 마켓","스페이스 니들","케리 파크 전망대","1호점 스타벅스"]},
     {id:"photo",cls:"",title:"사진 명소 투어",sub:"인생샷 스팟 위주",icon:'<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 7l1.5-2h5L16 7"/>',cfg:{len:"half",prio:"popular",pace:"packed"},pool:["케리 파크 전망대","가스웍스 파크","프리몬트 트롤","치훌리 가든 앤 글래스","올림픽 조각공원"]},
     {id:"family",cls:"",title:"아이와 함께",sub:"가족 나들이 코스",icon:'<circle cx="8" cy="8" r="2.4"/><circle cx="16" cy="8" r="2.4"/><path d="M3.5 20c0-3 2-4.5 4.5-4.5S12.5 17 12.5 20M11.5 20c0-3 2-4.5 4.5-4.5S20.5 17 20.5 20"/>',cfg:{len:"evening",prio:"near",pace:"relaxed"},pool:["시애틀 아쿠아리움","팝 컬처 박물관 (MoPOP)","우드랜드 파크 동물원","시애틀 그레이트 휠"]},
@@ -358,7 +377,7 @@
     {id:"today",cls:"today",title:"오늘 날씨 맞춤",sub:"날씨 보고 골라줘요",icon:'<path d="M7 17a4 4 0 1 1 .5-7.97A6 6 0 0 1 19 11a3.5 3.5 0 0 1-.5 6H7z"/>',cfg:{len:"half",prio:"popular",pace:"relaxed"},weather:true}
   ];
 
-  var state={len:"half",ints:[],prio:"near",pace:"relaxed",move:"driving",start:780,poolNames:[],sunsetMode:false,useWeather:true};
+  var state={len:"half",ints:[],prio:"near",pace:"relaxed",move:"driving",start:780,poolNames:[],sunsetMode:false,useWeather:true,note:""};
   var weather=null; // {tempF,code,wet,label,sunsetMin,sunsetStr}
   var LMAP=null;
 
@@ -366,13 +385,13 @@
   var pbox=document.getElementById("presets");
   PRESETS.forEach(function(p){
     var d=document.createElement("button");d.className="preset "+p.cls;
-    d.innerHTML='<div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p.icon+'</svg></div><h3>'+p.title+'</h3><p>'+p.sub+'</p>';
+    d.innerHTML=(p.tag?'<span class="ptag">'+p.tag+'</span>':'')+'<div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p.icon+'</svg></div><h3>'+p.title+'</h3><p>'+p.sub+'</p>';
     d.onclick=function(){applyPreset(p);};
     pbox.appendChild(d);
   });
   // 모바일: 프리셋이 가로로 더 있다는 걸 알리는 1회 힌트 (살짝 흘렀다 복귀)
   (function(){
-    if(!(window.matchMedia&&window.matchMedia("(max-width:720px)").matches))return;
+    if(!(window.matchMedia&&window.matchMedia("(max-width:840px)").matches))return;
     if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
     setTimeout(function(){
       if(pbox.scrollWidth>pbox.clientWidth+8){
@@ -402,7 +421,7 @@
 
   function applyPreset(p){
     state.len=p.cfg.len||"half";state.prio=p.cfg.prio||"near";state.pace=p.cfg.pace||"relaxed";state.move="driving";
-    state.sunsetMode=!!p.sunset;state.ints=[];state.poolNames=(p.pool||[]).slice();
+    state.sunsetMode=!!p.sunset;state.ints=[];state.poolNames=(p.pool||[]).slice();state.note=p.note||"";
     if(p.weather){state.poolNames=(weather&&weather.wet)?WET_POOL.slice():CLEAR_POOL.slice();}
     document.getElementById("resTitle").textContent=p.title;
     syncAdv();render();
@@ -473,10 +492,13 @@
       var last=(i===route.length-1);
       var sunHtml=(last&&s.sunset&&weather&&weather.sunsetMin)?'<div class="sunset-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="14" r="3.5"/><path d="M12 5v2M4 14H3M21 14h-1M6 8l1 1M18 8l-1 1M2 20h20"/></svg> 오늘 일몰 '+weather.sunsetStr+' — 여기서 노을을 감상하세요</div>':'';
       var warnHtml=s.warn?'<div class="warn-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> '+s.warn+'</div>':'';
+      var tipHtml=s.tip?'<div class="tl-tip"><span class="tl-tip-l">현지인 한마디</span>“'+s.tip+'”</div>':'';
+      var badge=s.local?' <span class="tl-badge local">찐 시애틀</span>':'';
+      var gq=encodeURIComponent(s.q||s.n)+(s.gpid?'&query_place_id='+s.gpid:'');
       html+='<div class="tl-item" style="animation-delay:'+(0.06*(i+1))+'s"><div class="dot">'+(i+1)+'</div>'+
-        '<div class="tl-card"><div class="tl-time">'+fmt(arrive)+' 도착 (주차·도보 포함)</div><div class="tl-name">'+s.n+'</div>'+
-        '<div class="tl-desc">'+s.desc+'</div>'+warnHtml+
-        '<div class="tl-meta"><span>★ <b>'+s.rate.toFixed(1)+'</b></span><span>머무는 시간 <b>'+s.dur+'분</b></span><span>주차·도보 <b>약 '+s.access+'분</b></span><span>'+s.hours+'</span><a class="hours-link" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.n)+'&query_place_id='+s.gpid+'" target="_blank" rel="noopener">구글에서 영업시간 확인 ↗</a></div>'+
+        '<div class="tl-card"><div class="tl-time">'+fmt(arrive)+' 도착 (주차·도보 포함)</div><div class="tl-name">'+s.n+badge+'</div>'+
+        '<div class="tl-desc">'+s.desc+'</div>'+tipHtml+warnHtml+
+        '<div class="tl-meta"><span>★ <b>'+s.rate.toFixed(1)+'</b></span><span>머무는 시간 <b>'+s.dur+'분</b></span><span>주차·도보 <b>약 '+s.access+'분</b></span><span>'+s.hours+'</span><a class="hours-link" href="https://www.google.com/maps/search/?api=1&query='+gq+'" target="_blank" rel="noopener">구글에서 영업시간 확인 ↗</a></div>'+
         '<div class="tl-cats">'+cats+'</div>'+sunHtml+'</div></div>';
     });
     tl.innerHTML=html;
@@ -487,6 +509,8 @@
       '<div class="stat"><div class="n">'+dur2(total)+'</div><div class="l">총 소요(이동·주차 포함)</div></div>'+
       '<div class="stat"><div class="n">'+fmt(state.start)+'~'+fmt(t)+'</div><div class="l">일정</div></div>';
     document.getElementById("disclaim").innerHTML="※ 이동 시간은 거리 기반 추정치(주차·도보 포함)이며, 일요일 영업시간을 기준으로 마감을 넘기는 코스는 자동 제외했습니다. <b>영업시간은 계절·공휴일에 따라 달라질 수 있으므로</b> 표시 시간은 참고용입니다.<br>방문 전 각 장소의 ‘구글에서 영업시간 확인’으로 실제 운영을 꼭 확인하세요.";
+    var rn=document.getElementById("resNote");
+    if(state.note){rn.textContent=state.note;rn.style.display="";}else{rn.style.display="none";}
 
     // 날씨 안내
     var wx=document.getElementById("wxnote");
@@ -550,7 +574,7 @@
     g.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> '+label;
   }
 
-  document.getElementById("genBtn").onclick=function(){state.poolNames=[];state.sunsetMode=false;document.getElementById("resTitle").textContent="나만의 코스";render();};
+  document.getElementById("genBtn").onclick=function(){state.poolNames=[];state.sunsetMode=false;state.note="";document.getElementById("resTitle").textContent="나만의 코스";render();};
   document.getElementById("printBtn").onclick=function(){window.print();};
   document.getElementById("topBtn").onclick=function(){window.scrollTo({top:0,behavior:"smooth"});};
 
