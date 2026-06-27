@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>여행 코스 짜기 · 시애틀 시온장로교회</title>
+<meta name="description" content="시애틀 시온장로교회에서 출발하는 맞춤 여행 코스. 오늘의 날씨와 일몰까지 반영해 코스를 즉시 짜 드립니다.">
+<meta property="og:title" content="시애틀 여행 코스 짜기 · 시애틀 시온장로교회">
+<meta property="og:description" content="시온교회에서 출발하는 맞춤 시애틀 하루 코스. 오늘 날씨와 일몰까지 반영해 즉시 짜 드려요.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://kzion.net/travel.html">
+<meta property="og:image" content="https://kzion.net/images/young2.jpg">
+<link rel="canonical" href="https://kzion.net/travel.html">
+<link rel="icon" href="images/cropped-favicon-270x270.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" crossorigin>
+<style>
+  :root{
+    --night:#0F3A40;--night-2:#16545C;--mid:#1C7681;--soft:#5E7E7C;
+    --teal:#2492A0;--teal-2:#2BA9B7;--teal-d:#1C7682;--mint:#86CDD4;
+    --orange:#E87A2C;--orange-l:#F59B4E;--orange-d:#D8691E;
+    --ivory:#F4F6F4;--paper:#fff;--ink:#143230;
+    --line:rgba(20,50,48,.1);--line-2:rgba(20,50,48,.18);
+    --serif:'Nanum Myeongjo',serif;
+    --sans:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    --wrap:1080px;--r:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--sans);background:var(--ivory);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 22px}
+
+  .nav{position:sticky;top:0;z-index:1000;background:rgba(15,58,64,.95);backdrop-filter:blur(10px)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{font-family:var(--serif);font-weight:700;font-size:17px;color:var(--ivory);text-decoration:none}
+  .nav-links{display:flex;gap:22px;font-size:14px;color:#CFE2DB}
+  .nav-links a{text-decoration:none;opacity:.82}.nav-links a.on{opacity:1;color:var(--orange-l);font-weight:600}
+  .nav-toggle{display:none;background:none;border:none;cursor:pointer;color:var(--ivory);padding:4px}
+  @media(max-width:680px){
+    .nav-toggle{display:block}
+    .nav-links{position:absolute;top:60px;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;background:rgba(15,58,64,.98);border-top:1px solid rgba(255,255,255,.08);padding:6px 0;display:none}
+    .nav-links.open{display:flex}
+    .nav-links a{padding:13px 22px}
+  }
+
+  /* hero */
+  .top{background:var(--night);color:var(--ivory);padding:46px 0 30px;position:relative;overflow:hidden}
+  .top .orb{position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle at 40% 40%,rgba(245,155,78,.38),rgba(36,146,160,.16) 55%,transparent 72%);top:-130px;right:-70px;filter:blur(8px)}
+  .top .wrap{position:relative;z-index:1}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:11.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--orange-l);margin-bottom:14px}
+  .eyebrow::before{content:"";width:24px;height:2px;background:var(--orange)}
+  .top h1{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.6vw,42px);line-height:1.2;letter-spacing:-.01em}
+  .top h1 em{font-style:normal;color:var(--orange-l)}
+  .top p{color:#CFE2DB;margin-top:14px;max-width:540px;font-size:15.5px}
+
+  /* live context bar */
+  .ctx{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+  .ctx-item{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#EAF3F0;font-size:13.5px;font-weight:500;padding:9px 15px;border-radius:999px}
+  .ctx-item svg{width:17px;height:17px}
+  .ctx-item b{color:#fff;font-weight:700}
+  .ctx-fixed{background:rgba(232,122,44,.16);border-color:rgba(232,122,44,.38);color:var(--orange-l)}
+
+  /* stage */
+  .stage{padding:34px 0 20px}
+  .stage-label{font-size:13px;font-weight:700;color:var(--teal-d);letter-spacing:.02em;margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  .stage-label::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* preset cards */
+  .presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:13px}
+  .preset{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px 16px;cursor:pointer;text-align:left;transition:transform .16s,box-shadow .16s,border-color .16s;position:relative;overflow:hidden}
+  .preset:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(20,50,48,.1);border-color:var(--teal)}
+  .preset .pic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--teal),var(--teal-2));margin-bottom:13px}
+  .preset.sunset .pic{background:linear-gradient(135deg,var(--orange),var(--orange-l))}
+  .preset.today .pic{background:linear-gradient(135deg,#3a8fb0,#6bbbd0)}
+  .preset .pic svg{width:22px;height:22px;color:#fff}
+  .preset h3{font-size:15.5px;font-weight:700;margin-bottom:3px}
+  .preset p{font-size:12.5px;color:var(--soft);line-height:1.45}
+
+  /* advanced */
+  .adv-toggle{margin:20px auto 0;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--teal-d);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;padding:8px}
+  .adv-toggle svg{width:16px;height:16px;transition:transform .2s}
+  .adv-toggle.open svg{transform:rotate(180deg)}
+  .adv-panel{max-height:0;overflow:hidden;transition:max-height .35s ease}
+  .adv-panel.open{max-height:900px}
+  .adv-inner{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px 22px;margin-top:12px;box-shadow:0 14px 36px rgba(20,50,48,.06)}
+  .fld{margin-bottom:20px}
+  .flabel{font-size:12.5px;font-weight:600;color:var(--teal-d);margin-bottom:10px;display:flex;gap:7px;align-items:center}
+  .flabel small{font-weight:400;color:var(--soft)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-2);background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:13.5px;font-weight:500;padding:8px 14px;border-radius:999px;cursor:pointer;transition:all .15s}
+  .chip svg{width:15px;height:15px;color:var(--teal)}
+  .chip:hover{border-color:var(--teal)}.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}.chip.on svg{color:#fff}
+  .adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:560px){.adv-grid{grid-template-columns:1fr}}
+  .seg{display:flex;background:var(--ivory);border:1px solid var(--line-2);border-radius:11px;padding:4px;gap:4px}
+  .seg button{flex:1;font-family:var(--sans);font-size:13.5px;font-weight:500;color:var(--ink);background:transparent;border:none;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;white-space:nowrap}
+  .seg button.on{background:#fff;color:var(--teal-d);box-shadow:0 2px 7px rgba(20,50,48,.1);font-weight:600}
+  .startnote{font-size:13px;color:var(--soft);display:inline-flex;align-items:center;gap:7px;background:var(--ivory);border:1px solid var(--line-2);border-radius:10px;padding:9px 13px}
+  .startnote svg{width:15px;height:15px;color:var(--orange)}
+  .gen{margin-top:6px;width:100%;font-family:var(--sans);font-size:15px;font-weight:700;color:#fff;background:var(--orange);border:none;padding:14px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 10px 24px rgba(216,105,30,.3);transition:background .2s}
+  .gen:hover{background:var(--orange-d)}.gen svg{width:18px;height:18px}
+
+  /* result */
+  .result{padding:14px 0 70px;display:none}.result.show{display:block}
+  .wxnote{display:none;align-items:center;gap:11px;background:rgba(36,146,160,.09);border:none;border-radius:14px;padding:13px 16px;margin-bottom:16px;font-size:13.5px;color:var(--ink)}
+  .wxnote.show{display:flex}.wxnote.rain{background:rgba(36,146,160,.10)}.wxnote.sun{background:rgba(232,122,44,.10)}
+  .wxnote svg{width:20px;height:20px;flex-shrink:0}
+  .res-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:8px}
+  .res-head h2{font-family:var(--serif);font-weight:800;font-size:clamp(21px,3.2vw,28px)}
+  .stats{display:flex;gap:20px;flex-wrap:wrap}
+  .stat .n{font-family:var(--serif);font-weight:800;font-size:21px;color:var(--teal-d)}
+  .stat .l{font-size:11.5px;color:var(--soft)}
+  .disclaim{font-size:12px;color:var(--soft);margin:0 0 18px;line-height:1.5}
+  .res-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:24px;align-items:start}
+  @media(max-width:840px){.res-grid{grid-template-columns:1fr}}
+
+  .mapcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;position:sticky;top:74px}
+  @media(max-width:840px){.mapcard{position:static}}
+  #map{width:100%;height:380px;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#EAF1F0,#E0EBEA)}
+  #map svg{width:100%;height:100%;display:block}
+  .leaflet-container{font-family:var(--sans)}
+  .mk{display:flex;align-items:center;justify-content:center;border-radius:50%;color:#fff;font-weight:700;font-family:var(--serif);box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff}
+  .mk-church{width:30px;height:30px;background:var(--orange);font-size:13px}
+  .mk-stop{width:28px;height:28px;background:var(--teal);font-size:13px}
+  .gmaps{margin-top:13px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--teal);color:#fff;font-family:var(--sans);font-size:14.5px;font-weight:600;border:none;padding:13px;border-radius:12px;cursor:pointer;text-decoration:none;transition:background .2s}
+  .gmaps:hover{background:var(--teal-d)}.gmaps svg{width:18px;height:18px}
+  .actions{display:flex;gap:10px;margin-top:10px}
+  .actions button{flex:1;background:var(--ivory);border:1px solid var(--line-2);color:var(--ink);font-family:var(--sans);font-size:13.5px;font-weight:500;padding:11px;border-radius:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .actions button:hover{border-color:var(--teal)}.actions svg{width:16px;height:16px}
+
+  .timeline{position:relative}
+  .tl-item{position:relative;padding:0 0 16px 46px;opacity:0;transform:translateY(14px);animation:rise .5s ease forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .tl-item::before{content:"";position:absolute;left:15px;top:30px;bottom:-2px;width:2px;background:var(--line-2)}
+  .tl-item:last-child::before{display:none}
+  .dot{position:absolute;left:0;top:2px;width:32px;height:32px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;font-family:var(--serif);z-index:1}
+  .tl-item.church .dot{background:var(--orange)}
+  .tl-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 17px}
+  .tl-item.church .tl-card{background:#FCEEE1;border-color:rgba(232,122,44,.3)}
+  .tl-time{font-size:12.5px;color:var(--orange-d);font-weight:600;margin-bottom:3px}
+  .tl-name{font-size:16.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tl-badge{font-size:11px;font-weight:700;color:#fff;background:var(--orange);padding:2px 9px;border-radius:999px;letter-spacing:.03em}
+  .tl-desc{font-size:13.5px;color:var(--ink);opacity:.82;margin-top:6px;line-height:1.55}
+  .tl-meta{font-size:12.5px;color:var(--soft);margin-top:9px;display:flex;flex-wrap:wrap;gap:5px 14px;align-items:center}
+  .tl-meta b{color:var(--teal-d);font-weight:600}
+  .hours-link{font-size:12px;font-weight:600;color:var(--teal);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+  .hours-link:hover{color:var(--teal-d)}
+  .sunset-note{margin-top:10px;display:flex;align-items:center;gap:8px;background:rgba(232,122,44,.1);border:none;border-radius:12px;padding:9px 13px;font-size:12.5px;color:var(--orange-d);font-weight:600}
+  .sunset-note svg{width:16px;height:16px}
+  .warn-note{margin-top:9px;display:flex;align-items:center;gap:8px;background:rgba(216,105,30,.11);border:none;border-radius:12px;padding:9px 13px;font-size:12.5px;color:var(--orange-d);font-weight:600;line-height:1.45}
+  .warn-note svg{width:17px;height:17px;flex-shrink:0}
+  .tl-cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .tl-cat{font-size:11.5px;color:var(--teal-d);background:var(--ivory);border:1px solid var(--line);padding:3px 9px;border-radius:999px}
+  .leg{font-size:12px;color:var(--soft);padding:6px 0 6px 46px;display:flex;align-items:center;gap:7px}
+  .leg svg{width:14px;height:14px;color:var(--teal)}
+  .empty{background:#fff;border:1px dashed var(--line-2);border-radius:16px;padding:30px;text-align:center;color:var(--soft);font-size:14.5px}
+
+  footer{background:var(--night);color:#B6D2D2;padding:34px 0;text-align:center;font-size:13px}
+  footer a{color:var(--mint);text-decoration:none}
+  .foot-name{font-family:var(--serif);color:var(--ivory);font-size:16px;margin-bottom:6px}
+  @media print{.nav,.top,.stage,.gmaps,.actions,footer{display:none!important}.result{display:block!important}.mapcard{position:static}}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="wrap">
+  <a href="index.html" class="brand">시애틀 시온장로교회</a>
+  <div class="nav-links" id="navLinks"><a href="index.html">홈</a><a href="worship.html">예배안내</a><a href="staff.html">섬기는 이들</a><a href="travel.html" class="on">시애틀 여행</a></div>
+  <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
+</div></nav>
+
+<header class="top"><div class="orb"></div><div class="wrap">
+  <div class="eyebrow">A gift from our church</div>
+  <h1>먼 길 오신 김에,<br><em>시애틀 하루</em>를 선물할게요.</h1>
+  <p>교회에서 직접 골라 담은 코스예요. 오늘 날씨와 일몰까지 살펴, 시온교회에서 출발하는 하루를 함께 그려 드려요.</p>
+  <div class="ctx" id="ctx">
+    <span class="ctx-item" id="ctxWeather"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg> 날씨 불러오는 중…</span>
+    <span class="ctx-item" id="ctxSunset" style="display:none"></span>
+    <span class="ctx-item ctx-fixed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 일요일 · 예배 후 <b>오후 1:00</b> 출발</span>
+  </div>
+</div></header>
+
+<section class="stage"><div class="wrap">
+  <p class="stage-label">한 번에 시작하기</p>
+  <div class="presets" id="presets"></div>
+
+  <button class="adv-toggle" id="advToggle" aria-expanded="false">맞춤으로 직접 만들기
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+  <div class="adv-panel" id="advPanel"><div class="adv-inner">
+    <div class="fld"><div class="flabel">무엇에 끌리세요? <small>복수 선택 · 안 고르면 골고루</small></div><div class="chips" id="chipsInt"></div></div>
+    <div class="fld"><div class="flabel">오늘 날씨 반영 <small>비 오는 날엔 실내 위주로 짜드려요</small></div>
+      <div class="chips"><button class="chip on" id="wxChip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17a4 4 0 1 1 .5-7.97A6 6 0 0 1 19 11a3.5 3.5 0 0 1-.5 6H7z"/></svg>오늘 날씨 반영</button></div></div>
+    <div class="adv-grid">
+      <div class="fld"><div class="flabel">얼마나</div><div class="seg" id="segLen"><button data-v="half" class="on">반나절(4h)</button><button data-v="evening">저녁까지(6h)</button></div></div>
+      <div class="fld"><div class="flabel">동선 우선순위</div><div class="seg" id="segPrio"><button data-v="near" class="on">가까운 곳</button><button data-v="popular">인기 명소</button></div></div>
+      <div class="fld"><div class="flabel">여행 스타일</div><div class="seg" id="segPace"><button data-v="relaxed" class="on">여유롭게</button><button data-v="packed">알차게</button></div></div>
+      <div class="fld"><div class="flabel">이동 수단</div><div class="seg" id="segMove"><button data-v="driving" class="on">자동차</button><button data-v="transit">대중교통</button></div></div>
+    </div>
+    <div class="fld"><span class="startnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 출발은 예배 후 오후 1:00로 고정됩니다</span></div>
+    <button class="gen" id="genBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg> 내 코스 만들기</button>
+  </div></div>
+</div></section>
+
+<section class="result" id="result"><div class="wrap">
+  <div class="wxnote" id="wxnote"></div>
+  <div class="res-head"><h2 id="resTitle">오늘의 추천 코스</h2><div class="stats" id="stats"></div></div>
+  <p class="disclaim" id="disclaim"></p>
+  <div class="res-grid">
+    <div class="mapcard">
+      <div id="map"></div>
+      <a class="gmaps" id="gmaps" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> 구글 지도로 전체 경로 열기</a>
+      <div class="actions">
+        <button id="printBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg> 인쇄 / PDF</button>
+        <button id="topBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 19V5M5 12l7-7 7 7"/></svg> 다시 고르기</button>
+      </div>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div></div></section>
+
+<footer><div class="wrap"><p class="foot-name">시애틀 시온장로교회</p><p>17920 Meridian Ave N, Shoreline, WA 98133</p><p style="margin-top:10px"><a href="index.html">← 홈으로</a></p></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin></script>
+<script>
+  var CHURCH={name:"시애틀 시온장로교회",lat:47.7583,lng:-122.3293,addr:"17920 Meridian Ave N, Shoreline, WA 98133"};
+  var CATS={
+    view:{ko:"자연·전망",svg:'<path d="M3 20l5-9 4 6 3-4 6 7z"/><circle cx="17" cy="6" r="2"/>'},
+    landmark:{ko:"랜드마크",svg:'<path d="M4 21h16M6 21V8l6-4 6 4v13M10 21v-5h4v5"/>'},
+    museum:{ko:"미술·박물관",svg:'<path d="M3 21h18M5 21V10M19 21V10M3 10l9-6 9 6M9 21v-7h6v7"/>'},
+    food:{ko:"먹거리·카페",svg:'<path d="M4 8h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8zM17 9h2a2 2 0 0 1 0 4h-2M6 2v2M10 2v2M14 2v2"/>'},
+    photo:{ko:"사진 명소",svg:'<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 7l1.5-2h5L16 7"/>'},
+    family:{ko:"가족·아이",svg:'<circle cx="8" cy="8" r="2.4"/><circle cx="16" cy="8" r="2.4"/><path d="M3.5 20c0-3 2-4.5 4.5-4.5S12.5 17 12.5 20M11.5 20c0-3 2-4.5 4.5-4.5S20.5 17 20.5 20"/>'}
+  };
+  // indoor: 비 올 때 적합 / sunset: 일몰 감상 적합
+  var SPOTS=[
+    {n:"파이크 플레이스 마켓",lat:47.6094,lng:-122.3417,dur:60,rate:4.6,access:18,open:540,close:1020,hours:"일 09:00–17:00 (가게마다 다름)",gpid:"ChIJPcr187JrkFQRLApO8QKP8ZM",indoor:true,sunset:false,cats:["landmark","food","photo"],desc:"1907년 문을 연, 미국에서 가장 오래된 농산물 시장 중 하나. 생선 던지기 퍼포먼스와 노점, 첫 스타벅스로 유명한 시애틀의 심장."},
+    {n:"1호점 스타벅스",lat:47.61004,lng:-122.34259,dur:25,rate:4.5,access:10,open:420,close:1020,hours:"일 07:00–17:00 (예약제·변동)",gpid:"ChIJryqIewBrkFQRkWfQIS8mzpc",indoor:true,sunset:false,warn:"2026년부터 예약제 체험 공간으로 운영돼요. 방문 전 예약·운영 방식을 꼭 확인하세요.",cats:["food","landmark"],desc:"1971년 문을 연 원조 스타벅스가 1976년 이전한 자리로, 현존하는 가장 오래된 스타벅스 매장. 파이크 플레이스 바로 옆."},
+    {n:"스페이스 니들",lat:47.6205,lng:-122.3493,dur:75,rate:4.6,access:18,open:510,close:1350,hours:"일 08:30–22:30",gpid:"ChIJ-bfVTh8VkFQRDZLQnmioK9s",indoor:true,sunset:false,cats:["landmark","view"],desc:"1962년 세계박람회 때 세워진 184m 전망탑. 시애틀의 상징으로, 360° 도시 전망과 회전 유리 바닥이 압권."},
+    {n:"치훌리 가든 앤 글래스",lat:47.62056,lng:-122.35045,dur:75,rate:4.7,access:18,open:540,close:1230,hours:"일 09:00–20:30",gpid:"ChIJVTtr1kUVkFQRh-YAfijbQXs",indoor:true,sunset:false,cats:["museum","photo"],desc:"유리공예 거장 데일 치훌리의 정원·전시관. 스페이스 니들 바로 옆, 색유리 조형이 비현실적으로 아름답다."},
+    {n:"팝 컬처 박물관 (MoPOP)",lat:47.62148,lng:-122.34812,dur:110,rate:4.6,access:18,open:510,close:1020,hours:"일 08:30–17:00",gpid:"ChIJY8p6-EYVkFQREthJEc0p6dE",indoor:true,sunset:false,cats:["museum","family"],desc:"프랭크 게리가 설계한 곡선 건물. 음악·영화·게임·SF 등 대중문화를 체험형으로 즐기는 박물관."},
+    {n:"케리 파크 전망대",lat:47.62947,lng:-122.35992,dur:30,rate:4.8,access:12,open:360,close:1320,hours:"일 06:00–22:00 · 무료",gpid:"ChIJUS2ELmoVkFQRjrUkJB5o9zM",indoor:false,sunset:true,cats:["view","photo"],desc:"스페이스 니들과 도심, 맑은 날엔 레이니어 산까지 한 프레임에 담기는 시애틀 대표 전망 포인트. 주차는 협소."},
+    {n:"가스웍스 파크",lat:47.64563,lng:-122.33435,dur:45,rate:4.7,access:10,open:360,close:1320,hours:"일 06:00–22:00 · 주차장 있음",gpid:"ChIJf7BbsgIVkFQRlmFJ7KtVbh4",indoor:false,sunset:true,cats:["view","photo","family"],desc:"옛 가스 공장을 그대로 살린 호숫가 공원. 유니언 호수 너머 스카이라인 전망과 잔디 언덕이 매력."},
+    {n:"스카이뷰 전망대",lat:47.60436,lng:-122.33101,dur:55,rate:4.7,access:18,open:660,close:1200,hours:"일 11:00–20:00 (변동)",gpid:"ChIJi-OPx7BqkFQR9TDCUWqViHc",indoor:true,sunset:true,cats:["view","landmark"],desc:"컬럼비아 센터 73층 실내 전망대. 스페이스 니들보다 높고 입장료는 더 저렴한 360° 파노라마."},
+    {n:"올림픽 조각공원",lat:47.6166,lng:-122.35532,dur:45,rate:4.5,access:12,open:360,close:1290,hours:"상시 개방(낮 시간 권장) · 무료",gpid:"ChIJc88dJ1AVkFQRmZ_S-xv-_Hs",indoor:false,sunset:true,cats:["view","museum","photo"],desc:"엘리엇 만을 따라 펼쳐진 무료 야외 조각공원. 바다·올림픽 산맥 전망과 산책로가 좋다."},
+    {n:"시애틀 그레이트 휠",lat:47.60613,lng:-122.34252,dur:30,rate:4.6,access:18,open:600,close:1320,hours:"일 10:00–22:00 (변동)",gpid:"ChIJUX-M-a1qkFQRxtrx3nOQIKU",indoor:false,sunset:true,cats:["landmark","family"],desc:"워터프론트 부두 끝의 약 53m 대관람차. 만과 도심을 한눈에 담는 한 바퀴."},
+    {n:"시애틀 아쿠아리움",lat:47.6074,lng:-122.34296,dur:110,rate:4.3,access:18,open:570,close:1080,hours:"일 09:30–18:00 (변동)",gpid:"ChIJQ_oEiK1qkFQRg3bU4l3mmWs",indoor:true,sunset:false,cats:["family","museum"],desc:"워터프론트의 수족관. 오션 파빌리온 등으로 아이 동반 가족에게 특히 인기."},
+    {n:"프리몬트 트롤",lat:47.65106,lng:-122.3475,dur:20,rate:4.5,access:10,open:0,close:1440,hours:"상시 · 무료",gpid:"ChIJvYSnKAEVkFQR35lxzvEE250",indoor:false,sunset:false,cats:["photo","landmark"],desc:"다리 밑에 숨은 거대한 콘크리트 트롤 조형물. 개성 있는 프리몬트 동네 산책과 함께 들르기 좋다."},
+    {n:"우드랜드 파크 동물원",lat:47.66844,lng:-122.35088,dur:170,rate:4.6,access:12,open:570,close:960,hours:"일 09:30–18:00(여름)·16:00(겨울)",gpid:"ChIJydSuSkkUkFQRsqhB-cEtYnw",indoor:false,sunset:false,cats:["family"],desc:"그린레이크 인근의 대형 동물원. 넓어서 가족 나들이라면 최소 2~3시간은 잡아야 한다."},
+    {n:"에드먼즈 워터프론트",lat:47.81365,lng:-122.38156,dur:55,rate:4.7,access:8,open:420,close:1260,hours:"일 07:00–해질녘 (대략)",gpid:"ChIJ_8cf4fwakFQRuSUmleTexf0",indoor:false,sunset:true,cats:["view","photo","family"],desc:"교회에서 북쪽으로 가까운 항구 마을. 페리와 일몰, 해변 산책이 좋고 썰물 땐 불가사리를 볼 수 있다."},
+    {n:"마리나 비치 파크 (에드먼즈)",lat:47.80509,lng:-122.39398,dur:45,rate:4.7,access:8,open:420,close:1290,hours:"일 07:00–21:30 (대략·직접 확인)",gpid:"ChIJ109wK1cakFQRaPf5LgupFXQ",indoor:false,sunset:true,cats:["view","family"],desc:"올림픽 산맥이 보이는 해변·반려견 공원. 일몰 사진 명소로, 에드먼즈 워터프론트와 묶기 좋다."}
+  ];
+
+  var WET_POOL=["스카이뷰 전망대","치훌리 가든 앤 글래스","팝 컬처 박물관 (MoPOP)","시애틀 아쿠아리움"];
+  var CLEAR_POOL=["케리 파크 전망대","가스웍스 파크","스페이스 니들","올림픽 조각공원","에드먼즈 워터프론트"];
+  var PRESETS=[
+    {id:"firstvisit",cls:"",title:"첫 방문 베스트",sub:"시애틀 핵심만 쏙쏙",icon:'<path d="M12 2l2.9 6.3L22 9.3l-5 4.8 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.8 7.1-1z"/>',cfg:{len:"evening",prio:"popular",pace:"relaxed"},pool:["파이크 플레이스 마켓","스페이스 니들","케리 파크 전망대","1호점 스타벅스"]},
+    {id:"photo",cls:"",title:"사진 명소 투어",sub:"인생샷 스팟 위주",icon:'<rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 7l1.5-2h5L16 7"/>',cfg:{len:"half",prio:"popular",pace:"packed"},pool:["케리 파크 전망대","가스웍스 파크","프리몬트 트롤","치훌리 가든 앤 글래스","올림픽 조각공원"]},
+    {id:"family",cls:"",title:"아이와 함께",sub:"가족 나들이 코스",icon:'<circle cx="8" cy="8" r="2.4"/><circle cx="16" cy="8" r="2.4"/><path d="M3.5 20c0-3 2-4.5 4.5-4.5S12.5 17 12.5 20M11.5 20c0-3 2-4.5 4.5-4.5S20.5 17 20.5 20"/>',cfg:{len:"evening",prio:"near",pace:"relaxed"},pool:["시애틀 아쿠아리움","팝 컬처 박물관 (MoPOP)","우드랜드 파크 동물원","시애틀 그레이트 휠"]},
+    {id:"sunset",cls:"sunset",title:"노을 코스",sub:"바다·전망에서 일몰을",icon:'<circle cx="12" cy="14" r="4"/><path d="M12 4v3M4 14H2M22 14h-2M5.5 7.5l1.5 1.5M18.5 7.5L17 9M3 20h18"/>',cfg:{len:"evening",prio:"popular",pace:"relaxed"},sunset:true,pool:["에드먼즈 워터프론트","마리나 비치 파크 (에드먼즈)","가스웍스 파크","케리 파크 전망대"]},
+    {id:"today",cls:"today",title:"오늘 날씨 맞춤",sub:"날씨 보고 골라줘요",icon:'<path d="M7 17a4 4 0 1 1 .5-7.97A6 6 0 0 1 19 11a3.5 3.5 0 0 1-.5 6H7z"/>',cfg:{len:"half",prio:"popular",pace:"relaxed"},weather:true}
+  ];
+
+  var state={len:"half",ints:[],prio:"near",pace:"relaxed",move:"driving",start:780,poolNames:[],sunsetMode:false,useWeather:true};
+  var weather=null; // {tempF,code,wet,label,sunsetMin,sunsetStr}
+  var LMAP=null;
+
+  // ---- presets render ----
+  var pbox=document.getElementById("presets");
+  PRESETS.forEach(function(p){
+    var d=document.createElement("button");d.className="preset "+p.cls;
+    d.innerHTML='<div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+p.icon+'</svg></div><h3>'+p.title+'</h3><p>'+p.sub+'</p>';
+    d.onclick=function(){applyPreset(p);};
+    pbox.appendChild(d);
+  });
+
+  // ---- advanced controls ----
+  var chipsBox=document.getElementById("chipsInt");
+  Object.keys(CATS).forEach(function(k){
+    var b=document.createElement("button");b.className="chip";b.dataset.k=k;
+    b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+CATS[k].svg+'</svg>'+CATS[k].ko;
+    b.onclick=function(){var i=state.ints.indexOf(k);if(i>=0){state.ints.splice(i,1);b.classList.remove("on");}else{state.ints.push(k);b.classList.add("on");}};
+    chipsBox.appendChild(b);
+  });
+  function seg(id,key){var box=document.getElementById(id);box.querySelectorAll("button").forEach(function(btn){btn.onclick=function(){box.querySelectorAll("button").forEach(function(x){x.classList.remove("on");});btn.classList.add("on");state[key]=btn.dataset.v;};});}
+  seg("segLen","len");seg("segPrio","prio");seg("segPace","pace");seg("segMove","move");
+  function setSeg(id,v){var box=document.getElementById(id);box.querySelectorAll("button").forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});}
+  function syncAdv(){setSeg("segLen",state.len);setSeg("segPrio",state.prio);setSeg("segPace",state.pace);setSeg("segMove",state.move);
+    chipsBox.querySelectorAll(".chip").forEach(function(b){b.classList.toggle("on",state.ints.indexOf(b.dataset.k)>=0);});}
+
+  document.getElementById("advToggle").onclick=function(){var op=this.classList.toggle("open");document.getElementById("advPanel").classList.toggle("open");this.setAttribute("aria-expanded",op?"true":"false");};
+  (function(){var nt=document.getElementById("navToggle"),nl=document.getElementById("navLinks");if(nt&&nl){nt.onclick=function(){nl.classList.toggle("open");};nl.querySelectorAll("a").forEach(function(a){a.onclick=function(){nl.classList.remove("open");};});}})();
+  document.getElementById("wxChip").onclick=function(){state.useWeather=!state.useWeather;this.classList.toggle("on",state.useWeather);};
+
+  function applyPreset(p){
+    state.len=p.cfg.len||"half";state.prio=p.cfg.prio||"near";state.pace=p.cfg.pace||"relaxed";state.move="driving";
+    state.sunsetMode=!!p.sunset;state.ints=[];state.poolNames=(p.pool||[]).slice();
+    if(p.weather){state.poolNames=(weather&&weather.wet)?WET_POOL.slice():CLEAR_POOL.slice();}
+    document.getElementById("resTitle").textContent=p.title;
+    syncAdv();render();
+  }
+
+  // ---- utils ----
+  function hav(a,b){var R=3959,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+    var s=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));}
+  function travelMin(a,b){var mph=state.move==="transit"?12:24;return Math.max(state.move==="transit"?15:8,Math.round(hav(a,b)*1.4/mph*60));}
+  function fmt(min){min=Math.round(min);var h=Math.floor(min/60)%24,m=min%60,ap=h<12?"오전":"오후",hh=h%12;if(hh===0)hh=12;return ap+" "+hh+":"+(m<10?"0":"")+m;}
+  function dur2(min){min=Math.round(min);var h=Math.floor(min/60),m=min%60;return (h?h+"시간 ":"")+(m?m+"분":"")||"0분";}
+
+  // ---- build ----
+  function build(){
+    var budget=state.len==="half"?240:360;
+    var maxStops=state.len==="half"?(state.pace==="relaxed"?2:3):(state.pace==="relaxed"?3:4);
+    var pool;
+    if(state.poolNames&&state.poolNames.length){
+      pool=SPOTS.filter(function(s){return state.poolNames.indexOf(s.n)>=0;});
+    }else{
+      pool=SPOTS.filter(function(s){return state.ints.length===0||s.cats.some(function(c){return state.ints.indexOf(c)>=0;});});
+    }
+    // 비 오는 날: 프리셋·맞춤 모두 실내 위주로 (실내가 하나도 없으면 그대로 둠 — 예: 노을 코스)
+    if(state.useWeather&&weather&&weather.wet){var ind=pool.filter(function(s){return s.indoor;});if(ind.length) pool=ind;}
+    var route=[],cur={lat:CHURCH.lat,lng:CHURCH.lng},used=0;
+    while(route.length<maxStops&&pool.length){
+      if(state.prio==="popular") pool.sort(function(a,b){return (b.rate*10-travelMin(cur,b)*0.06)-(a.rate*10-travelMin(cur,a)*0.06);});
+      else pool.sort(function(a,b){return travelMin(cur,a)-travelMin(cur,b);});
+      var pick=-1;
+      for(var k=0;k<pool.length;k++){
+        var c=pool[k],tr=travelMin(cur,c),arrive=state.start+used+tr+c.access,endv=arrive+c.dur;
+        if(used+tr+c.access+c.dur>budget) continue;
+        if(arrive<c.open) continue;
+        if(endv>c.close) continue;
+        pick=k;c._travel=tr;break;
+      }
+      if(pick<0) break;
+      var s=pool[pick];route.push(s);used+=s._travel+s.access+s.dur;cur=s;pool.splice(pick,1);
+    }
+    // 노을 모드: 마지막을 일몰 명소로 보정
+    if(state.sunsetMode&&route.length){
+      var lastIsSunset=route[route.length-1].sunset;
+      if(!lastIsSunset){
+        for(var j=route.length-1;j>=0;j--){if(route[j].sunset){var sp=route.splice(j,1)[0];route.push(sp);break;}}
+      }
+    }
+    return route;
+  }
+
+  // ---- render ----
+  function render(){
+    var route=build();
+    var tl=document.getElementById("timeline");tl.innerHTML="";
+    var res=document.getElementById("result");
+    if(!route.length){tl.innerHTML='<div class="empty">선택하신 조건과 영업시간에 맞는 코스를 찾지 못했어요. 관심사를 줄이거나 다른 코스를 골라보세요.</div>';
+      document.getElementById("stats").innerHTML="";document.getElementById("disclaim").innerHTML="";document.getElementById("wxnote").className="wxnote";document.getElementById("map").innerHTML="";document.getElementById("gmaps").style.display="none";
+      res.classList.add("show");res.scrollIntoView({behavior:"smooth",block:"start"});return;}
+
+    var t=state.start,html="";
+    html+='<div class="tl-item church"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>'+
+      '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시온교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline</div></div></div>';
+
+    route.forEach(function(s,i){
+      html+='<div class="leg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'+(state.move==="transit"?"대중교통":"차로")+' 약 '+s._travel+'분 이동</div>';
+      t+=s._travel+s.access;var arrive=t;t+=s.dur;
+      var cats=s.cats.map(function(c){return '<span class="tl-cat">'+CATS[c].ko+'</span>';}).join("");
+      var last=(i===route.length-1);
+      var sunHtml=(last&&s.sunset&&weather&&weather.sunsetMin)?'<div class="sunset-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="14" r="3.5"/><path d="M12 5v2M4 14H3M21 14h-1M6 8l1 1M18 8l-1 1M2 20h20"/></svg> 오늘 일몰 '+weather.sunsetStr+' — 여기서 노을을 감상하세요</div>':'';
+      var warnHtml=s.warn?'<div class="warn-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg> '+s.warn+'</div>':'';
+      html+='<div class="tl-item" style="animation-delay:'+(0.06*(i+1))+'s"><div class="dot">'+(i+1)+'</div>'+
+        '<div class="tl-card"><div class="tl-time">'+fmt(arrive)+' 도착 (주차·도보 포함)</div><div class="tl-name">'+s.n+'</div>'+
+        '<div class="tl-desc">'+s.desc+'</div>'+warnHtml+
+        '<div class="tl-meta"><span>★ <b>'+s.rate.toFixed(1)+'</b></span><span>머무는 시간 <b>'+s.dur+'분</b></span><span>주차·도보 <b>약 '+s.access+'분</b></span><span>'+s.hours+'</span><a class="hours-link" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.n)+'&query_place_id='+s.gpid+'" target="_blank" rel="noopener">구글에서 영업시간 확인 ↗</a></div>'+
+        '<div class="tl-cats">'+cats+'</div>'+sunHtml+'</div></div>';
+    });
+    tl.innerHTML=html;
+
+    var total=t-state.start;
+    document.getElementById("stats").innerHTML=
+      '<div class="stat"><div class="n">'+route.length+'곳</div><div class="l">방문지</div></div>'+
+      '<div class="stat"><div class="n">'+dur2(total)+'</div><div class="l">총 소요(이동·주차 포함)</div></div>'+
+      '<div class="stat"><div class="n">'+fmt(state.start)+'~'+fmt(t)+'</div><div class="l">일정</div></div>';
+    document.getElementById("disclaim").innerHTML="※ 이동 시간은 거리 기반 추정치(주차·도보 포함)이며, 일요일 영업시간을 기준으로 마감을 넘기는 코스는 자동 제외했습니다. <b>영업시간은 계절·공휴일에 따라 달라질 수 있어</b> 표시 시간은 참고용입니다. 방문 전 각 장소의 ‘구글에서 영업시간 확인’으로 실제 운영을 꼭 확인하세요.";
+
+    // 날씨 안내
+    var wx=document.getElementById("wxnote");
+    if(weather){
+      if(weather.wet){wx.className="wxnote rain show";wx.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#2492A0" stroke-width="1.7"><path d="M7 15a4 4 0 1 1 .5-7.97A6 6 0 0 1 19 9a3.5 3.5 0 0 1-.5 6.9"/><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"/></svg> 오늘 시애틀은 비 소식이에요. 우산을 챙기시고, 실내 위주로 둘러보시면 좋아요.';}
+      else{wx.className="wxnote sun show";wx.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="#E87A2C" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg> 오늘은 날이 좋아요. 전망 명소와 노을 코스가 특히 빛나는 날이에요.';}
+    }else{wx.className="wxnote";}
+
+    res.classList.add("show");
+    drawMap(route);buildGmaps(route);
+    res.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  // ---- map (Leaflet + SVG fallback) ----
+  function drawMap(route){
+    var pts=[{lat:CHURCH.lat,lng:CHURCH.lng,church:true}].concat(route);
+    var el=document.getElementById("map");
+    if(window.L){
+      el.innerHTML="";
+      if(LMAP){LMAP.remove();LMAP=null;}
+      LMAP=L.map(el,{zoomControl:true,scrollWheelZoom:false,attributionControl:true});
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+        attribution:'© OpenStreetMap, © CARTO',subdomains:'abcd',maxZoom:19}).addTo(LMAP);
+      var latlngs=pts.map(function(p){return [p.lat,p.lng];});
+      L.polyline(latlngs,{color:'#2492A0',weight:3,dashArray:'6 7',opacity:.85}).addTo(LMAP);
+      pts.forEach(function(p,i){
+        var html=p.church?'<div class="mk mk-church">⌂</div>':'<div class="mk mk-stop">'+i+'</div>';
+        L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:html,iconSize:[30,30],iconAnchor:[15,15]})})
+          .addTo(LMAP).bindPopup(p.church?'시온교회 (출발)':i+'. '+p.n);
+      });
+      LMAP.fitBounds(L.latLngBounds(latlngs).pad(0.18));
+      setTimeout(function(){LMAP.invalidateSize();LMAP.fitBounds(L.latLngBounds(latlngs).pad(0.18));},60);
+    }else{
+      drawSvg(pts,el);
+    }
+  }
+  function drawSvg(pts,el){
+    var W=500,H=380,pad=46;
+    var lats=pts.map(function(p){return p.lat;}),lngs=pts.map(function(p){return p.lng;});
+    var minLa=Math.min.apply(null,lats),maxLa=Math.max.apply(null,lats),minLn=Math.min.apply(null,lngs),maxLn=Math.max.apply(null,lngs);
+    var spanLa=Math.max(maxLa-minLa,0.01),spanLn=Math.max(maxLn-minLn,0.01);
+    function X(p){return pad+(p.lng-minLn)/spanLn*(W-2*pad);}
+    function Y(p){return pad+(maxLa-p.lat)/spanLa*(H-2*pad);}
+    var svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+    for(var g=1;g<5;g++){var gx=pad+(W-2*pad)*g/5,gy=pad+(H-2*pad)*g/5;
+      svg+='<line x1="'+gx+'" y1="'+pad+'" x2="'+gx+'" y2="'+(H-pad)+'" stroke="rgba(20,50,48,.06)"/><line x1="'+pad+'" y1="'+gy+'" x2="'+(W-pad)+'" y2="'+gy+'" stroke="rgba(20,50,48,.06)"/>';}
+    var d="M "+X(pts[0])+" "+Y(pts[0]);for(var i=1;i<pts.length;i++){d+=" L "+X(pts[i])+" "+Y(pts[i]);}
+    svg+='<path d="'+d+'" fill="none" stroke="#2492A0" stroke-width="2.5" stroke-dasharray="6 7" opacity=".85"/>';
+    pts.forEach(function(p,i){var x=X(p),y=Y(p);
+      if(p.church){svg+='<circle cx="'+x+'" cy="'+y+'" r="13" fill="#E87A2C"/><path d="M'+(x-5)+' '+(y+1)+'l5-4 5 4M'+(x-3.5)+' '+y+'v4.5h7V'+y+'" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';}
+      else{svg+='<circle cx="'+x+'" cy="'+y+'" r="13" fill="#2492A0"/><text x="'+x+'" y="'+(y+4.5)+'" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="serif">'+i+'</text>';}});
+    svg+='</svg>';el.innerHTML=svg;
+  }
+  function buildGmaps(route){
+    var g=document.getElementById("gmaps");g.style.display="";
+    var origin=encodeURIComponent(CHURCH.addr),dest=route[route.length-1].lat+","+route[route.length-1].lng;
+    var wp=route.slice(0,-1).map(function(s){return s.lat+","+s.lng;}).join("|");
+    g.href="https://www.google.com/maps/dir/?api=1&origin="+origin+"&destination="+dest+(wp?"&waypoints="+encodeURIComponent(wp):"")+"&travelmode="+state.move;
+    var label=state.move==="transit"?"구글 지도로 대중교통 길찾기":"구글 지도로 운전 경로 열기";
+    g.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> '+label;
+  }
+
+  document.getElementById("genBtn").onclick=function(){state.poolNames=[];state.sunsetMode=false;document.getElementById("resTitle").textContent="나만의 코스";render();};
+  document.getElementById("printBtn").onclick=function(){window.print();};
+  document.getElementById("topBtn").onclick=function(){window.scrollTo({top:0,behavior:"smooth"});};
+
+  // ---- 날씨 + 일몰 (Open-Meteo, 키 불필요) ----
+  function wxLabel(c){
+    if(c===0)return{t:"맑음",wet:false};
+    if(c<=3)return{t:"구름",wet:false};
+    if(c===45||c===48)return{t:"안개",wet:false};
+    if(c>=51&&c<=67)return{t:"비",wet:true};
+    if(c>=71&&c<=77)return{t:"눈",wet:true};
+    if(c>=80&&c<=82)return{t:"소나기",wet:true};
+    if(c>=85&&c<=86)return{t:"눈",wet:true};
+    if(c>=95)return{t:"뇌우",wet:true};
+    return{t:"흐림",wet:false};
+  }
+  (function loadWx(){
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=47.6062&longitude=-122.3321&current=temperature_2m,weather_code&daily=sunset&temperature_unit=fahrenheit&timezone=America/Los_Angeles&forecast_days=1")
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var c=d.current.weather_code,info=wxLabel(c),temp=Math.round(d.current.temperature_2m);
+      var ss=d.daily.sunset[0];var sm=ss.slice(11,16);var smin=parseInt(sm.slice(0,2),10)*60+parseInt(sm.slice(3),10);
+      var ssAp=smin<720?"오전":"오후",ssh=(parseInt(sm.slice(0,2),10)%12)||12;var ssStr=ssAp+" "+ssh+":"+sm.slice(3);
+      weather={tempF:temp,code:c,wet:info.wet,label:info.t,sunsetMin:smin,sunsetStr:ssStr};
+      document.getElementById("ctxWeather").innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/></svg> 오늘 시애틀 <b>'+info.t+' '+temp+'°F</b>';
+      var cs=document.getElementById("ctxSunset");cs.style.display="";cs.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="14" r="3.5"/><path d="M12 5v2M4 14H3M21 14h-1M6 8l1 1M18 8l-1 1M2 20h20"/></svg> 일몰 <b>'+ssStr+'</b>';
+    })
+    .catch(function(){
+      document.getElementById("ctxWeather").innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2"/></svg> 오늘 시애틀';
+    });
+  })();
+</script>
+</body>
+</html>

@@ -28,6 +28,29 @@
     });
   }
 
+  /* ---------- 담임목사 인사말 아코디언 (섬기는 이들) ---------- */
+  var piToggle = document.querySelector('.pi-toggle');
+  if (piToggle) {
+    var piPanel = piToggle.nextElementSibling;
+    piToggle.addEventListener('click', function () {
+      var isOpen = piToggle.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        piPanel.style.maxHeight = piPanel.scrollHeight + 'px';   // 'none' → 현재 높이로 고정
+        requestAnimationFrame(function () { piPanel.style.maxHeight = '0px'; });
+        piToggle.setAttribute('aria-expanded', 'false');
+      } else {
+        piPanel.style.maxHeight = piPanel.scrollHeight + 'px';
+        piToggle.setAttribute('aria-expanded', 'true');
+      }
+    });
+    piPanel.addEventListener('transitionend', function () {
+      if (piToggle.getAttribute('aria-expanded') === 'true') piPanel.style.maxHeight = 'none';
+    });
+    window.addEventListener('resize', function () {
+      if (piToggle.getAttribute('aria-expanded') === 'true') piPanel.style.maxHeight = 'none';
+    });
+  }
+
   /* ---------- 문의 상담창 (처음 오시나요?) ---------- */
   var orb = document.getElementById('orb');
   if (orb) {
