@@ -22,7 +22,7 @@
   :root{
     --night:#0F3A40;--night-2:#16545C;--mid:#1C7681;--soft:#5E7E7C;
     --teal:#2492A0;--teal-2:#2BA9B7;--teal-d:#1C7682;--mint:#86CDD4;
-    --orange:#E87A2C;--orange-l:#F59B4E;--orange-d:#D8691E;
+    --orange:#E87A2C;--orange-l:#F59B4E;--orange-d:#D8691E;--gold-l:#F59B4E;
     --ivory:#F4F6F4;--paper:#fff;--ink:#143230;
     --line:rgba(20,50,48,.1);--line-2:rgba(20,50,48,.18);
     --serif:'Nanum Myeongjo',serif;
@@ -160,9 +160,21 @@
   .leg svg{width:14px;height:14px;color:var(--teal)}
   .empty{background:#fff;border:1px dashed var(--line-2);border-radius:16px;padding:30px;text-align:center;color:var(--soft);font-size:14.5px}
 
-  footer{background:var(--night);color:#B6D2D2;padding:34px 0;text-align:center;font-size:13px}
-  footer a{color:var(--mint);text-decoration:none}
-  .foot-name{font-family:var(--serif);color:var(--ivory);font-size:16px;margin-bottom:6px}
+  footer.site-footer{background:var(--night);color:#B6D2D2;padding:60px 0 38px}
+  footer.site-footer a{color:inherit}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:36px}
+  .fb-name{font-family:var(--serif);font-weight:700;font-size:20px;color:var(--ivory)}
+  .foot-brand p{font-size:13.5px;opacity:.62;margin-top:11px;max-width:280px;line-height:1.6}
+  .socials{display:flex;gap:12px;margin-top:18px}
+  .socials a{width:38px;height:38px;border-radius:50%;border:1px solid rgba(182,210,210,.22);display:flex;align-items:center;justify-content:center;opacity:.74;transition:.2s}
+  .socials a:hover{opacity:1;background:rgba(36,146,160,.18);border-color:var(--teal);transform:translateY(-2px)}.socials svg{width:18px;height:18px}
+  .foot-col h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-l);margin-bottom:14px;font-weight:600}
+  .foot-col a,.foot-col p{display:block;font-size:13.5px;opacity:.8;text-decoration:none;margin-bottom:9px;line-height:1.5}
+  .foot-col a:hover{opacity:1}
+  .foot-base{border-top:1px solid rgba(182,210,210,.14);margin-top:42px;padding-top:24px;font-size:12px;opacity:.5;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .foot-base .copy span:not(:first-child)::before{content:" · ";opacity:.6}
+  @media (max-width:840px){.foot-grid{grid-template-columns:1fr 1fr}}
+  @media (max-width:560px){.foot-grid{grid-template-columns:1fr}.foot-base{justify-content:center;text-align:center}.foot-base .copy span{display:block}.foot-base .copy span:not(:first-child)::before{content:none}}
   @media print{.nav,.top,.stage,.gmaps,.actions,footer{display:none!important}.result{display:block!important}.mapcard{position:static}}
 </style>
 </head>
@@ -223,7 +235,33 @@
   </div>
 </div></div></section>
 
-<footer><div class="wrap"><p class="foot-name">시애틀 시온장로교회</p><p>17920 Meridian Ave N, Shoreline, WA 98133</p><p style="margin-top:10px"><a href="index.html">← 홈으로</a></p></div></footer>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="fb-name">시애틀 시온장로교회</div>
+        <p>담임 이영래 목사</p>
+        <div class="socials">
+          <a href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener" aria-label="유튜브"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.5-.4-5.2a2.7 2.7 0 0 0-1.9-1.9C18.9 4.5 12 4.5 12 4.5s-6.9 0-8.7.4a2.7 2.7 0 0 0-1.9 1.9C1 8.5 1 12 1 12s0 3.5.4 5.2a2.7 2.7 0 0 0 1.9 1.9c1.8.4 8.7.4 8.7.4s6.9 0 8.7-.4a2.7 2.7 0 0 0 1.9-1.9C23 15.5 23 12 23 12zM10 15.5v-7l6 3.5z"/></svg></a>
+          <a href="https://www.facebook.com/kzionchurch" target="_blank" rel="noopener" aria-label="페이스북"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v2H7v3h3v7h3v-7h3l1-3h-4v-2c0-.6.4-1 1-1z"/></svg></a>
+          <a href="https://www.instagram.com/seattlezionchurch" target="_blank" rel="noopener" aria-label="인스타그램"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h4>예배 안내</h4>
+        <a href="worship.html">주일예배 · 오전 10:45</a>
+        <p>수요통독 · 오전 10:00, 오후 7:30</p>
+        <p>토요예배 · 오전 7:00</p>
+      </div>
+      <div class="foot-col">
+        <h4>오시는 길</h4>
+        <p>17920 Meridian Ave N<br>Shoreline, WA 98133</p>
+        <a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도 →</a>
+      </div>
+    </div>
+    <div class="foot-base"><span class="copy"><span>© 2026 시애틀 시온장로교회</span><span>Seattle Zion Presbyterian Church</span><span>kzion.net</span></span></div>
+  </div>
+</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" crossorigin></script>
 <script>
