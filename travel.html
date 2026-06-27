@@ -104,7 +104,7 @@
   .preset:nth-child(2) .pic{animation-delay:.5s}.preset:nth-child(3) .pic{animation-delay:1s}.preset:nth-child(4) .pic{animation-delay:1.5s}.preset:nth-child(5) .pic{animation-delay:.8s}.preset:nth-child(6) .pic{animation-delay:1.3s}
   @media(prefers-reduced-motion:reduce){.preset,.preset .pic{animation:none}}
   @media(max-width:840px){
-    .presets{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px;padding:2px 22px 10px}
+    .presets{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 22px;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px;padding:2px 22px 10px}
     .presets::-webkit-scrollbar{display:none}
     .preset{flex:0 0 150px;scroll-snap-align:start;padding:13px 13px 12px;border-radius:14px}
     .preset:hover{transform:none;box-shadow:none;border-color:var(--line)}
