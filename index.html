@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/style.css?v=20260626af">
+<link rel="stylesheet" href="css/style.css?v=20260626ag">
 <script>document.documentElement.className+=' js';</script>
 </head>
 <body>
@@ -90,15 +90,6 @@
     </div>
   </div>
 </section>
-
-<!-- 시애틀 여행 진입 배너 -->
-<section style="padding:30px 0 4px"><div class="wrap reveal">
-  <a href="travel.html" class="travel-cta">
-    <span class="tc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
-    <span class="tc-tx"><strong>시애틀에 여행 오셨나요?</strong><span>오늘 날씨·일몰까지 반영해, 교회에서 출발하는 시애틀 하루 코스를 짜 드려요.</span></span>
-    <span class="tc-ar">→</span>
-  </a>
-</div></section>
 
 <!-- 처음 오시는 분 + 예배시간/오시는 길 -->
 <section class="block light" id="first">
@@ -197,6 +188,35 @@
   </div>
 </section>
 
+<!-- 시애틀 여행 선물상자 (푸터 직전 · 까딱이는 인터랙션) -->
+<section class="gift-section">
+  <div class="wrap reveal">
+    <a href="travel.html" class="gift" aria-label="시애틀 하루 코스 선물 받기 — 시애틀 여행 페이지로 이동">
+      <span class="gift-box">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g class="gx-body">
+            <rect x="20" y="46" width="60" height="46" rx="6" fill="var(--teal)"/>
+            <rect x="44" y="46" width="12" height="46" fill="var(--gold)"/>
+          </g>
+          <g class="gx-lid">
+            <rect x="14" y="34" width="72" height="16" rx="5" fill="var(--night)"/>
+            <rect x="44" y="34" width="12" height="16" fill="var(--gold)"/>
+            <ellipse cx="42" cy="28" rx="8" ry="6" fill="var(--gold-l)" transform="rotate(-18 42 28)"/>
+            <ellipse cx="58" cy="28" rx="8" ry="6" fill="var(--gold-l)" transform="rotate(18 58 28)"/>
+            <circle cx="50" cy="31" r="4" fill="var(--gold)"/>
+          </g>
+          <g class="gx-spark" stroke="var(--gold-l)" stroke-width="2" stroke-linecap="round">
+            <path d="M13 22 v6 M10 25 h6"/>
+            <path d="M89 30 v5 M86.5 32.5 h5"/>
+          </g>
+        </svg>
+      </span>
+      <span class="gift-msg">방문해주신 당신께 — 오늘 날씨·일몰까지 담아,<br class="br-m"> 시애틀 하루 코스를 선물로 준비했어요.</span>
+      <span class="gift-go">코스 받기 →</span>
+    </a>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div class="wrap">
     <div class="foot-grid">
@@ -228,6 +248,6 @@
 <!-- 문의 상담창 오브 (처음 오시나요?) -->
 <button class="orb" id="orb" aria-label="문의 열기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
 
-<script src="js/main.js?v=20260626af" defer></script>
+<script src="js/main.js?v=20260626ag" defer></script>
 </body>
 </html>
