@@ -87,6 +87,16 @@
   .preset .pic svg{width:22px;height:22px;color:#fff}
   .preset h3{font-size:15.5px;font-weight:700;margin-bottom:3px}
   .preset p{font-size:12.5px;color:var(--soft);line-height:1.45}
+  @media(max-width:560px){
+    .presets{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px;padding:2px 22px 10px}
+    .presets::-webkit-scrollbar{display:none}
+    .preset{flex:0 0 43%;scroll-snap-align:start;padding:13px 13px 12px;border-radius:14px}
+    .preset:hover{transform:none;box-shadow:none;border-color:var(--line)}
+    .preset .pic{width:34px;height:34px;border-radius:10px;margin-bottom:9px}
+    .preset .pic svg{width:18px;height:18px}
+    .preset h3{font-size:13.5px}
+    .preset p{font-size:11.5px;line-height:1.4}
+  }
 
   /* advanced */
   .adv-toggle{margin:20px auto 0;display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--teal-d);font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;padding:8px}
@@ -327,6 +337,17 @@
     d.onclick=function(){applyPreset(p);};
     pbox.appendChild(d);
   });
+  // 모바일: 프리셋이 가로로 더 있다는 걸 알리는 1회 힌트 (살짝 흘렀다 복귀)
+  (function(){
+    if(!(window.matchMedia&&window.matchMedia("(max-width:560px)").matches))return;
+    if(window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+    setTimeout(function(){
+      if(pbox.scrollWidth>pbox.clientWidth+8){
+        pbox.scrollTo({left:72,behavior:"smooth"});
+        setTimeout(function(){pbox.scrollTo({left:0,behavior:"smooth"});},700);
+      }
+    },800);
+  })();
 
   // ---- advanced controls ----
   var chipsBox=document.getElementById("chipsInt");
