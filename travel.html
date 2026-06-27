@@ -95,6 +95,13 @@
   .preset.local .ptag{background:#fff;color:var(--orange-d)}
   .preset.local:hover{border-color:var(--orange-d);box-shadow:0 16px 32px rgba(216,105,30,.28)}
   .ptag{position:absolute;top:9px;right:9px;background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.02em}
+  @keyframes presetIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes picFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  .preset{animation:presetIn .5s cubic-bezier(.2,.7,.2,1) backwards}
+  .preset:nth-child(2){animation-delay:.06s}.preset:nth-child(3){animation-delay:.12s}.preset:nth-child(4){animation-delay:.18s}.preset:nth-child(5){animation-delay:.24s}.preset:nth-child(6){animation-delay:.3s}
+  .preset .pic{animation:picFloat 3.4s ease-in-out infinite}
+  .preset:nth-child(2) .pic{animation-delay:.5s}.preset:nth-child(3) .pic{animation-delay:1s}.preset:nth-child(4) .pic{animation-delay:1.5s}.preset:nth-child(5) .pic{animation-delay:.8s}.preset:nth-child(6) .pic{animation-delay:1.3s}
+  @media(prefers-reduced-motion:reduce){.preset,.preset .pic{animation:none}}
   @media(max-width:840px){
     .presets{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -22px;padding:2px 22px 10px}
     .presets::-webkit-scrollbar{display:none}
