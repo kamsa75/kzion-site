@@ -59,11 +59,18 @@
   .top p{color:#CFE2DB;margin-top:14px;max-width:540px;font-size:15.5px}
 
   /* live context bar */
-  .ctx{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
-  .ctx-item{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#EAF3F0;font-size:13.5px;font-weight:500;padding:9px 15px;border-radius:999px}
-  .ctx-item svg{width:17px;height:17px}
-  .ctx-item b{color:#fff;font-weight:700}
-  .ctx-fixed{background:rgba(232,122,44,.16);border-color:rgba(232,122,44,.38);color:var(--orange-l)}
+  .startcard{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px;margin:0 0 22px;padding:15px 18px;background:rgba(232,122,44,.08);border-radius:14px}
+  .sc-start{display:flex;align-items:center;gap:13px}
+  .sc-ic{width:40px;height:40px;flex:none;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;color:#fff}
+  .sc-ic svg{width:21px;height:21px}
+  .sc-tx{display:flex;flex-direction:column;line-height:1.3}
+  .sc-tx strong{font-family:var(--serif);font-size:16.5px;font-weight:800;color:var(--ink)}
+  .sc-tx strong b{color:var(--orange-d)}
+  .sc-tx span{font-size:12.5px;color:var(--soft);margin-top:3px}
+  .sc-ctx{display:flex;flex-wrap:wrap;gap:9px}
+  .ctx-item{display:inline-flex;align-items:center;gap:7px;background:rgba(20,50,48,.05);color:var(--ink);font-size:13px;font-weight:500;padding:8px 13px;border-radius:999px}
+  .ctx-item svg{width:16px;height:16px;color:var(--teal)}
+  .ctx-item b{color:var(--teal-d);font-weight:700}
 
   /* stage */
   .stage{padding:34px 0 20px}
@@ -190,14 +197,19 @@
   <div class="eyebrow">A gift from our church</div>
   <h1>먼 길 오신 김에,<br><em>시애틀 하루</em>를 선물할게요.</h1>
   <p>교회에서 직접 골라 담은 코스예요. 오늘 날씨와 일몰까지 살펴, 시온교회에서 출발하는 하루를 함께 그려 드려요.</p>
-  <div class="ctx" id="ctx">
-    <span class="ctx-item" id="ctxWeather"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg> 날씨 불러오는 중…</span>
-    <span class="ctx-item" id="ctxSunset" style="display:none"></span>
-    <span class="ctx-item ctx-fixed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 일요일 · 예배 후 <b>오후 1:00</b> 출발</span>
-  </div>
 </div></header>
 
 <section class="stage"><div class="wrap">
+  <div class="startcard">
+    <div class="sc-start">
+      <span class="sc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+      <div class="sc-tx"><strong>일요일 · 예배 후 <b>오후 1:00</b> 출발</strong><span>시온교회에서 출발하는 하루 코스를 소개해 드려요.</span></div>
+    </div>
+    <div class="sc-ctx">
+      <span class="ctx-item" id="ctxWeather"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg> 날씨 불러오는 중…</span>
+      <span class="ctx-item" id="ctxSunset" style="display:none"></span>
+    </div>
+  </div>
   <p class="stage-label">한 번에 시작하기</p>
   <div class="presets" id="presets"></div>
 
@@ -420,7 +432,7 @@
       '<div class="stat"><div class="n">'+route.length+'곳</div><div class="l">방문지</div></div>'+
       '<div class="stat"><div class="n">'+dur2(total)+'</div><div class="l">총 소요(이동·주차 포함)</div></div>'+
       '<div class="stat"><div class="n">'+fmt(state.start)+'~'+fmt(t)+'</div><div class="l">일정</div></div>';
-    document.getElementById("disclaim").innerHTML="※ 이동 시간은 거리 기반 추정치(주차·도보 포함)이며, 일요일 영업시간을 기준으로 마감을 넘기는 코스는 자동 제외했습니다. <b>영업시간은 계절·공휴일에 따라 달라질 수 있어</b> 표시 시간은 참고용입니다. 방문 전 각 장소의 ‘구글에서 영업시간 확인’으로 실제 운영을 꼭 확인하세요.";
+    document.getElementById("disclaim").innerHTML="※ 이동 시간은 거리 기반 추정치(주차·도보 포함)이며, 일요일 영업시간을 기준으로 마감을 넘기는 코스는 자동 제외했습니다. <b>영업시간은 계절·공휴일에 따라 달라질 수 있으므로</b> 표시 시간은 참고용입니다.<br>방문 전 각 장소의 ‘구글에서 영업시간 확인’으로 실제 운영을 꼭 확인하세요.";
 
     // 날씨 안내
     var wx=document.getElementById("wxnote");
