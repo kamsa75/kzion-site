@@ -460,6 +460,7 @@ a:focus-visible,.btn:focus-visible,button:focus-visible{outline:3px solid var(--
   .gift:hover .gx-spark{opacity:0}
   .gift:hover .gift-msg{color:var(--ink)}
   .mood:hover{transform:none;background:rgba(255,255,255,.06)}
+  .mood.active{background:var(--gold);border-color:var(--gold);color:var(--night)}
   .marquee .quote:hover,.quote:hover{transform:none}
   .ws-row:hover .ws-main{transform:none}
   .socials a:hover{transform:none}
