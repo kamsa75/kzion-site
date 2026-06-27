@@ -133,21 +133,20 @@ h2.t{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.4vw,44px);l
 .give p{font-size:14.5px;color:#FFF1E4;margin-top:12px;max-width:480px}
 .give .note{font-size:12.5px;color:#FFE6D2;margin-top:12px;max-width:520px;opacity:.92}
 
-/* ---------- 시애틀 여행 선물상자 (홈 하단) ---------- */
-.gift-section{padding:18px 0 6px;text-align:center}
-.gift{display:inline-flex;flex-direction:column;align-items:center;gap:14px;max-width:460px;text-decoration:none;color:inherit;cursor:pointer}
-.gift-box{width:84px;height:84px;display:block;animation:giftBob 2.8s ease-in-out infinite}
+/* ---------- 시애틀 여행 선물 띠 (홈 하단, 푸터 직전) ---------- */
+.gift-section{background:var(--paper);padding:20px 16px}
+.gift{display:flex;align-items:center;justify-content:center;gap:13px;max-width:800px;margin:0 auto;text-decoration:none;color:inherit;cursor:pointer}
+.gift-box{width:44px;height:44px;flex:none;display:block;animation:giftBob 2.8s ease-in-out infinite}
 .gift-box svg{width:100%;height:100%;overflow:visible}
 .gx-lid{transform-box:fill-box;transform-origin:center;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
-.gift:hover .gx-lid,.gift:focus-visible .gx-lid{transform:translateY(-12px) rotate(-7deg)}
+.gift:hover .gx-lid,.gift:focus-visible .gx-lid{transform:translateY(-10px) rotate(-7deg)}
 .gx-spark{opacity:0;transition:opacity .35s}
 .gift:hover .gx-spark,.gift:focus-visible .gx-spark{opacity:1}
-.gift-msg{font-family:var(--serif);font-size:16.5px;line-height:1.72;color:var(--ink)}
-.gift-go{color:var(--teal-d);font-weight:700;white-space:nowrap;border-bottom:1.5px solid transparent;transition:border-color .2s,transform .2s}
-.gift:hover .gift-go,.gift:focus-visible .gift-go{border-color:var(--teal-d)}
-@keyframes giftBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.gift-msg{font-family:var(--sans);font-size:14.5px;line-height:1.5;color:var(--ink)}
+.gift:hover .gift-msg,.gift:focus-visible .gift-msg{color:var(--teal-d)}
+@keyframes giftBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @media(prefers-reduced-motion:reduce){.gift-box{animation:none}}
-@media(max-width:560px){.gift-box{width:74px;height:74px}.gift-msg{font-size:15.5px}}
+@media(max-width:560px){.gift{gap:11px}.gift-box{width:40px;height:40px}.gift-msg{font-size:13.5px}}
 
 /* ---------- 마음 날씨 ---------- */
 .weather{background:var(--mid);color:var(--ivory)}
