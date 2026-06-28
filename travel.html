@@ -6,7 +6,7 @@
 <title>여행 코스 짜기 · 시애틀 시온장로교회</title>
 <meta name="description" content="시애틀 시온장로교회에서 출발하는 맞춤 여행 코스. 오늘의 날씨와 일몰까지 반영해 코스를 즉시 짜 드립니다.">
 <meta property="og:title" content="시애틀 여행 코스 짜기 · 시애틀 시온장로교회">
-<meta property="og:description" content="시온교회에서 출발하는 맞춤 시애틀 하루 코스. 오늘 날씨와 일몰까지 반영해 즉시 짜 드려요.">
+<meta property="og:description" content="시애틀 시온장로교회에서 출발하는 맞춤 시애틀 하루 코스. 오늘 날씨와 일몰까지 반영해 즉시 짜 드려요.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:url" content="https://kzion.net/travel.html">
@@ -259,14 +259,14 @@
 <header class="top"><div class="orb"></div><div class="wrap">
   <div class="eyebrow">A gift from our church</div>
   <h1>먼 길 오신 김에,<br><em>시애틀 하루</em>를 선물할게요.</h1>
-  <p>교회에서 직접 골라 담은 코스예요. 오늘 날씨와 일몰까지 살펴, 시온교회에서 출발하는 하루를 함께 그려 드려요.</p>
+  <p>교회에서 직접 골라 담은 코스예요. 오늘 날씨와 일몰까지 살펴, 시애틀 시온장로교회에서 출발하는 하루를 함께 그려 드려요.</p>
 </div></header>
 
 <section class="stage"><div class="wrap">
   <div class="startcard">
     <div class="sc-start">
       <span class="sc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-      <div class="sc-tx"><strong>일요일 · 예배 후 <b>오후 1:00</b> 출발</strong><span>시온교회에서 출발하는 하루 코스를 소개해 드려요.</span></div>
+      <div class="sc-tx"><strong>일요일 · 예배 후 <b>오후 1:00</b> 출발</strong><span>시애틀 시온장로교회에서 출발하는 하루 코스를 소개해 드려요.</span></div>
     </div>
     <div class="sc-ctx">
       <span class="ctx-item" id="ctxWeather"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.4 1.4M17.6 17.6L19 19M19 5l-1.4 1.4M6.4 17.6L5 19"/></svg> 날씨 불러오는 중…</span>
@@ -502,7 +502,7 @@
 
     var t=state.start,html="";
     html+='<div class="tl-item church"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>'+
-      '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시온교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline, WA 98133</div></div></div>';
+      '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시애틀 시온장로교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline, WA 98133</div></div></div>';
 
     route.forEach(function(s,i){
       html+='<div class="leg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'+(state.move==="transit"?"대중교통":"차로")+' 약 '+s._travel+'분 이동</div>';
@@ -559,7 +559,7 @@
       pts.forEach(function(p,i){
         var html=p.church?'<div class="mk mk-church">⌂</div>':'<div class="mk mk-stop">'+i+'</div>';
         L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:html,iconSize:[30,30],iconAnchor:[15,15]})})
-          .addTo(LMAP).bindPopup(p.church?'시온교회 (출발)':i+'. '+p.n);
+          .addTo(LMAP).bindPopup(p.church?'시애틀 시온장로교회 (출발)':i+'. '+p.n);
       });
       LMAP.fitBounds(L.latLngBounds(latlngs).pad(0.18));
       setTimeout(function(){LMAP.invalidateSize();LMAP.fitBounds(L.latLngBounds(latlngs).pad(0.18));},60);

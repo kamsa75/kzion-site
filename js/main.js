@@ -60,7 +60,7 @@
   /* ---------- 문의 상담창 (처음 오시나요?) ---------- */
   var orb = document.getElementById('orb');
   if (orb) {
-    var GREETING = '안녕하세요! 시온교회에 관심 가져 주셔서 감사해요. 😊 예배 시간·주차·아이 동반까지, 아래에서 골라보시거나 궁금한 점을 편하게 적어주세요.';
+    var GREETING = '안녕하세요! 시애틀 시온장로교회에 관심 가져 주셔서 감사해요. 😊 예배 시간·주차·아이 동반까지, 아래에서 골라보시거나 궁금한 점을 편하게 적어주세요.';
     var FALLBACK = '그 부분은 제가 정확히 알지 못해서요. 교회 <a href="https://www.facebook.com/kzionchurch" target="_blank" rel="noopener">페이스북</a>·<a href="https://www.instagram.com/seattlezionchurch" target="_blank" rel="noopener">인스타그램</a>으로 메시지 주시거나, 주일에 직접 오셔서 물어봐 주시면 정확히 안내받으실 수 있어요.';
     var FAQ = [
       { q: '처음 방문하는데 뭘 준비해야 하나요?', k: ['처음', '방문', '준비', '뭘', '뭐 가', '옷', '복장', '차림', '입어'], a: '아무것도요. 편한 차림으로 오시면 입구에서 따뜻하게 맞아드려요. 처음 오신 분도 어색하지 않게 자연스럽게 안내해드려요.' },
