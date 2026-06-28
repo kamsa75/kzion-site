@@ -288,7 +288,7 @@
       <div class="fld"><div class="flabel">여행 스타일</div><div class="seg" id="segPace"><button data-v="relaxed" class="on">여유롭게</button><button data-v="packed">알차게</button></div></div>
       <div class="fld"><div class="flabel">이동 수단</div><div class="seg" id="segMove"><button data-v="driving" class="on">자동차</button><button data-v="transit">대중교통</button></div></div>
     </div>
-    <div class="fld"><span class="startnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 출발은 예배 후 오후 1:00로 고정됩니다</span></div>
+    <div class="fld"><span class="startnote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 출발은 예배 후 오후 1:00로 고정되어 있어요</span></div>
     <button class="gen" id="genBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg> 내 코스 만들기</button>
   </div></div>
 </div></section>
@@ -502,7 +502,7 @@
 
     var t=state.start,html="";
     html+='<div class="tl-item church"><div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>'+
-      '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시온교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline</div></div></div>';
+      '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시온교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline, WA 98133</div></div></div>';
 
     route.forEach(function(s,i){
       html+='<div class="leg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'+(state.move==="transit"?"대중교통":"차로")+' 약 '+s._travel+'분 이동</div>';
