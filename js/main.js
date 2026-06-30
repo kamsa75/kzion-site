@@ -213,36 +213,60 @@
   var sermonFrame = document.getElementById('sermonFrame');
   if (sermonFrame) {
     var SUNDAY_PLAYLIST_ID = 'PLPzvxbIUN0KXbeQey49_OLQ-T7VKMXSmc'; // 유튜브 '주일예배' 재생목록
+    var sTitleEl = document.getElementById('sermonTitle');
+    var SERMON_CACHE = 'kzSermonV1';
+    var shownId = null;
+
+    function showSermon(id, title) {
+      if (id && id !== shownId) { sermonFrame.src = 'https://www.youtube.com/embed/' + id; shownId = id; }
+      if (title && sTitleEl) sTitleEl.textContent = title;
+    }
+
+    // 1) 캐시가 있으면 즉시 표시 → 재방문 시 기다림 없음
+    try {
+      var cachedSermon = JSON.parse(localStorage.getItem(SERMON_CACHE) || 'null');
+      if (cachedSermon && cachedSermon.id) showSermon(cachedSermon.id, cachedSermon.title);
+    } catch (e) {}
+
+    // 2) 백그라운드 갱신: 빠른 프록시 우선으로 동시 시도, 먼저 성공한 것 사용 + 7초 타임아웃
     var rssUrl = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + SUNDAY_PLAYLIST_ID;
-    var proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl);
-    fetch(proxyUrl)
-      .then(function (r) { if (!r.ok) throw 0; return r.text(); })
-      .then(function (xml) {
-        var doc = new DOMParser().parseFromString(xml, 'text/xml');
-        var entries = doc.querySelectorAll('entry');
-        if (!entries.length) return;
-        // '주일예배' 재생목록 안에서 게시일이 가장 최근인 영상 선택 (정렬 순서와 무관하게 안전)
-        var entry = null, best = -1;
-        entries.forEach(function (en) {
-          var p = en.querySelector('published');
-          var t = p ? Date.parse(p.textContent) : 0;
-          if (t >= best) { best = t; entry = en; }
-        });
-        if (!entry) entry = entries[0];
-        var link = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
-        var href = link ? link.getAttribute('href') : '';
-        var m = href.match(/[?&]v=([^&]+)/);
-        var id = m ? m[1] : null;
-        if (!id) return;
-        sermonFrame.src = 'https://www.youtube.com/embed/' + id;
-        var titleEl = entry.querySelector('title');
-        var tEl = document.getElementById('sermonTitle');
-        if (titleEl && tEl) {
-          var t = titleEl.textContent.replace(/^\d{4}[.\-]\d{2}[.\-]\d{2}\s*/, '').trim();
-          if (t) tEl.textContent = t;
-        }
-      })
-      .catch(function () { /* 실패 시 기존(폴백) 영상 유지 */ });
+    var PROXIES = [
+      'https://corsproxy.io/?url=' + encodeURIComponent(rssUrl),
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl)
+    ];
+    var resolved = false;
+    PROXIES.forEach(function (purl) {
+      var ctrl = new AbortController();
+      var to = setTimeout(function () { ctrl.abort(); }, 7000);
+      fetch(purl, { signal: ctrl.signal })
+        .then(function (r) { clearTimeout(to); if (!r.ok) throw 0; return r.text(); })
+        .then(function (xml) {
+          if (resolved || !xml || xml.indexOf('<entry') < 0) return;
+          var doc = new DOMParser().parseFromString(xml, 'text/xml');
+          var entries = doc.querySelectorAll('entry');
+          if (!entries.length) return;
+          // 게시일이 가장 최근인 영상 선택 (정렬 순서와 무관하게 안전)
+          var entry = null, best = -1;
+          entries.forEach(function (en) {
+            var p = en.querySelector('published');
+            var t = p ? Date.parse(p.textContent) : 0;
+            if (t >= best) { best = t; entry = en; }
+          });
+          if (!entry) entry = entries[0];
+          var link = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
+          var href = link ? link.getAttribute('href') : '';
+          var m = href.match(/[?&]v=([^&]+)/);
+          var id = m ? m[1] : null;
+          if (!id) return;
+          var title = '';
+          var titleEl = entry.querySelector('title');
+          if (titleEl) title = titleEl.textContent.replace(/^\d{4}[.\-]\d{2}[.\-]\d{2}\s*/, '').trim();
+          resolved = true;
+          showSermon(id, title);
+          try { localStorage.setItem(SERMON_CACHE, JSON.stringify({ id: id, title: title })); } catch (e) {}
+        })
+        .catch(function () { clearTimeout(to); });
+    });
   }
 
   /* ---------- 마음 날씨 (index 전용) ---------- */
