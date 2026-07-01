@@ -229,7 +229,8 @@
     } catch (e) {}
 
     // 2) 백그라운드 갱신: 빠른 프록시 우선으로 동시 시도, 먼저 성공한 것 사용 + 7초 타임아웃
-    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + SUNDAY_PLAYLIST_ID;
+    // 캐시 무력화(&_=): 사파리 등이 프록시 응답을 HTTP 캐시에서 옛것으로 꺼내 쓰는 문제 방지
+    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + SUNDAY_PLAYLIST_ID + '&_=' + Date.now();
     var PROXIES = [
       'https://corsproxy.io/?url=' + encodeURIComponent(rssUrl),
       'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl)
@@ -238,7 +239,7 @@
     PROXIES.forEach(function (purl) {
       var ctrl = new AbortController();
       var to = setTimeout(function () { ctrl.abort(); }, 7000);
-      fetch(purl, { signal: ctrl.signal })
+      fetch(purl, { signal: ctrl.signal, cache: 'no-store' })
         .then(function (r) { clearTimeout(to); if (!r.ok) throw 0; return r.text(); })
         .then(function (xml) {
           if (resolved || !xml || xml.indexOf('<entry') < 0) return;
