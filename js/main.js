@@ -209,65 +209,22 @@
     });
   });
 
-  /* ---------- 최근 설교 자동 추출 (유튜브 RSS, index 전용) ---------- */
+  /* ---------- 최근 설교 자동 반영 (index 전용) ----------
+     최신 영상 id/제목은 GitHub Action이 유튜브 API로 sermon.json 에 미리 갱신해 둔다.
+     브라우저는 프록시 없이 같은 도메인의 sermon.json 하나만 읽으므로 모든 브라우저에서 항상 정확.
+     sermon.json 이 없거나 실패하면 HTML에 박아둔 기본 영상을 그대로 유지. */
   var sermonFrame = document.getElementById('sermonFrame');
   if (sermonFrame) {
-    var SUNDAY_PLAYLIST_ID = 'PLPzvxbIUN0KXbeQey49_OLQ-T7VKMXSmc'; // 유튜브 '주일예배' 재생목록
     var sTitleEl = document.getElementById('sermonTitle');
-    var SERMON_CACHE = 'kzSermonV1';
-    var shownId = null;
-
-    function showSermon(id, title) {
-      if (id && id !== shownId) { sermonFrame.src = 'https://www.youtube.com/embed/' + id; shownId = id; }
-      if (title && sTitleEl) sTitleEl.textContent = title;
-    }
-
-    // 1) 캐시가 있으면 즉시 표시 → 재방문 시 기다림 없음
-    try {
-      var cachedSermon = JSON.parse(localStorage.getItem(SERMON_CACHE) || 'null');
-      if (cachedSermon && cachedSermon.id) showSermon(cachedSermon.id, cachedSermon.title);
-    } catch (e) {}
-
-    // 2) 백그라운드 갱신: 빠른 프록시 우선으로 동시 시도, 먼저 성공한 것 사용 + 7초 타임아웃
-    // 캐시 무력화(&_=): 사파리 등이 프록시 응답을 HTTP 캐시에서 옛것으로 꺼내 쓰는 문제 방지
-    var rssUrl = 'https://www.youtube.com/feeds/videos.xml?playlist_id=' + SUNDAY_PLAYLIST_ID + '&_=' + Date.now();
-    var PROXIES = [
-      'https://corsproxy.io/?url=' + encodeURIComponent(rssUrl),
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent(rssUrl)
-    ];
-    var resolved = false;
-    PROXIES.forEach(function (purl) {
-      var ctrl = new AbortController();
-      var to = setTimeout(function () { ctrl.abort(); }, 7000);
-      fetch(purl, { signal: ctrl.signal, cache: 'no-store' })
-        .then(function (r) { clearTimeout(to); if (!r.ok) throw 0; return r.text(); })
-        .then(function (xml) {
-          if (resolved || !xml || xml.indexOf('<entry') < 0) return;
-          var doc = new DOMParser().parseFromString(xml, 'text/xml');
-          var entries = doc.querySelectorAll('entry');
-          if (!entries.length) return;
-          // 게시일이 가장 최근인 영상 선택 (정렬 순서와 무관하게 안전)
-          var entry = null, best = -1;
-          entries.forEach(function (en) {
-            var p = en.querySelector('published');
-            var t = p ? Date.parse(p.textContent) : 0;
-            if (t >= best) { best = t; entry = en; }
-          });
-          if (!entry) entry = entries[0];
-          var link = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
-          var href = link ? link.getAttribute('href') : '';
-          var m = href.match(/[?&]v=([^&]+)/);
-          var id = m ? m[1] : null;
-          if (!id) return;
-          var title = '';
-          var titleEl = entry.querySelector('title');
-          if (titleEl) title = titleEl.textContent.replace(/^\d{4}[.\-]\d{2}[.\-]\d{2}\s*/, '').trim();
-          resolved = true;
-          showSermon(id, title);
-          try { localStorage.setItem(SERMON_CACHE, JSON.stringify({ id: id, title: title })); } catch (e) {}
-        })
-        .catch(function () { clearTimeout(to); });
-    });
+    fetch('sermon.json?_=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) {
+        if (d && d.id) {
+          sermonFrame.src = 'https://www.youtube.com/embed/' + d.id;
+          if (d.title && sTitleEl) sTitleEl.textContent = d.title;
+        }
+      })
+      .catch(function () { /* sermon.json 없음/실패 → HTML 기본 영상 유지 */ });
   }
 
   /* ---------- 마음 날씨 (index 전용) ---------- */
