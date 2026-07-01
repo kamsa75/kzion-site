@@ -196,6 +196,9 @@
   .tl-cat{font-size:11.5px;color:var(--teal-d);background:var(--ivory);border:1px solid var(--line);padding:3px 9px;border-radius:999px}
   .leg{font-size:12px;color:var(--soft);padding:6px 0 6px 46px;display:flex;align-items:center;gap:7px}
   .leg svg{width:14px;height:14px;color:var(--teal)}
+  .leg-transit{text-decoration:none;cursor:pointer;transition:color .15s}
+  .leg-transit:hover{color:var(--teal-d)}
+  .leg-go{color:var(--teal-d);font-weight:600;margin-left:2px}
   .empty{background:#fff;border:1px dashed var(--line-2);border-radius:16px;padding:30px;text-align:center;color:var(--soft);font-size:14.5px}
 
   footer.site-footer{background:var(--night);color:#B6D2D2;padding:60px 0 38px}
@@ -505,7 +508,14 @@
       '<div class="tl-card"><div class="tl-time">'+fmt(t)+' 출발</div><div class="tl-name">시애틀 시온장로교회 <span class="tl-badge">START</span></div><div class="tl-meta">17920 Meridian Ave N, Shoreline, WA 98133</div></div></div>';
 
     route.forEach(function(s,i){
-      html+='<div class="leg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'+(state.move==="transit"?"대중교통":"차로")+' 약 '+s._travel+'분 이동</div>';
+      var legSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+      if(state.move==="transit"){
+        var prevP=(i===0)?CHURCH:route[i-1];
+        var legLink="https://www.google.com/maps/dir/?api=1&origin="+prevP.lat+","+prevP.lng+"&destination="+s.lat+","+s.lng+"&travelmode=transit";
+        html+='<a class="leg leg-transit" href="'+legLink+'" target="_blank" rel="noopener">'+legSvg+'대중교통 약 '+s._travel+'분 이동 <span class="leg-go">길찾기 ↗</span></a>';
+      }else{
+        html+='<div class="leg">'+legSvg+'차로 약 '+s._travel+'분 이동</div>';
+      }
       t+=s._travel+s.access;var arrive=t;t+=s.dur;
       var cats=s.cats.map(function(c){return '<span class="tl-cat">'+CATS[c].ko+'</span>';}).join("");
       var last=(i===route.length-1);
@@ -587,9 +597,16 @@
   function buildGmaps(route){
     var g=document.getElementById("gmaps");g.style.display="";
     var origin=encodeURIComponent(CHURCH.addr),dest=route[route.length-1].lat+","+route[route.length-1].lng;
-    var wp=route.slice(0,-1).map(function(s){return s.lat+","+s.lng;}).join("|");
-    g.href="https://www.google.com/maps/dir/?api=1&origin="+origin+"&destination="+dest+(wp?"&waypoints="+encodeURIComponent(wp):"")+"&travelmode="+state.move;
-    var label=state.move==="transit"?"구글 지도로 대중교통 길찾기":"구글 지도로 운전 경로 열기";
+    var label;
+    if(state.move==="transit"){
+      // 구글 지도 URL은 대중교통에서 경유지(waypoints)를 지원하지 않아 운전으로 폴백됨 → 경유지 없이 교회→최종 목적지 대중교통 (구간별 안내는 각 이동 링크로)
+      g.href="https://www.google.com/maps/dir/?api=1&origin="+origin+"&destination="+dest+"&travelmode=transit";
+      label="구글 지도로 대중교통 길찾기";
+    }else{
+      var wp=route.slice(0,-1).map(function(s){return s.lat+","+s.lng;}).join("|");
+      g.href="https://www.google.com/maps/dir/?api=1&origin="+origin+"&destination="+dest+(wp?"&waypoints="+encodeURIComponent(wp):"")+"&travelmode=driving";
+      label="구글 지도로 운전 경로 열기";
+    }
     g.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg> '+label;
   }
 
