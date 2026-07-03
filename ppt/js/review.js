@@ -128,7 +128,7 @@ const Review = (function () {
 
     const tip = document.createElement('p');
     tip.className = 'review-tip';
-    tip.innerHTML = '노란 표시는 AI가 확신하지 못한 단어입니다 — "원본" 탭과 대조해 주세요. 줄을 누르면 수정, 줄 사이 <b>┄</b> 를 누르면 슬라이드가 나뉩니다.';
+    tip.innerHTML = '노란 표시는 잘못 읽혔을 수 있는 단어입니다 — "원본" 탭과 대조해 주세요. 줄을 누르면 수정, 줄 사이 <b>┄</b> 를 누르면 슬라이드가 나뉩니다.';
     el.appendChild(tip);
 
     s.blocks.forEach(block => {
