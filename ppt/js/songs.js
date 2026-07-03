@@ -174,12 +174,74 @@ const Songs = (function () {
       .finally(() => fetchingThumbs.delete(song.id));
   }
 
-  function movePage(song, i, dir) {
-    const j = i + dir;
-    if (j < 0 || j >= song.images.length) return;
-    [song.images[i], song.images[j]] = [song.images[j], song.images[i]];
+  // 드래그로 페이지 순서 변경 (D15) — 폰: 꾹 누른 뒤 끌기 / 데스크톱: 바로 끌기
+  function enableDrag(cell, strip, song) {
+    let startX = 0, startY = 0, dragging = false, pressTimer = null, pid = null;
+
+    function startDrag() {
+      dragging = true;
+      cell.classList.add('dragging');
+      try { cell.setPointerCapture(pid); } catch (e) {}
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+
+    cell.addEventListener('pointerdown', (e) => {
+      pid = e.pointerId;
+      startX = e.clientX; startY = e.clientY;
+      if (e.pointerType !== 'mouse') {
+        pressTimer = setTimeout(startDrag, 250); // 꾹 누르면 드래그 시작
+      }
+    });
+
+    cell.addEventListener('pointermove', (e) => {
+      if (!dragging) {
+        if (Math.hypot(e.clientX - startX, e.clientY - startY) > 8) {
+          if (e.pointerType === 'mouse') startDrag();       // 마우스는 즉시
+          else clearTimeout(pressTimer);                    // 터치 이동 = 스크롤로 판단
+        }
+        return;
+      }
+      // 포인터에 가장 가까운 셀을 찾아 앞/뒤에 삽입 (줄바꿈 그리드 = 2D 거리)
+      const cells = [...strip.querySelectorAll('.page-cell')].filter(c => c !== cell);
+      let best = null, bestDist = Infinity, insertAfter = false;
+      for (const c of cells) {
+        const r = c.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const d = Math.hypot(e.clientX - cx, e.clientY - cy);
+        if (d < bestDist) { bestDist = d; best = c; insertAfter = e.clientX > cx; }
+      }
+      if (best) {
+        if (insertAfter) strip.insertBefore(cell, best.nextSibling);
+        else strip.insertBefore(cell, best);
+      }
+      // + 페이지 추가 버튼은 항상 맨 끝 유지
+      strip.appendChild(strip.querySelector('.page-add'));
+    });
+
+    // iOS: 드래그 중 화면 스크롤 차단 (touch-action만으로는 부족)
+    cell.addEventListener('touchmove', (e) => { if (dragging) e.preventDefault(); }, { passive: false });
+
+    const finish = () => {
+      clearTimeout(pressTimer);
+      if (dragging) {
+        cell.classList.remove('dragging');
+        commitPageOrder(strip, song);
+      }
+      dragging = false;
+    };
+    cell.addEventListener('pointerup', finish);
+    cell.addEventListener('pointercancel', finish);
+  }
+
+  function commitPageOrder(strip, song) {
+    const order = [...strip.querySelectorAll('.page-cell')].map(c => Number(c.dataset.idx));
+    if ((song.images || []).length === order.length) {
+      song.images = order.map(i => song.images[i]);
+    }
     const cache = SongStore.getImages(song.id);
-    if (cache.length === song.images.length) [cache[i], cache[j]] = [cache[j], cache[i]];
+    if (cache.length === order.length) {
+      SongStore.setImages(song.id, order.map(i => cache[i]));
+    }
     SongStore.save();
     render();
   }
@@ -203,25 +265,20 @@ const Songs = (function () {
     for (let i = 0; i < n; i++) {
       const cell = document.createElement('div');
       cell.className = 'page-cell';
+      cell.dataset.idx = i;
       const img = document.createElement('img');
       if (urls[i]) img.src = urls[i];
       img.alt = (i + 1) + '페이지';
+      img.draggable = false;
       const num = document.createElement('span');
       num.className = 'page-num';
       num.textContent = i + 1;
-      const ctr = document.createElement('div');
-      ctr.className = 'page-ctr';
-      const mk = (label, fn, disabled) => {
-        const b = document.createElement('button');
-        b.textContent = label;
-        b.disabled = !!disabled;
-        b.addEventListener('click', fn);
-        ctr.appendChild(b);
-      };
-      mk('◀', () => movePage(song, i, -1), i === 0);
-      mk('✕', () => deletePage(song, i));
-      mk('▶', () => movePage(song, i, +1), i === n - 1);
-      cell.append(img, num, ctr);
+      const del = document.createElement('button');
+      del.className = 'thumb-del';
+      del.textContent = '✕';
+      del.addEventListener('click', () => deletePage(song, i));
+      cell.append(img, num, del);
+      enableDrag(cell, strip, song);
       strip.appendChild(cell);
     }
 
@@ -235,7 +292,16 @@ const Songs = (function () {
       $('#song-file').click();
     });
     strip.appendChild(add);
-    return strip;
+
+    const wrap = document.createElement('div');
+    wrap.appendChild(strip);
+    if (n > 1) {
+      const hint = document.createElement('p');
+      hint.className = 'page-hint';
+      hint.textContent = '순서를 바꾸려면 페이지를 꾹 눌러 원하는 자리로 끌어다 놓으세요.';
+      wrap.appendChild(hint);
+    }
+    return wrap;
   }
 
   // 기존 곡에 페이지 추가 (추출은 다시 돌리지 않음 — 4단계에서 재추출 버튼 예정)

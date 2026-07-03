@@ -217,9 +217,9 @@ input{font-family:inherit;}
 }
 .btn-move{padding:10px 13px;}
 
-/* ---------- 악보 페이지 관리 (D15) ---------- */
+/* ---------- 악보 페이지 관리 (D15) — 줄바꿈 그리드(한 화면에 전부) ---------- */
 .page-strip{
-  display:flex; gap:10px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  display:flex; flex-wrap:wrap; gap:10px;
   padding:12px 2px 6px; margin-top:12px; border-top:1px solid var(--ui-line);
 }
 .page-cell{position:relative; flex:0 0 auto; width:84px;}
@@ -232,12 +232,12 @@ input{font-family:inherit;}
   background:rgba(0,0,0,.65); color:#fff; font-size:11px; font-weight:700;
   display:flex; align-items:center; justify-content:center;
 }
-.page-ctr{display:flex; justify-content:space-between; margin-top:4px;}
-.page-ctr button{
-  font-size:12px; padding:4px 7px; border-radius:6px; color:var(--ui-sub);
-  border:1px solid var(--ui-line); background:var(--ui-card); font-weight:700;
+.page-cell{cursor:grab; user-select:none; -webkit-user-select:none;}
+.page-cell.dragging{
+  opacity:.9; transform:scale(1.07); cursor:grabbing;
+  box-shadow:0 8px 20px rgba(0,0,0,.28); z-index:5;
 }
-.page-ctr button:disabled{opacity:.3;}
+.page-hint{font-size:12px; color:var(--ui-sub); margin:6px 0 0;}
 .page-add{
   flex:0 0 auto; width:84px; height:110px; border:1.5px dashed var(--ui-line);
   border-radius:8px; color:var(--ui-sub); font-size:12px; font-weight:700; line-height:1.5;
