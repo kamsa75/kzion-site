@@ -5,7 +5,7 @@
 --                 접근은 Edge Function(service_role)만 가능.
 -- ============================================================
 
-create extension if not exists pgcrypto;
+create extension if not exists pgcrypto with schema extensions;
 
 -- 역할 (역할–PIN–이메일, 지침: 역할 테이블)
 create table if not exists roles (
@@ -64,8 +64,8 @@ alter table songs enable row level security;
 
 -- PIN 검증 함수 (service_role 전용)
 create or replace function verify_pin(p text) returns text
-language sql security definer set search_path = public as
-$$ select role from roles where pin_hash = crypt(p, pin_hash) limit 1 $$;
+language sql security definer set search_path = public, extensions as
+$$ select role from roles where pin_hash = extensions.crypt(p, pin_hash) limit 1 $$;
 revoke all on function verify_pin(text) from public, anon, authenticated;
 
 -- 악보 이미지 버킷 (비공개 — 접근은 Edge Function이 발급한 서명 URL로만)
@@ -75,8 +75,8 @@ on conflict (id) do nothing;
 
 -- 초기 PIN (개발용 임시값 — 실운영 전 반드시 교체 예정)
 insert into roles (role, pin_hash) values
-  ('pastor', crypt('1111', gen_salt('bf'))),
-  ('praise', crypt('2222', gen_salt('bf'))),
-  ('choir',  crypt('3333', gen_salt('bf'))),
-  ('admin',  crypt('9999', gen_salt('bf')))
+  ('pastor', extensions.crypt('1111', extensions.gen_salt('bf'))),
+  ('praise', extensions.crypt('2222', extensions.gen_salt('bf'))),
+  ('choir',  extensions.crypt('3333', extensions.gen_salt('bf'))),
+  ('admin',  extensions.crypt('9999', extensions.gen_salt('bf')))
 on conflict (role) do nothing;
