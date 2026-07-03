@@ -16,8 +16,7 @@ const Review = (function () {
 
   function switchTab(name) {
     document.querySelectorAll('#review-tabs .tab').forEach(t => t.classList.toggle('on', t.dataset.tab === name));
-    ['lyrics', 'slides', 'original'].forEach(n => { $('#tab-' + n).hidden = (n !== name); });
-    if (name === 'slides') renderSlidesTab();
+    ['lyrics', 'original'].forEach(n => { $('#tab-' + n).hidden = (n !== name); });
     if (name === 'original') renderOriginalTab();
   }
 
@@ -163,40 +162,20 @@ const Review = (function () {
         card.appendChild(lineNode(block, li));
         if (li < block.lines.length - 1) card.appendChild(dividerNode(block, li));
       });
+
+      // 이 블록의 슬라이드 미리보기 — 가사와 한 화면 (지침 10번 갱신, D12)
+      const sl = document.createElement('div');
+      sl.className = 'block-slides';
+      blockSlides(block).forEach(g => {
+        sl.appendChild(renderSlide({ layout: 'band', lyrics: g.map(i => block.lines[i].text) }));
+      });
+      card.appendChild(sl);
+
       el.appendChild(card);
     });
   }
 
-  /* ================= 탭 2: 슬라이드 미리보기 ================= */
-
-  function slidesOf(s) {
-    // 순서 지정 전: 블록 순서대로 전체 슬라이드 (검수용)
-    const out = [];
-    s.blocks.forEach(block => {
-      blockSlides(block).forEach(g => {
-        out.push({ label: block.label, lyrics: g.map(i => block.lines[i].text) });
-      });
-    });
-    return out;
-  }
-
-  function renderSlidesTab() {
-    const el = $('#tab-slides');
-    el.innerHTML = '';
-    const s = song();
-    slidesOf(s).forEach((sl, i) => {
-      const item = document.createElement('div');
-      item.className = 'preview-item';
-      const label = document.createElement('div');
-      label.className = 'pv-label';
-      label.textContent = (i + 1) + '. ' + sl.label;
-      item.appendChild(label);
-      item.appendChild(renderSlide({ layout: 'band', lyrics: sl.lyrics }));
-      el.appendChild(item);
-    });
-  }
-
-  /* ================= 탭 3: 원본 (핀치 줌) ================= */
+  /* ================= 탭 2: 원본 (핀치 줌) ================= */
 
   function renderOriginalTab() {
     const el = $('#tab-original');
