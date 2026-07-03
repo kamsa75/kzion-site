@@ -79,6 +79,18 @@ const Review = (function () {
             input.blur();
           }
         }
+        // 줄 맨 앞에서 지우기 → 윗줄과 합치기 (지침 19 보완)
+        if (e.key === 'Backspace' && input.selectionStart === 0 && input.selectionEnd === 0 && li > 0) {
+          e.preventDefault();
+          const prev = block.lines[li - 1];
+          prev.text = (prev.text + ' ' + input.value.trim()).trim();
+          prev.low = [];
+          block.lines.splice(li, 1);
+          block.breaks.splice(li - 1, 1);
+          input.removeEventListener('blur', commit);
+          SongStore.save();
+          renderLyricsTab();
+        }
       });
     });
     return row;
@@ -128,7 +140,7 @@ const Review = (function () {
 
     const tip = document.createElement('p');
     tip.className = 'review-tip';
-    tip.innerHTML = '노란 표시는 잘못 읽혔을 수 있는 단어입니다 — "원본" 탭과 대조해 주세요. 줄을 누르면 수정, 줄 사이 <b>┄</b> 를 누르면 슬라이드가 나뉩니다.';
+    tip.innerHTML = '노란 표시는 잘못 읽혔을 수 있는 단어입니다 — "원본" 탭과 대조해 주세요.<br>줄을 누르면 수정 · 수정 중 엔터 = 줄 나누기 · 줄 맨 앞에서 지우기(⌫) = 윗줄과 합치기 · 줄 사이 <b>┄</b> = 슬라이드 나누기';
     el.appendChild(tip);
 
     s.blocks.forEach(block => {
