@@ -227,7 +227,11 @@ input{font-family:inherit;}
 .block-label{font-size:13px; font-weight:800; color:var(--ui-gold); margin-bottom:8px; letter-spacing:.04em;}
 .block-warn{font-size:12px; color:#8A6D1F; background:var(--ui-warn-bg); padding:7px 10px; border-radius:8px; margin-bottom:8px;}
 .line-row{padding:2px 0;}
-.line-text{font-size:16px; font-weight:600; padding:8px 6px; border-radius:8px; cursor:text;}
+.line-text{
+  font-size:16px; font-weight:600; padding:8px 6px; border-radius:8px; cursor:text;
+  white-space:nowrap; overflow-x:auto; scrollbar-width:none;
+}
+.line-text::-webkit-scrollbar{display:none;}
 @media(hover:hover){ .line-text:hover{background:#F1EFE9;} }
 .line-text mark{background:#FFE58F; border-radius:4px; padding:1px 3px;}
 .line-input{

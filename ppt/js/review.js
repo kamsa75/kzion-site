@@ -121,6 +121,19 @@ const Review = (function () {
     return groups;
   }
 
+  // 긴 가사 줄은 글자를 줄여 한 줄에 맞춤 (줄바꿈 방지)
+  function fitLines(root) {
+    root.querySelectorAll('.line-text').forEach(t => {
+      if (!t.clientWidth) return;
+      let size = 16;
+      t.style.fontSize = size + 'px';
+      while (t.scrollWidth > t.clientWidth && size > 11.5) {
+        size -= 0.5;
+        t.style.fontSize = size + 'px';
+      }
+    });
+  }
+
   function renderLyricsTab() {
     const el = $('#tab-lyrics');
     el.innerHTML = '';
@@ -173,6 +186,7 @@ const Review = (function () {
 
       el.appendChild(card);
     });
+    fitLines(el);
   }
 
   /* ================= 탭 2: 원본 (핀치 줌) ================= */
@@ -297,6 +311,7 @@ const Review = (function () {
     renderLyricsTab();
     switchTab('lyrics');
     KZ.show('review');
+    fitLines($('#tab-lyrics')); // 화면 표시 후 실행 — hidden 상태에서는 폭을 잴 수 없음
   }
 
   function init() {
