@@ -3,40 +3,102 @@
    - 업로드: 모바일 탭(촬영·사진첩) / 데스크톱 드래그앤드랍 (지침 7번)
    - 클라이언트 리사이즈 가로 1920px JPEG (지침 9번)
    - 밝기 간이 체크 → 재촬영 안내, 강제 아님 (지침 8번)
-   - 추출은 목(mock) 1.5초 지연 — 4단계에서 Edge Function 호출로 교체
-   - 저장: localStorage(텍스트만). 이미지는 메모리 보관 — 3단계에서 서버 저장
+   - 저장: USE_SERVER=true면 Supabase(Edge Function api) 자동 저장 (지침 3번, D14)
+           false면 localStorage(목 모드)
+   - 추출은 아직 목(mock) — 4단계에서 실제 Claude API로 교체
    ============================================================ */
 
 const SongStore = (function () {
   let role = null;
-  let songs = [];            // [{id, name, status, blocks, breaksEdited, order}]
-  const images = {};         // songId -> [dataUrl] (메모리 전용)
+  let songs = [];            // [{id, name, status, blocks, order, images, warnDark}]
+  const imgCache = {};       // songId -> [dataUrl] 세션 내 표시용 캐시
+  let pushTimer = null;
 
   function key() { return 'kzppt_songs_' + role; }
 
-  function load(r) {
+  async function load(r) {
     role = r;
-    try { songs = JSON.parse(localStorage.getItem(key())) || []; }
-    catch (e) { songs = []; }
+    if (CONFIG.USE_SERVER) {
+      const w = await API.call('getWeek');
+      songs = (w.songs || [])
+        .sort((a, b) => a.position - b.position)
+        .map(row => ({
+          id: row.id,
+          name: row.name,
+          status: row.status,
+          blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks}
+          order: row.ord || [],
+          images: row.images || [],   // storage 경로
+          warnDark: row.warn_dark
+        }));
+    } else {
+      try { songs = JSON.parse(localStorage.getItem(key())) || []; }
+      catch (e) { songs = []; }
+    }
   }
+
+  function isServerId(id) { return String(id).length === 36; }
+
+  async function pushOne(s, position) {
+    const r = await API.call('saveSong', {
+      song: {
+        id: isServerId(s.id) ? s.id : undefined,
+        name: s.name,
+        position,
+        status: s.status,
+        blocks: s.blocks ? { version: 1, blocks: s.blocks } : null,
+        ord: s.order,
+        images: s.images || [],
+        warnDark: !!s.warnDark
+      }
+    });
+    if (r.id && r.id !== s.id) {
+      imgCache[r.id] = imgCache[s.id];
+      delete imgCache[s.id];
+      s.id = r.id;
+    }
+  }
+
+  async function pushAll() {
+    for (let i = 0; i < songs.length; i++) {
+      const s = songs[i];
+      if (s.status === 'extracting') continue;
+      try { await pushOne(s, i); }
+      catch (e) { /* 네트워크 오류 — 다음 저장에서 재시도 */ }
+    }
+  }
+
   function save() {
-    try { localStorage.setItem(key(), JSON.stringify(songs)); } catch (e) { /* 용량 초과 등 — 목 단계에선 무시 */ }
+    if (CONFIG.USE_SERVER) {
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(pushAll, 800); // 자동 저장 디바운스
+    } else {
+      try { localStorage.setItem(key(), JSON.stringify(songs)); } catch (e) {}
+    }
   }
+
   return {
     load, save,
+    pushNow: async (s) => { if (CONFIG.USE_SERVER) { try { await pushOne(s, songs.indexOf(s)); } catch (e) {} } },
     all: () => songs,
     get: (id) => songs.find(s => s.id === id),
-    add: (song) => { songs.push(song); save(); },
-    remove: (id) => { songs = songs.filter(s => s.id !== id); delete images[id]; save(); },
-    move: (id, dir) => { // 곡 순서 이동 (PPT에는 목록 순서대로 들어감)
+    add: (song) => { songs.push(song); if (!CONFIG.USE_SERVER) save(); },
+    remove: (id) => {
+      const s = songs.find(x => x.id === id);
+      songs = songs.filter(x => x.id !== id);
+      delete imgCache[id];
+      if (CONFIG.USE_SERVER && s && isServerId(s.id)) { API.call('deleteSong', { id: s.id }).catch(() => {}); }
+      else if (!CONFIG.USE_SERVER) save();
+    },
+    move: (id, dir) => { // 곡 순서 이동 (목록 순서 = PPT 순서)
       const i = songs.findIndex(s => s.id === id);
       const j = i + dir;
       if (i < 0 || j < 0 || j >= songs.length) return;
       [songs[i], songs[j]] = [songs[j], songs[i]];
       save();
     },
-    setImages: (id, arr) => { images[id] = arr; },
-    getImages: (id) => images[id] || []
+    setImages: (id, arr) => { imgCache[id] = arr; },
+    getImages: (id) => imgCache[id] || []
   };
 })();
 
@@ -66,7 +128,6 @@ const Songs = (function () {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
 
-        // 평균 밝기 (0~255) — 축소 샘플로 계산
         const s = document.createElement('canvas');
         s.width = 64; s.height = 64;
         s.getContext('2d').drawImage(img, 0, 0, 64, 64);
@@ -81,6 +142,19 @@ const Songs = (function () {
       img.onerror = reject;
       img.src = url;
     });
+  }
+
+  // 서명 URL로 서버 스토리지에 업로드 → 경로 반환 (지침 5번)
+  async function uploadImages(dataUrls) {
+    const paths = [];
+    for (const dataUrl of dataUrls) {
+      const u = await API.call('uploadUrl');
+      const blob = await (await fetch(dataUrl)).blob();
+      const put = await fetch(u.url, { method: 'PUT', headers: { 'content-type': 'image/jpeg' }, body: blob });
+      if (!put.ok) throw new Error('업로드 실패');
+      paths.push(u.path);
+    }
+    return paths;
   }
 
   /* ---------- 곡 목록 렌더 ---------- */
@@ -136,7 +210,6 @@ const Songs = (function () {
         actions.appendChild(btnReview);
       }
 
-      // 곡 순서 이동 — 목록 순서 = PPT에 들어가는 순서
       const idx = SongStore.all().indexOf(song);
       const btnUp = document.createElement('button');
       btnUp.className = 'btn btn-outline btn-move';
@@ -166,20 +239,19 @@ const Songs = (function () {
     });
   }
 
-  /* ---------- 곡 추가 → 파일 선택 → 추출(목) ---------- */
+  /* ---------- 곡 추가 → 파일 선택 → 업로드 → 추출(목) ---------- */
 
   function addSong() {
     const role = KZ.role();
-    // 성가대는 곡명 필수(지침 — 성가대 워크플로우 + 곡명), 찬양팀은 선택
     let name = prompt(role === 'choir' ? '곡명을 입력하세요 (필수)' : '곡명을 입력하세요 (건너뛰려면 확인)');
-    if (name === null) return;               // 취소
+    if (name === null) return;
     name = name.trim();
     if (role === 'choir' && !name) { alert('성가대는 곡명이 필요합니다.'); return; }
 
     const song = {
       id: 's' + Date.now(),
       name, status: 'extracting',
-      blocks: null, order: [], warnDark: false
+      blocks: null, order: [], images: [], warnDark: false
     };
     SongStore.add(song);
     currentUploadSongId = song.id;
@@ -194,21 +266,29 @@ const Songs = (function () {
     const files = [...fileList];
     if (!files.length) { SongStore.remove(song.id); render(); return; }
 
+    let results;
     try {
-      const results = [];
+      results = [];
       for (const f of files) results.push(await resizeImage(f));
       SongStore.setImages(song.id, results.map(r => r.dataUrl));
-      song.warnDark = results.some(r => r.brightness < 90); // 지침 8번 간이 체크
+      song.warnDark = results.some(r => r.brightness < 90); // 지침 8번
     } catch (e) {
       alert('이미지를 읽지 못했습니다. 다른 사진으로 다시 시도해 주세요.');
       SongStore.remove(song.id); render(); return;
     }
     render();
 
+    // 서버 모드: 원본을 스토리지에 업로드 (경로 저장)
+    if (CONFIG.USE_SERVER) {
+      try { song.images = await uploadImages(results.map(r => r.dataUrl)); }
+      catch (e) { alert('악보 저장 중 문제가 생겼습니다. 다시 시도해 주세요.'); }
+    }
+
     // ── 목 추출: 1.5초 뒤 가짜 결과 (4단계에서 실제 API로 교체) ──
-    setTimeout(() => {
+    setTimeout(async () => {
       song.blocks = JSON.parse(JSON.stringify(MOCK.extractResult.blocks));
       song.status = 'review';
+      await SongStore.pushNow(song); // 서버 id 확정 후 화면 갱신 (검수 버튼이 확정 id를 갖도록)
       SongStore.save();
       render();
     }, 1500);
@@ -219,15 +299,13 @@ const Songs = (function () {
     $('#song-file').addEventListener('change', (e) => onFiles(e.target.files));
     $('#btn-songs-back').addEventListener('click', () => KZ.show('home'));
 
-    // 데스크톱 드래그앤드랍 (지침 7번)
     const screen = $('#screen-songs');
     screen.addEventListener('dragover', (e) => e.preventDefault());
     screen.addEventListener('drop', (e) => {
       e.preventDefault();
       if (!e.dataTransfer.files.length) return;
       if (!currentUploadSongId || SongStore.get(currentUploadSongId)?.blocks) {
-        // 드랍으로 바로 곡 생성
-        const song = { id: 's' + Date.now(), name: '', status: 'extracting', blocks: null, order: [], warnDark: false };
+        const song = { id: 's' + Date.now(), name: '', status: 'extracting', blocks: null, order: [], images: [], warnDark: false };
         SongStore.add(song);
         currentUploadSongId = song.id;
       }
@@ -235,11 +313,16 @@ const Songs = (function () {
     });
   }
 
-  function open() {
-    SongStore.load(KZ.role());
+  async function open() {
+    try {
+      await SongStore.load(KZ.role());
+    } catch (e) {
+      alert('서버에서 데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
+      return;
+    }
     render();
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage };
+  return { init, open, render, resizeImage, uploadImages };
 })();

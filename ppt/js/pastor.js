@@ -1,8 +1,7 @@
 /* ============================================================
    목사님 입력 화면 (지침 28번)
-   - 매주 입력 5개: 설교 제목 / 본문 구절 표기 / 성경 본문 / 함께 읽는 구절 / 기도 담당자명
-     + 예배 중 찬송가 악보 업로드 1건(여러 장)
-   - 입력 즉시 자동 저장 (지침 3번) — 목 단계는 localStorage, 3단계에서 Supabase
+   - 매주 입력 5개 + 예배 중 찬송가 악보 업로드(여러 장)
+   - 자동 저장 (지침 3번): USE_SERVER=true면 Supabase, false면 localStorage
    - 각 항목 아래 실제 슬라이드 모양 실시간 미리보기
    ============================================================ */
 
@@ -11,18 +10,40 @@ const Pastor = (function () {
   const KEY = 'kzppt_pastor';
 
   let data = { title: '', ref: '', passage: '', reading: '', prayer: '' };
-  let images = []; // dataURL 배열 — 메모리 전용(3단계에서 서버 저장)
-  let saveTimer = null;
+  let hymnPaths = [];   // 서버 storage 경로
+  let thumbUrls = [];   // 화면 표시용 (dataURL 또는 서명 URL)
+  let noteTimer = null;
+  let pushTimer = null;
 
-  function load() {
+  function loadLocal() {
     try { Object.assign(data, JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) {}
   }
-  function save() {
-    localStorage.setItem(KEY, JSON.stringify(data));
+
+  function savedNote() {
     const note = $('#pastor-saved');
     note.textContent = '✓ 저장됨';
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => { note.textContent = ''; }, 1500);
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => { note.textContent = ''; }, 1500);
+  }
+
+  function save() {
+    if (CONFIG.USE_SERVER) {
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(async () => {
+        try { await API.call('savePastor', { data }); savedNote(); }
+        catch (e) { $('#pastor-saved').textContent = '⚠ 저장 실패 — 네트워크 확인'; }
+      }, 600);
+    } else {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      savedNote();
+    }
+  }
+
+  async function saveImages() {
+    if (CONFIG.USE_SERVER) {
+      try { await API.call('savePastor', { hymnImages: hymnPaths }); savedNote(); }
+      catch (e) { $('#pastor-saved').textContent = '⚠ 저장 실패 — 네트워크 확인'; }
+    }
   }
 
   /* ---------- 미리보기 ---------- */
@@ -40,11 +61,9 @@ const Pastor = (function () {
   }
 
   function renderPreviews() {
-    // 설교 제목 슬라이드 (순서표 14번, 그린 자막형 — D10: 제목+구절만)
     previewBox($('#pv-sermon'),
       (data.title || data.ref) ? { layout: 'green', text: data.title, sub: data.ref } : null);
 
-    // 성경 본문 (순서표 15번, 다크 전체화면형) — 앞부분만 표시
     previewBox($('#pv-passage'),
       data.passage.trim() ? {
         layout: 'dark', caption: data.ref,
@@ -52,12 +71,11 @@ const Pastor = (function () {
       } : null,
       data.passage.trim().length > 100 ? '실제 생성 시 여러 장으로 자동 나뉩니다. (절 번호 골드 표시는 생성 단계에서)' : null);
 
-    // 함께 읽는 구절 (순서표 16번, 크로마 밴드형)
     const readingLines = data.reading.trim().split('\n').filter(Boolean);
     previewBox($('#pv-reading'),
       readingLines.length ? { layout: 'band', lyrics: readingLines.slice(0, 2) } : null);
 
-    // 기도 (순서표 8번, 그린 자막형) — "기도 : 이름" 한 줄, 동일 크기 (D13)
+    // 기도 (순서표 8번) — "기도 : 이름" 한 줄, 동일 크기 (D13)
     previewBox($('#pv-prayer'),
       data.prayer.trim() ? { layout: 'green', text: '기도 : ' + data.prayer.trim() } : null);
   }
@@ -67,7 +85,7 @@ const Pastor = (function () {
   function renderThumbs() {
     const box = $('#pastor-thumbs');
     box.innerHTML = '';
-    images.forEach((src, i) => {
+    thumbUrls.forEach((src, i) => {
       const wrap = document.createElement('div');
       wrap.className = 'thumb';
       const img = document.createElement('img');
@@ -76,7 +94,12 @@ const Pastor = (function () {
       const del = document.createElement('button');
       del.className = 'thumb-del';
       del.textContent = '✕';
-      del.addEventListener('click', () => { images.splice(i, 1); renderThumbs(); });
+      del.addEventListener('click', () => {
+        thumbUrls.splice(i, 1);
+        hymnPaths.splice(i, 1);
+        renderThumbs();
+        saveImages();
+      });
       wrap.append(img, del);
       box.appendChild(wrap);
     });
@@ -86,17 +109,21 @@ const Pastor = (function () {
     for (const f of [...fileList]) {
       try {
         const r = await Songs.resizeImage(f); // 리사이즈 재사용 (지침 9번)
-        images.push(r.dataUrl);
-      } catch (e) { alert('이미지를 읽지 못했습니다: ' + f.name); }
+        if (CONFIG.USE_SERVER) {
+          const paths = await Songs.uploadImages([r.dataUrl]);
+          hymnPaths.push(paths[0]);
+        }
+        thumbUrls.push(r.dataUrl);
+      } catch (e) { alert('이미지를 올리지 못했습니다: ' + f.name); }
     }
     renderThumbs();
+    saveImages();
   }
 
   /* ---------- 진입/이벤트 ---------- */
 
   function bindField(id, key) {
     const el = $(id);
-    el.value = data[key] || '';
     el.addEventListener('input', () => {
       data[key] = el.value;
       save();
@@ -104,8 +131,27 @@ const Pastor = (function () {
     });
   }
 
-  function open() {
-    load();
+  async function open() {
+    if (CONFIG.USE_SERVER) {
+      try {
+        const w = await API.call('getWeek');
+        data = Object.assign({ title: '', ref: '', passage: '', reading: '', prayer: '' }, (w.pastor && w.pastor.data) || {});
+        hymnPaths = (w.pastor && w.pastor.hymn_images) || [];
+        thumbUrls = [];
+        if (hymnPaths.length) {
+          try {
+            const r = await API.call('imageUrls', { paths: hymnPaths });
+            thumbUrls = r.urls || [];
+          } catch (e) {}
+        }
+      } catch (e) {
+        alert('서버에서 데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
+        return;
+      }
+    } else {
+      loadLocal();
+    }
+
     bindOnce();
     ['#pf-title', '#pf-ref', '#pf-passage', '#pf-reading', '#pf-prayer'].forEach((id, i) => {
       const keys = ['title', 'ref', 'passage', 'reading', 'prayer'];

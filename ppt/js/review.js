@@ -193,14 +193,30 @@ const Review = (function () {
 
   /* ================= 탭 2: 원본 (핀치 줌) ================= */
 
-  function renderOriginalTab() {
+  async function renderOriginalTab() {
     const el = $('#tab-original');
     el.innerHTML = '';
-    const imgs = SongStore.getImages(songId);
+    let imgs = SongStore.getImages(songId); // 세션 내 캐시 (업로드 직후)
+    const s = song();
+
+    // 서버 모드: 캐시가 없으면 저장된 경로로 서명 URL 발급 (1시간)
+    if (!imgs.length && CONFIG.USE_SERVER && s && (s.images || []).length) {
+      const p = document.createElement('p');
+      p.className = 'review-tip';
+      p.textContent = '악보를 불러오는 중…';
+      el.appendChild(p);
+      try {
+        const r = await API.call('imageUrls', { paths: s.images });
+        imgs = r.urls || [];
+        SongStore.setImages(songId, imgs);
+      } catch (e) { imgs = []; }
+      el.innerHTML = '';
+    }
+
     if (!imgs.length) {
       const p = document.createElement('p');
       p.className = 'review-tip';
-      p.textContent = '원본 이미지가 없습니다. (목 단계에서는 새로고침하면 이미지가 사라집니다 — 3단계 서버 저장 후 유지됩니다)';
+      p.textContent = '저장된 원본 이미지가 없습니다.';
       el.appendChild(p);
       return;
     }

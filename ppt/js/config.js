@@ -5,6 +5,6 @@
 
 const CONFIG = {
   FUNCTIONS_URL: 'https://kwezbhanfxludoafmmem.supabase.co/functions/v1',
-  // 서버(Edge Function `api`) 배포 완료 후 true로 전환 — false면 목(mock) 모드
-  USE_SERVER: false
+  // 서버(Edge Function `api`) 배포 완료 — 2026-07-02 전환
+  USE_SERVER: true
 };
