@@ -28,6 +28,13 @@ const SongStore = (function () {
     get: (id) => songs.find(s => s.id === id),
     add: (song) => { songs.push(song); save(); },
     remove: (id) => { songs = songs.filter(s => s.id !== id); delete images[id]; save(); },
+    move: (id, dir) => { // 곡 순서 이동 (PPT에는 목록 순서대로 들어감)
+      const i = songs.findIndex(s => s.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= songs.length) return;
+      [songs[i], songs[j]] = [songs[j], songs[i]];
+      save();
+    },
     setImages: (id, arr) => { images[id] = arr; },
     getImages: (id) => images[id] || []
   };
@@ -129,6 +136,20 @@ const Songs = (function () {
         actions.appendChild(btnReview);
       }
 
+      // 곡 순서 이동 — 목록 순서 = PPT에 들어가는 순서
+      const idx = SongStore.all().indexOf(song);
+      const btnUp = document.createElement('button');
+      btnUp.className = 'btn btn-outline btn-move';
+      btnUp.textContent = '↑';
+      btnUp.disabled = (idx === 0);
+      btnUp.addEventListener('click', () => { SongStore.move(song.id, -1); render(); });
+      const btnDown = document.createElement('button');
+      btnDown.className = 'btn btn-outline btn-move';
+      btnDown.textContent = '↓';
+      btnDown.disabled = (idx === SongStore.all().length - 1);
+      btnDown.addEventListener('click', () => { SongStore.move(song.id, +1); render(); });
+      actions.append(btnUp, btnDown);
+
       const btnDel = document.createElement('button');
       btnDel.className = 'btn btn-outline';
       btnDel.textContent = '삭제';
@@ -220,5 +241,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render };
+  return { init, open, render, resizeImage };
 })();

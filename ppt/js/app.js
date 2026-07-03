@@ -14,6 +14,7 @@
   const screens = {
     pin: $('#screen-pin'),
     home: $('#screen-home'),
+    pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
     review: $('#screen-review'),
     order: $('#screen-order'),
@@ -120,9 +121,9 @@
         if (role === 'praise' || role === 'choir') {
           btn.textContent = '곡 준비 시작';
           btn.addEventListener('click', () => Songs.open());
-        } else {
-          btn.disabled = true;
-          btn.innerHTML = '입력 시작 <span class="soon-tag">(다음 작업에서 열립니다)</span>';
+        } else if (role === 'pastor') {
+          btn.textContent = '입력 시작';
+          btn.addEventListener('click', () => Pastor.open());
         }
         actions.appendChild(btn);
         card.appendChild(actions);

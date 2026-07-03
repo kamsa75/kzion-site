@@ -46,6 +46,56 @@
     </main>
   </section>
 
+  <!-- 목사님 입력 (지침 28번 — 극단적으로 단순한 5개 항목 + 악보 1건) -->
+  <section id="screen-pastor" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-pastor-back" class="btn btn-ghost">← 홈</button>
+        <span class="topbar-title">이번 주 입력</span>
+      </div>
+      <span id="pastor-saved" class="save-note"></span>
+    </header>
+    <main class="main">
+
+      <div class="field">
+        <label for="pf-title">설교 제목</label>
+        <input id="pf-title" type="text" placeholder="예: 집착과 갈망">
+      </div>
+      <div class="field">
+        <label for="pf-ref">본문 구절 표기</label>
+        <input id="pf-ref" type="text" placeholder="예: 창세기 30:1–24">
+      </div>
+      <div id="pv-sermon" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-passage">성경 본문 붙여넣기</label>
+        <textarea id="pf-passage" rows="8" placeholder="성경 앱이나 사이트에서 본문을 복사해 그대로 붙여넣으세요. 절 번호가 섞여 있어도 됩니다."></textarea>
+      </div>
+      <div id="pv-passage" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-reading">함께 읽는 구절 (짧은 구절)</label>
+        <textarea id="pf-reading" rows="3" placeholder="예배 중 함께 읽을 짧은 구절"></textarea>
+      </div>
+      <div id="pv-reading" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-prayer">기도 담당자 이름</label>
+        <input id="pf-prayer" type="text" placeholder="예: 홍길동 집사">
+      </div>
+      <div id="pv-prayer" class="field-preview"></div>
+
+      <div class="field">
+        <label>예배 중 찬송가 악보 (사진 여러 장 가능)</label>
+        <button id="btn-pastor-upload" class="btn btn-outline btn-wide">📷 악보 사진 올리기</button>
+        <input id="pastor-file" type="file" accept="image/*" multiple hidden>
+        <div id="pastor-thumbs" class="thumbs"></div>
+      </div>
+
+      <p class="dev-note">모든 항목은 입력하는 즉시 자동 저장됩니다.</p>
+    </main>
+  </section>
+
   <!-- 곡 목록 (찬양팀/성가대 섹션 홈) -->
   <section id="screen-songs" class="screen" hidden>
     <header class="topbar">
@@ -117,8 +167,9 @@
 
 <script src="js/mock.js?v=2"></script>
 <script src="js/preview.js?v=2"></script>
-<script src="js/songs.js?v=1"></script>
-<script src="js/review.js?v=1"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/songs.js?v=2"></script>
+<script src="js/review.js?v=2"></script>
+<script src="js/pastor.js?v=1"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>
