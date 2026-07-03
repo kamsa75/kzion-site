@@ -101,7 +101,7 @@ const Review = (function () {
     div.type = 'button';
     div.className = 'divider' + (block.breaks[gi] ? ' cut' : '');
     div.innerHTML = block.breaks[gi]
-      ? '<span>여기서 슬라이드 나뉨 ✕</span>'
+      ? '<span>슬라이드 하나로 합치기</span>'
       : '<span>✂ 여기서 나누기</span>';
     div.addEventListener('click', () => {
       block.breaks[gi] = !block.breaks[gi];
@@ -152,7 +152,9 @@ const Review = (function () {
 
     const tip = document.createElement('p');
     tip.className = 'review-tip';
-    tip.innerHTML = '노란 표시는 잘못 읽혔을 수 있는 단어입니다 — "원본" 탭과 대조해 주세요.<br>줄을 누르면 수정 · 수정 중 엔터 = 줄 나누기 · 줄 맨 앞에서 지우기(⌫) = 윗줄과 합치기';
+    tip.innerHTML = '<span class="tip-line"><mark>노란 표시</mark>는 잘못 읽혔을 수 있는 단어입니다.</span>'
+      + '<span class="tip-line">"원본" 탭의 악보 사진과 대조해 주세요.</span>'
+      + '<span class="tip-line tip-sub">줄을 누르면 수정 · 수정 중 엔터 = 줄 나누기 · 줄 맨 앞에서 지우기(⌫) = 윗줄과 합치기</span>';
     el.appendChild(tip);
 
     s.blocks.forEach(block => {
