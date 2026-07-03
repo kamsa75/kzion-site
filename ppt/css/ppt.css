@@ -164,10 +164,6 @@ input{font-family:inherit;}
   text-align:center; color:var(--sl-white);
   font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 14cqw;
 }
-.slide--band .sl-cap{
-  position:absolute; left:2.2cqw; bottom:1.8cqh;
-  font-size:3.2cqh; color:var(--sl-caption); font-weight:700;
-}
 
 /* 다크 전체화면형 */
 .slide--dark{background:var(--sl-dark);}

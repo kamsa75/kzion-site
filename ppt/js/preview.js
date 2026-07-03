@@ -34,13 +34,7 @@ function renderSlide(slide) {
         if (i > 0) ly.appendChild(document.createElement('br'));
         ly.appendChild(document.createTextNode(line));
       });
-      band.appendChild(ly);
-      if (slide.caption) {
-        const cap = document.createElement('div');
-        cap.className = 'sl-cap';
-        cap.textContent = slide.caption;
-        band.appendChild(cap);
-      }
+      band.appendChild(ly); // 곡명·절 캡션 없음 — 밴드에는 가사만 (D9)
       el.appendChild(band);
       break;
     }
