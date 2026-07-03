@@ -174,6 +174,7 @@ const Review = (function () {
       });
       box.appendChild(btn);
       el.appendChild(box);
+      renderOrderBar(); // 블록 없음 → 바 숨김 처리
       return;
     }
 
@@ -253,6 +254,7 @@ const Review = (function () {
     el.appendChild(paste);
 
     fitLines(el);
+    renderOrderBar(); // 블록·분할 변경이 슬라이드 수/버튼에 반영되도록
   }
 
   /* ================= 탭 2: 원본 (핀치 줌) ================= */
@@ -339,49 +341,66 @@ const Review = (function () {
     wrap.addEventListener('pointercancel', up);
   }
 
-  /* ================= 순서 지정 (지침 15번, D5) ================= */
+  /* ============ 부르는 순서 — 검수 화면 하단 고정 바 (지침 15번, D5) ============
+     별도 화면 없이 가사를 보면서 그 자리에서 지정. 누르는 즉시 자동 저장. */
 
-  function renderOrder() {
+  function renderOrderBar() {
     const s = song();
-    const blocksEl = $('#order-blocks');
-    blocksEl.innerHTML = '';
+    const bar = $('#order-bar');
+    if (!s || !(s.blocks || []).length) { bar.hidden = true; return; }
+    bar.hidden = false;
+
+    const add = $('#obar-add');
+    add.innerHTML = '';
+    const lbl = document.createElement('span');
+    lbl.className = 'obar-label';
+    lbl.textContent = '부르는 순서:';
+    add.appendChild(lbl);
     s.blocks.forEach(b => {
-      const chip = document.createElement('button');
-      chip.className = 'order-chip' + (b.type === 'chorus' ? ' chorus' : '');
-      chip.innerHTML = `<b>${b.label}</b><span>${b.lines[0].text.slice(0, 14)}…</span>`;
-      chip.addEventListener('click', () => {
-        s.order.push(b.id);          // 참조 배열 — 복제 클릭 허용 (D5)
+      const c = document.createElement('button');
+      c.className = 'obar-add-chip' + (b.type === 'chorus' ? ' chorus' : '');
+      c.textContent = '+ ' + b.label;
+      c.addEventListener('click', () => {
+        s.order.push(b.id);              // 참조 배열 — 반복 클릭 = 반복 (D5)
+        s.status = 'ordered';
         SongStore.save();
-        renderOrder();
+        renderOrderBar();
       });
-      blocksEl.appendChild(chip);
+      add.appendChild(c);
     });
 
-    const seqEl = $('#order-seq');
-    seqEl.innerHTML = '';
+    const seq = $('#obar-seq');
+    seq.innerHTML = '';
     if (!s.order.length) {
-      seqEl.innerHTML = '<p class="review-tip">아직 비어 있습니다. 위 블록을 부르는 순서대로 눌러주세요. (예: 1절 → 후렴 → 2절 → 후렴)</p>';
+      const hint = document.createElement('span');
+      hint.className = 'obar-hint';
+      hint.textContent = '부르는 순서대로 위 버튼을 누르세요 (같은 블록 반복 가능) · 자동 저장';
+      seq.appendChild(hint);
+      return;
     }
     s.order.forEach((bid, i) => {
       const b = s.blocks.find(x => x.id === bid);
-      const item = document.createElement('div');
-      item.className = 'order-item';
-      item.innerHTML = `<span class="order-num">${i + 1}</span><span class="order-name">${b ? b.label : '?'}</span>`;
-      const del = document.createElement('button');
-      del.className = 'btn btn-ghost';
-      del.textContent = '빼기';
-      del.addEventListener('click', () => { s.order.splice(i, 1); SongStore.save(); renderOrder(); });
-      item.appendChild(del);
-      seqEl.appendChild(item);
+      const chip = document.createElement('button');
+      chip.className = 'obar-item';
+      chip.textContent = (i + 1) + '. ' + (b ? b.label : '?') + ' ✕';
+      chip.title = '눌러서 빼기';
+      chip.addEventListener('click', () => {
+        s.order.splice(i, 1);
+        if (!s.order.length) s.status = 'review';
+        SongStore.save();
+        renderOrderBar();
+      });
+      seq.appendChild(chip);
     });
-
-    // 총 슬라이드 수 표시
     let count = 0;
     s.order.forEach(bid => {
       const b = s.blocks.find(x => x.id === bid);
       if (b) count += blockSlides(b).length;
     });
-    $('#order-count').textContent = s.order.length ? `→ 슬라이드 총 ${count}장이 생성됩니다.` : '';
+    const cnt = document.createElement('span');
+    cnt.className = 'obar-count';
+    cnt.textContent = '= 슬라이드 ' + count + '장';
+    seq.appendChild(cnt);
   }
 
   /* ================= 진입/이벤트 ================= */
@@ -394,22 +413,13 @@ const Review = (function () {
     switchTab('lyrics');
     KZ.show('review');
     fitLines($('#tab-lyrics')); // 화면 표시 후 실행 — hidden 상태에서는 폭을 잴 수 없음
+    renderOrderBar();
   }
 
   function init() {
     document.querySelectorAll('#review-tabs .tab').forEach(t =>
       t.addEventListener('click', () => switchTab(t.dataset.tab)));
     $('#btn-review-back').addEventListener('click', () => { Songs.render(); KZ.show('songs'); });
-    $('#btn-review-order').addEventListener('click', () => { renderOrder(); KZ.show('order'); });
-    $('#btn-order-back').addEventListener('click', () => KZ.show('review'));
-    $('#btn-order-done').addEventListener('click', () => {
-      const s = song();
-      if (!s.order.length) { alert('순서가 비어 있습니다. 블록을 눌러 순서를 만들어주세요.'); return; }
-      s.status = 'ordered';
-      SongStore.save();
-      Songs.render();
-      KZ.show('songs');
-    });
   }
 
   return { init, open };

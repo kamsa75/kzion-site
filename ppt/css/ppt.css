@@ -381,6 +381,33 @@ input{font-family:inherit;}
 }
 .zoom-wrap img{display:block; width:100%; transform-origin:center; user-select:none; -webkit-user-drag:none;}
 
+/* ---------- 부르는 순서 하단 고정 바 (검수 화면 통합) ---------- */
+.review-main{padding-bottom:170px;} /* 고정 바에 내용이 가리지 않게 */
+.order-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:30;
+  background:var(--ui-card); border-top:1px solid var(--ui-line);
+  padding:10px 14px calc(12px + env(safe-area-inset-bottom));
+  box-shadow:0 -4px 16px rgba(20,24,31,.06);
+}
+.obar-inner{max-width:760px; margin:0 auto;}
+.obar-row{display:flex; align-items:center; gap:8px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none;}
+.obar-row::-webkit-scrollbar{display:none;}
+.obar-label{font-size:12px; font-weight:800; color:var(--ui-sub); flex-shrink:0;}
+.obar-add-chip{
+  flex-shrink:0; font-size:14px; font-weight:800; color:var(--ui-ink);
+  border:1.5px solid var(--ui-line); border-radius:999px; padding:8px 14px; background:var(--ui-card);
+}
+.obar-add-chip.chorus{border-color:var(--ui-gold); background:var(--ui-gold-soft);}
+.obar-add-chip:active{transform:scale(.95);}
+.obar-seqrow{margin-top:8px; flex-wrap:wrap; overflow:visible; max-height:70px; overflow-y:auto;}
+.obar-hint{font-size:12px; color:var(--ui-sub);}
+.obar-item{
+  font-size:13px; font-weight:700; color:#fff; background:var(--ui-dark);
+  border-radius:999px; padding:6px 11px; flex-shrink:0;
+}
+.obar-item:active{opacity:.7;}
+.obar-count{font-size:13px; font-weight:800; color:var(--ui-gold); flex-shrink:0;}
+
 /* ---------- 순서 지정 ---------- */
 .order-guide{font-size:14px; color:var(--ui-sub); margin:4px 0 14px; line-height:1.6;}
 .order-blocks{display:flex; flex-wrap:wrap; gap:10px;}

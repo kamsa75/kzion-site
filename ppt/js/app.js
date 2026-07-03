@@ -17,7 +17,6 @@
     pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
     review: $('#screen-review'),
-    order: $('#screen-order'),
     preview: $('#screen-preview')
   };
   let currentRole = null;

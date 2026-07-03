@@ -119,34 +119,22 @@
         <button id="btn-review-back" class="btn btn-ghost">← 곡 목록</button>
         <span id="review-title" class="topbar-title">검수</span>
       </div>
-      <button id="btn-review-order" class="btn btn-primary" style="font-size:14px;padding:9px 14px">순서 지정 →</button>
     </header>
     <nav class="tabs" id="review-tabs">
       <button class="tab on" data-tab="lyrics">가사 · 미리보기</button>
       <button class="tab" data-tab="original">원본</button>
     </nav>
-    <main class="main">
+    <main class="main review-main">
       <div id="tab-lyrics" class="tab-panel"></div>
       <div id="tab-original" class="tab-panel" hidden></div>
     </main>
-  </section>
-
-  <!-- 순서 지정 화면 -->
-  <section id="screen-order" class="screen" hidden>
-    <header class="topbar">
-      <div class="topbar-left">
-        <button id="btn-order-back" class="btn btn-ghost">← 검수</button>
-        <span class="topbar-title">부르는 순서</span>
+    <!-- 부르는 순서 — 같은 화면 하단 고정 바 (별도 화면 없이 바로 지정) -->
+    <div id="order-bar" class="order-bar" hidden>
+      <div class="obar-inner">
+        <div id="obar-add" class="obar-row"></div>
+        <div id="obar-seq" class="obar-row obar-seqrow"></div>
       </div>
-      <button id="btn-order-done" class="btn btn-primary" style="font-size:14px;padding:9px 14px">완료</button>
-    </header>
-    <main class="main">
-      <p class="order-guide">부르는 순서대로 아래 블록을 누르세요. 같은 블록을 여러 번 누르면 그만큼 반복됩니다.</p>
-      <div id="order-blocks" class="order-blocks"></div>
-      <h3 class="order-sub">현재 순서</h3>
-      <div id="order-seq" class="order-seq"></div>
-      <div id="order-count" class="order-count"></div>
-    </main>
+    </div>
   </section>
 
   <!-- 슬라이드 디자인 미리보기 (개발 확인용 데모) -->
@@ -170,8 +158,8 @@
 <script src="js/mock.js?v=3"></script>
 <script src="js/preview.js?v=3"></script>
 <script src="js/songs.js?v=8"></script>
-<script src="js/review.js?v=5"></script>
+<script src="js/review.js?v=6"></script>
 <script src="js/pastor.js?v=3"></script>
-<script src="js/app.js?v=4"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>
