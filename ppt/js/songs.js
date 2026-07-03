@@ -105,6 +105,8 @@ const SongStore = (function () {
 const Songs = (function () {
   const $ = (sel) => document.querySelector(sel);
   let currentUploadSongId = null;
+  let appendSongId = null;            // 기존 곡에 페이지 추가 모드 (D15)
+  const fetchingThumbs = new Set();   // 썸네일 서명 URL 중복 요청 방지
 
   const STATUS = {
     extracting: '추출 중…',
@@ -157,6 +159,105 @@ const Songs = (function () {
     return paths;
   }
 
+  /* ---------- 페이지(악보 여러 장) 관리 — D15 ---------- */
+
+  // 서버 모드: 저장된 경로의 썸네일 URL이 캐시에 없으면 받아온 뒤 다시 그림
+  function ensureThumbs(song) {
+    if (!CONFIG.USE_SERVER) return;
+    if (!(song.images || []).length) return;
+    if (SongStore.getImages(song.id).length >= song.images.length) return;
+    if (fetchingThumbs.has(song.id)) return;
+    fetchingThumbs.add(song.id);
+    API.call('imageUrls', { paths: song.images })
+      .then(r => { SongStore.setImages(song.id, r.urls || []); render(); })
+      .catch(() => {})
+      .finally(() => fetchingThumbs.delete(song.id));
+  }
+
+  function movePage(song, i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= song.images.length) return;
+    [song.images[i], song.images[j]] = [song.images[j], song.images[i]];
+    const cache = SongStore.getImages(song.id);
+    if (cache.length === song.images.length) [cache[i], cache[j]] = [cache[j], cache[i]];
+    SongStore.save();
+    render();
+  }
+
+  function deletePage(song, i) {
+    if (!confirm((i + 1) + '번 페이지를 삭제할까요?')) return;
+    song.images.splice(i, 1);
+    const cache = SongStore.getImages(song.id);
+    if (cache.length > i) cache.splice(i, 1);
+    SongStore.save();
+    render();
+  }
+
+  function pageStrip(song) {
+    ensureThumbs(song);
+    const strip = document.createElement('div');
+    strip.className = 'page-strip';
+    const urls = SongStore.getImages(song.id);
+    const n = Math.max((song.images || []).length, CONFIG.USE_SERVER ? 0 : urls.length);
+
+    for (let i = 0; i < n; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'page-cell';
+      const img = document.createElement('img');
+      if (urls[i]) img.src = urls[i];
+      img.alt = (i + 1) + '페이지';
+      const num = document.createElement('span');
+      num.className = 'page-num';
+      num.textContent = i + 1;
+      const ctr = document.createElement('div');
+      ctr.className = 'page-ctr';
+      const mk = (label, fn, disabled) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        b.disabled = !!disabled;
+        b.addEventListener('click', fn);
+        ctr.appendChild(b);
+      };
+      mk('◀', () => movePage(song, i, -1), i === 0);
+      mk('✕', () => deletePage(song, i));
+      mk('▶', () => movePage(song, i, +1), i === n - 1);
+      cell.append(img, num, ctr);
+      strip.appendChild(cell);
+    }
+
+    // 페이지 추가
+    const add = document.createElement('button');
+    add.className = 'page-add';
+    add.innerHTML = '+<br>페이지<br>추가';
+    add.addEventListener('click', () => {
+      appendSongId = song.id;
+      $('#song-file').value = '';
+      $('#song-file').click();
+    });
+    strip.appendChild(add);
+    return strip;
+  }
+
+  // 기존 곡에 페이지 추가 (추출은 다시 돌리지 않음 — 4단계에서 재추출 버튼 예정)
+  async function appendFiles(song, fileList) {
+    const files = [...fileList];
+    if (!files.length) return;
+    try {
+      const results = [];
+      for (const f of files) results.push(await resizeImage(f));
+      const cache = SongStore.getImages(song.id);
+      if (CONFIG.USE_SERVER) {
+        const paths = await uploadImages(results.map(r => r.dataUrl));
+        song.images = (song.images || []).concat(paths);
+      }
+      SongStore.setImages(song.id, cache.concat(results.map(r => r.dataUrl)));
+      SongStore.save();
+    } catch (e) {
+      alert('페이지를 추가하지 못했습니다. 다시 시도해 주세요.');
+    }
+    render();
+  }
+
   /* ---------- 곡 목록 렌더 ---------- */
 
   function render() {
@@ -192,6 +293,11 @@ const Songs = (function () {
         warn.className = 'song-warn';
         warn.textContent = '📷 사진이 어두운 편이에요. 다시 찍으면 추출이 더 정확해집니다. (그대로 진행해도 됩니다)';
         card.appendChild(warn);
+      }
+
+      // 악보 페이지 썸네일 + 순서 조정 (D15)
+      if ((song.images || []).length || SongStore.getImages(song.id).length) {
+        card.appendChild(pageStrip(song));
       }
 
       const actions = document.createElement('div');
@@ -296,7 +402,14 @@ const Songs = (function () {
 
   function init() {
     $('#btn-song-add').addEventListener('click', addSong);
-    $('#song-file').addEventListener('change', (e) => onFiles(e.target.files));
+    $('#song-file').addEventListener('change', (e) => {
+      if (appendSongId) {
+        const song = SongStore.get(appendSongId);
+        appendSongId = null;
+        if (song) { appendFiles(song, e.target.files); return; }
+      }
+      onFiles(e.target.files);
+    });
     $('#btn-songs-back').addEventListener('click', () => KZ.show('home'));
 
     const screen = $('#screen-songs');
