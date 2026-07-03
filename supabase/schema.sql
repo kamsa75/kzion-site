@@ -73,10 +73,13 @@ insert into storage.buckets (id, name, public)
 values ('scores', 'scores', false)
 on conflict (id) do nothing;
 
--- 초기 PIN (개발용 임시값 — 실운영 전 반드시 교체 예정)
+-- 역할 행 생성 — PIN은 소스에 기록하지 않는다(보안 규칙 10).
+-- 초기 pin_hash는 아무도 모르는 임의값으로 채우고, 실제 PIN은 SQL Editor에서
+-- 별도로 update(작은따옴표 안만 교체)하여 설정한다. 소스·채팅에 PIN 평문 금지.
+--   update roles set pin_hash = extensions.crypt('원하는PIN', extensions.gen_salt('bf')) where role='pastor';
 insert into roles (role, pin_hash) values
-  ('pastor', extensions.crypt('1111', extensions.gen_salt('bf'))),
-  ('praise', extensions.crypt('2222', extensions.gen_salt('bf'))),
-  ('choir',  extensions.crypt('3333', extensions.gen_salt('bf'))),
-  ('admin',  extensions.crypt('9999', extensions.gen_salt('bf')))
+  ('pastor', extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf'))),
+  ('praise', extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf'))),
+  ('choir',  extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf'))),
+  ('admin',  extensions.crypt(gen_random_uuid()::text, extensions.gen_salt('bf')))
 on conflict (role) do nothing;
