@@ -39,36 +39,31 @@ const MOCK = {
   // 스키마: { version, blocks:[{ id, type, label, lines:[{text, low:[단어 인덱스]}], breaks:[줄 사이 분할 여부] }] }
   extractResult: {
     version: 1,
+    // 기본 줄 길이: 짧은 소절 2개를 한 줄로 병합한 수준 (D11)
     blocks: [
       {
         id: 'b1', type: 'verse', label: '1절',
         lines: [
-          { text: '아버지 사랑 내가 노래해', low: [] },
-          { text: '아버지 은혜 내가 노래해', low: [] },
-          { text: '그 사랑 변함없네 나를 붙드시네', low: [1] },
-          { text: '영원히 신실하신 나의 아버지', low: [] }
+          { text: '아버지 사랑 내가 노래해 아버지 은혜 내가 노래해', low: [] },
+          { text: '그 사랑 변함없으신 후회없으신 영원하신 그 사랑', low: [2] }
         ],
-        breaks: [false, true, false] // 2줄씩 제안 (지침 18번)
+        breaks: [false] // 두 줄이 한 슬라이드 (지침 18번)
       },
       {
         id: 'b2', type: 'chorus', label: '후렴',
         lines: [
-          { text: '노래해 주 은혜를', low: [] },
-          { text: '노래해 주 사랑을', low: [] },
-          { text: '온 맘 다해 주를 찬양해', low: [3] },
-          { text: '나의 아버지 되신 주', low: [] }
+          { text: '노래해 주 은혜를 노래해 주 사랑을', low: [] },
+          { text: '온 맘 다해 주를 찬양해 나의 아버지 되신 주', low: [3] }
         ],
-        breaks: [false, true, false]
+        breaks: [false]
       },
       {
         id: 'b3', type: 'verse', label: '2절',
         lines: [
-          { text: '아버지 마음 내가 노래해', low: [] },
-          { text: '아버지 기쁨 내가 노래해', low: [] },
-          { text: '그 마음 变함없네 나를 안으시네', low: [1] },
-          { text: '영원히 함께하실 나의 아버지', low: [] }
+          { text: '아버지 마음 내가 노래해 아버지 기쁨 내가 노래해', low: [] },
+          { text: '그 마음 变함없네 나를 안으시네 영원히 함께하실 그 사랑', low: [2] }
         ],
-        breaks: [false, true, false]
+        breaks: [false]
       }
     ]
   },
@@ -92,7 +87,7 @@ const MOCK = {
       layout: 'band',
       label: '크로마 밴드형 — 찬양 가사',
       note: '하단 검정 밴드에 가사 2줄 (순서표 5·10·16번)',
-      lyrics: ['아버지 사랑 내가 노래해', '아버지 은혜 내가 노래해']
+      lyrics: ['아버지 사랑 내가 노래해 아버지 은혜 내가 노래해', '그 사랑 변함없으신 후회없으신 영원하신 그 사랑']
     },
     {
       layout: 'dark',

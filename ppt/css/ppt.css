@@ -162,7 +162,8 @@ input{font-family:inherit;}
 }
 .slide--band .sl-lyrics{
   text-align:center; color:var(--sl-white);
-  font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 14cqw;
+  font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 4cqw;
+  word-break:keep-all;
 }
 
 /* 다크 전체화면형 */
