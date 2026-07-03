@@ -138,7 +138,58 @@ const Review = (function () {
     const el = $('#tab-lyrics');
     el.innerHTML = '';
     const s = song();
-    if (!s || !s.blocks) return;
+    if (!s) return;
+
+    // 추출 실패 → 직접 입력/붙여넣기 우회로 (지침 12-7)
+    if (s.extractError || !s.blocks || !s.blocks.length) {
+      const box = document.createElement('div');
+      box.className = 'manual-box';
+      box.innerHTML = '<p class="review-badge">' +
+        (s.extractError ? '가사를 자동으로 읽지 못했어요: ' + s.extractError : '아직 가사가 없습니다.') +
+        '</p><p class="review-tip">아래에 가사를 붙여넣거나 직접 입력한 뒤 “정리하기”를 누르면 절/후렴으로 나눠 드립니다.</p>';
+      const ta = document.createElement('textarea');
+      ta.className = 'manual-ta';
+      ta.rows = 8;
+      ta.placeholder = '여기에 가사를 붙여넣으세요…';
+      box.appendChild(ta);
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-primary btn-wide';
+      btn.textContent = '정리하기';
+      btn.style.marginTop = '10px';
+      btn.addEventListener('click', async () => {
+        const text = ta.value.trim();
+        if (!text) return;
+        btn.disabled = true; btn.textContent = '정리 중…';
+        try {
+          const r = CONFIG.USE_SERVER
+            ? await API.call('extractText', { text })
+            : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
+          Songs.applyExtract(s, r);
+          SongStore.save(); SongStore.pushNow(s);
+          renderLyricsTab(); fitLines($('#tab-lyrics'));
+        } catch (e) {
+          btn.disabled = false; btn.textContent = '정리하기';
+          alert('정리에 실패했습니다: ' + (e.message || ''));
+        }
+      });
+      box.appendChild(btn);
+      el.appendChild(box);
+      return;
+    }
+
+    // 사진 잘림 감지 배지 (지침 12-5) — 질문형 + 원클릭 해제
+    if (s.crop) {
+      const badge = document.createElement('div');
+      badge.className = 'review-badge crop-badge';
+      const span = document.createElement('span');
+      span.textContent = '✂️ 악보가 잘렸을 수 있어요 — 다음 페이지가 있나요? 있으면 “페이지 추가”로 올려주세요.';
+      const x = document.createElement('button');
+      x.className = 'badge-x';
+      x.textContent = '괜찮아요 ✕';
+      x.addEventListener('click', () => { s.crop = false; SongStore.save(); SongStore.pushNow(s); renderLyricsTab(); });
+      badge.append(span, x);
+      el.appendChild(badge);
+    }
 
     // 저신뢰 비율 → 흐릿한 인쇄 배지 (지침 12-6, 기준 10%)
     let words = 0, lows = 0;

@@ -268,6 +268,17 @@ input{font-family:inherit;}
 .review-tip .tip-line{display:block; font-size:14px; font-weight:700; color:var(--ui-ink);}
 .review-tip .tip-line mark{background:#FFE58F; border-radius:4px; padding:1px 4px;}
 .review-tip .tip-sub{font-size:12.5px; font-weight:400; color:var(--ui-sub); margin-top:4px;}
+.crop-badge{display:flex; align-items:center; gap:10px; justify-content:space-between;}
+.crop-badge .badge-x{
+  flex-shrink:0; font-size:12px; font-weight:700; color:#8A6D1F;
+  border:1px solid #E4D9B8; border-radius:999px; padding:5px 10px; background:#fff; white-space:nowrap;
+}
+.manual-box{margin:4px 0;}
+.manual-ta{
+  width:100%; font-size:15px; padding:12px 14px; border:1.5px solid var(--ui-line); border-radius:12px;
+  font-family:inherit; line-height:1.7; resize:vertical; outline:none;
+}
+.manual-ta:focus{border-color:var(--ui-gold);}
 .review-badge{
   font-size:13px; font-weight:700; color:#8A6D1F; background:var(--ui-warn-bg);
   padding:10px 12px; border-radius:10px; margin:4px 0 12px; line-height:1.5;

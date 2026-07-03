@@ -26,7 +26,9 @@ const SongStore = (function () {
           id: row.id,
           name: row.name,
           status: row.status,
-          blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks}
+          blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks, crop}
+          crop: row.blocks ? !!row.blocks.crop : false,
+          cropReason: row.blocks ? (row.blocks.cropReason || '') : '',
           order: row.ord || [],
           images: row.images || [],   // storage 경로
           warnDark: row.warn_dark
@@ -46,7 +48,7 @@ const SongStore = (function () {
         name: s.name,
         position,
         status: s.status,
-        blocks: s.blocks ? { version: 1, blocks: s.blocks } : null,
+        blocks: s.blocks ? { version: 1, blocks: s.blocks, crop: !!s.crop, cropReason: s.cropReason || '' } : null,
         ord: s.order,
         images: s.images || [],
         warnDark: !!s.warnDark
@@ -450,20 +452,48 @@ const Songs = (function () {
     }
     render();
 
-    // 서버 모드: 원본을 스토리지에 업로드 (경로 저장)
     if (CONFIG.USE_SERVER) {
+      // 서버 모드: 원본 업로드 → 실제 Claude 비전 추출 (지침 12번)
       try { song.images = await uploadImages(results.map(r => r.dataUrl)); }
-      catch (e) { alert('악보 저장 중 문제가 생겼습니다. 다시 시도해 주세요.'); }
-    }
-
-    // ── 목 추출: 1.5초 뒤 가짜 결과 (4단계에서 실제 API로 교체) ──
-    setTimeout(async () => {
-      song.blocks = JSON.parse(JSON.stringify(MOCK.extractResult.blocks));
-      song.status = 'review';
-      await SongStore.pushNow(song); // 서버 id 확정 후 화면 갱신 (검수 버튼이 확정 id를 갖도록)
+      catch (e) { alert('악보 저장 중 문제가 생겼습니다. 다시 시도해 주세요.'); SongStore.remove(song.id); render(); return; }
+      try {
+        const r = await API.call('extract', { paths: song.images });
+        applyExtract(song, r);
+      } catch (e) {
+        song.status = 'review';
+        song.blocks = [];
+        song.extractError = e.message || '가사를 읽지 못했습니다';
+        await SongStore.pushNow(song);
+        render();
+        return;
+      }
+      await SongStore.pushNow(song);
       SongStore.save();
       render();
-    }, 1500);
+    } else {
+      // 목 모드: 1.5초 뒤 가짜 결과
+      setTimeout(() => {
+        song.blocks = JSON.parse(JSON.stringify(MOCK.extractResult.blocks));
+        song.status = 'review';
+        SongStore.save();
+        render();
+      }, 1500);
+    }
+  }
+
+  // 추출 결과(JSON) → 곡에 반영. crop 배지 정보 포함 (지침 12-5)
+  function applyExtract(song, r) {
+    song.blocks = (r.blocks || []).map((b, i) => ({
+      id: b.id || ('b' + (i + 1)),
+      type: b.type || 'verse',
+      label: b.label || ('' + (i + 1)),
+      lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
+      breaks: b.breaks || []
+    }));
+    song.crop = !!r.crop;
+    song.cropReason = r.crop_reason || '';
+    song.extractError = null;
+    song.status = 'review';
   }
 
   function init() {
@@ -503,5 +533,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages };
+  return { init, open, render, resizeImage, uploadImages, applyExtract };
 })();

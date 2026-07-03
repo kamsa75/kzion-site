@@ -13,6 +13,97 @@ const db = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY") || "";
+const DEFAULT_MODEL = "claude-haiku-4-5"; // 관리자가 settings 테이블에서 변경 가능 (지침 6번)
+
+// 가사 추출 프롬프트 (지침 12-1~12-7). 이미지/텍스트 공용.
+const EXTRACT_SYSTEM =
+  "당신은 한국 교회 예배용 악보에서 가사만 정확히 추출하는 도구입니다. " +
+  "설명 없이 지정된 JSON 스키마로만 답하세요.";
+
+function extractInstruction(): string {
+  return [
+    "이 악보(또는 붙여넣은 텍스트)에서 부르는 가사만 추출해 절/후렴 블록으로 재조립하세요.",
+    "규칙:",
+    "1) 멜리스마 대시 제거: '드-리니' → '드리니'. 음표 단위로 붙은 음절의 띄어쓰기 복원: '아버지사랑내가노래해' → '아버지 사랑 내가 노래해'.",
+    "2) 다절 스택 분리: 악보 한 줄 아래 2~3절 가사가 세로로 쌓여 있으면 행 단위가 아니라 절 단위로 재조립해 절별 블록으로 나누세요.",
+    "3) 도돌이표·1/2절 엔딩: 1st/2nd ending이 있으면 악보 기호 기준으로 순서를 복원하세요. 후렴을 공유하면 절 N개 + 후렴 1개 블록으로 분리하세요.",
+    "4) 각 블록의 lines는 부르기 좋은 길이로, 기본적으로 짧은 소절 2개를 한 줄로 합친 수준(공백 포함 약 20~28자)으로 나누세요. breaks는 lines 사이마다 슬라이드를 나눌지(true=나눔)를 나타내며 기본은 2줄씩 한 슬라이드가 되도록 채우세요(즉 두 줄마다 true).",
+    "5) 잘못 읽었을 가능성이 있는(흐리거나 확신이 낮은) 단어는 그 줄의 low 배열에 단어 인덱스(0부터)를 넣으세요. 확신하면 빈 배열.",
+    "6) 사진 잘림 판정(crop): 오선이 이미지 가장자리에서 물리적으로 절단됐거나 종지선(겹세로줄)이 보이지 않을 때만 crop=true. 가사·멜로디 내용으로 추측하지 마세요. 텍스트 입력일 땐 항상 false.",
+    "type은 verse/chorus/bridge 중 하나, label은 '1절','후렴' 등 한국어 라벨.",
+  ].join("\n");
+}
+
+const EXTRACT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    version: { type: "integer" },
+    crop: { type: "boolean" },
+    crop_reason: { type: "string" },
+    blocks: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+          type: { type: "string", enum: ["verse", "chorus", "bridge"] },
+          label: { type: "string" },
+          lines: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                text: { type: "string" },
+                low: { type: "array", items: { type: "integer" } },
+              },
+              required: ["text", "low"],
+            },
+          },
+          breaks: { type: "array", items: { type: "boolean" } },
+        },
+        required: ["id", "type", "label", "lines", "breaks"],
+      },
+    },
+  },
+  required: ["version", "crop", "crop_reason", "blocks"],
+};
+
+async function extractModel(): Promise<string> {
+  const { data } = await db.from("settings").select("value").eq("key", "extract_model").maybeSingle();
+  return (data && data.value) || DEFAULT_MODEL;
+}
+
+async function callClaude(content: unknown[]): Promise<Record<string, unknown>> {
+  const model = await extractModel();
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": ANTHROPIC_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 4000,
+      system: EXTRACT_SYSTEM,
+      output_config: { format: { type: "json_schema", schema: EXTRACT_SCHEMA } },
+      messages: [{ role: "user", content }],
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data?.error?.message || "추출 API 오류 " + res.status);
+  }
+  if (data.stop_reason === "refusal") throw new Error("추출이 거부되었습니다");
+  const textBlock = (data.content || []).find((b: { type: string }) => b.type === "text");
+  if (!textBlock) throw new Error("추출 결과가 비어 있습니다");
+  return JSON.parse(textBlock.text);
+}
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, content-type",
@@ -199,6 +290,50 @@ Deno.serve(async (req) => {
       const { data, error } = await db.storage.from("scores").createSignedUrls(paths, 3600);
       if (error || !data) return json({ error: "URL 발급 실패" }, 500);
       return json({ urls: data.map((d) => d.signedUrl) });
+    }
+
+    // 악보 이미지 → 가사 추출 (지침 12번). storage 경로 배열을 받아 서버가 내려받아 비전 호출
+    case "extract": {
+      if (role !== "praise" && role !== "choir" && role !== "pastor")
+        return json({ error: "권한 없음" }, 403);
+      if (!ANTHROPIC_KEY) return json({ error: "추출 키가 설정되지 않았습니다(관리자 문의)" }, 500);
+      const paths = (body.paths as string[]) || [];
+      if (!paths.length) return json({ error: "이미지가 없습니다" }, 400);
+      const content: unknown[] = [];
+      for (const p of paths.slice(0, 12)) {
+        const { data: blob, error } = await db.storage.from("scores").download(p);
+        if (error || !blob) return json({ error: "악보를 불러오지 못했습니다" }, 500);
+        const buf = new Uint8Array(await blob.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+        content.push({
+          type: "image",
+          source: { type: "base64", media_type: "image/jpeg", data: btoa(bin) },
+        });
+      }
+      content.push({ type: "text", text: extractInstruction() });
+      try {
+        const result = await callClaude(content);
+        return json(result);
+      } catch (e) {
+        return json({ error: (e as Error).message }, 502);
+      }
+    }
+
+    // 가사 붙여넣기 반자동 모드 (지침 12-7): 텍스트를 절/후렴 분류 + 2줄 분할
+    case "extractText": {
+      if (role !== "praise" && role !== "choir" && role !== "pastor")
+        return json({ error: "권한 없음" }, 403);
+      if (!ANTHROPIC_KEY) return json({ error: "추출 키가 설정되지 않았습니다(관리자 문의)" }, 500);
+      const text = String(body.text || "").trim();
+      if (!text) return json({ error: "텍스트가 비어 있습니다" }, 400);
+      const content = [{ type: "text", text: extractInstruction() + "\n\n[붙여넣은 가사]\n" + text }];
+      try {
+        const result = await callClaude(content);
+        return json(result);
+      } catch (e) {
+        return json({ error: (e as Error).message }, 502);
+      }
     }
 
     default:
