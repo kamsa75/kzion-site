@@ -177,7 +177,7 @@ const Songs = (function () {
 
   // 드래그로 페이지 순서 변경 (D15) — 폰: 꾹 누른 뒤 끌기 / 데스크톱: 바로 끌기
   function enableDrag(cell, strip, song) {
-    let startX = 0, startY = 0, dragging = false, pressTimer = null, pid = null;
+    let startX = 0, startY = 0, dragging = false, pressTimer = null, pid = null, isDown = false;
 
     function startDrag() {
       dragging = true;
@@ -187,6 +187,8 @@ const Songs = (function () {
     }
 
     cell.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) return;   // ✕(삭제) 등 버튼 클릭은 드래그와 무관
+      isDown = true;
       pid = e.pointerId;
       startX = e.clientX; startY = e.clientY;
       if (e.pointerType !== 'mouse') {
@@ -195,6 +197,7 @@ const Songs = (function () {
     });
 
     cell.addEventListener('pointermove', (e) => {
+      if (!isDown) return; // 버튼을 누르지 않은 채 지나가는 호버로는 드래그 금지(✕ 안 눌리던 버그 원인)
       if (!dragging) {
         if (Math.hypot(e.clientX - startX, e.clientY - startY) > 8) {
           if (e.pointerType === 'mouse') startDrag();       // 마우스는 즉시
@@ -223,6 +226,7 @@ const Songs = (function () {
     cell.addEventListener('touchmove', (e) => { if (dragging) e.preventDefault(); }, { passive: false });
 
     const finish = () => {
+      isDown = false;
       clearTimeout(pressTimer);
       if (dragging) {
         cell.classList.remove('dragging');
@@ -445,10 +449,50 @@ const Songs = (function () {
 
   let pendingNew = false;
 
+  // "+ 곡 추가" → 사진 올리기 / 가사 붙여넣기 중 선택 (지침 12-7 입구를 항상 노출)
   function addSong() {
-    pendingNew = true;
-    $('#song-file').value = '';
-    $('#song-file').click();   // 버튼 클릭 제스처 유지 → 사진 선택창 정상 오픈
+    const ov = document.createElement('div');
+    ov.className = 'sheet-overlay';
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    const t = document.createElement('p');
+    t.className = 'sheet-title';
+    t.textContent = '곡을 어떻게 추가할까요?';
+    sheet.appendChild(t);
+
+    const b1 = document.createElement('button');
+    b1.className = 'btn btn-primary btn-wide';
+    b1.textContent = '📷 악보 사진 올리기 — 가사 자동 추출';
+    b1.addEventListener('click', () => {
+      ov.remove();
+      pendingNew = true;
+      $('#song-file').value = '';
+      $('#song-file').click();   // 버튼 클릭 제스처 그대로 → 사진 선택창 정상 오픈
+    });
+    const b2 = document.createElement('button');
+    b2.className = 'btn btn-outline btn-wide';
+    b2.textContent = '📋 가사 붙여넣기 — 사진 없이 입력';
+    b2.addEventListener('click', () => { ov.remove(); createPasteSong(); });
+    const b3 = document.createElement('button');
+    b3.className = 'btn btn-ghost btn-wide';
+    b3.textContent = '취소';
+    b3.addEventListener('click', () => ov.remove());
+    sheet.append(b1, b2, b3);
+    ov.appendChild(sheet);
+    document.body.appendChild(ov);
+  }
+
+  // 가사 붙여넣기용 빈 곡 → 곧바로 검수 화면의 붙여넣기 입력으로 이동
+  async function createPasteSong() {
+    const song = {
+      id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
+      name: '', status: 'review',
+      blocks: [], order: [], images: [], warnDark: false, extractError: null
+    };
+    SongStore.add(song);
+    await SongStore.pushNow(song); // 서버 id 확정 후에 화면 이동 (id가 중간에 바뀌면 검수 화면이 곡을 놓침)
+    render();
+    Review.open(song.id);
   }
 
   // 파일 N장 → 곡 1개 (전 과정: 리사이즈→업로드→추출→저장)

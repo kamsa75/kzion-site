@@ -239,6 +239,19 @@ const Review = (function () {
 
       el.appendChild(card);
     });
+
+    // 언제든 붙여넣기로 갈아탈 수 있는 상시 입구 (지침 12-7)
+    const paste = document.createElement('button');
+    paste.className = 'btn btn-ghost paste-again';
+    paste.textContent = '📋 추출 결과 대신 가사 붙여넣기로 다시 입력';
+    paste.addEventListener('click', () => {
+      if (!confirm('지금 가사를 비우고 붙여넣기로 다시 입력할까요?')) return;
+      s.blocks = []; s.extractError = null; s.order = [];
+      SongStore.save();
+      renderLyricsTab();
+    });
+    el.appendChild(paste);
+
     fitLines(el);
   }
 

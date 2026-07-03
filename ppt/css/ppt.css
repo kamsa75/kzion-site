@@ -319,6 +319,11 @@ input{font-family:inherit;}
   font-family:inherit; line-height:1.7; resize:vertical; outline:none;
 }
 .manual-ta:focus{border-color:var(--ui-gold);}
+.paste-again{font-size:13px; color:var(--ui-sub); margin-top:2px;}
+
+/* 곡 카드 버튼 위계: 검수하기(주) 외에는 시각적 무게 줄임 */
+.song-card .btn-outline{font-size:13.5px; padding:9px 12px; color:var(--ui-sub);}
+.song-card .btn-outline:active{color:var(--ui-ink);}
 .review-badge{
   font-size:13px; font-weight:700; color:#8A6D1F; background:var(--ui-warn-bg);
   padding:10px 12px; border-radius:10px; margin:4px 0 12px; line-height:1.5;
