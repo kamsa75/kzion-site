@@ -25,6 +25,7 @@ function extractInstruction(): string {
   return [
     "이 악보(또는 붙여넣은 텍스트)에서 부르는 가사만 추출해 절/후렴 블록으로 재조립하세요.",
     "규칙:",
+    "0) 악보 상단에 적힌 곡 제목을 title에 넣으세요. 제목이 안 보이면 빈 문자열.",
     "1) 멜리스마 대시 제거: '드-리니' → '드리니'. 음표 단위로 붙은 음절의 띄어쓰기 복원: '아버지사랑내가노래해' → '아버지 사랑 내가 노래해'.",
     "2) 다절 스택 분리: 악보 한 줄 아래 2~3절 가사가 세로로 쌓여 있으면 행 단위가 아니라 절 단위로 재조립해 절별 블록으로 나누세요.",
     "3) 도돌이표·1/2절 엔딩: 1st/2nd ending이 있으면 악보 기호 기준으로 순서를 복원하세요. 후렴을 공유하면 절 N개 + 후렴 1개 블록으로 분리하세요.",
@@ -40,6 +41,7 @@ const EXTRACT_SCHEMA = {
   additionalProperties: false,
   properties: {
     version: { type: "integer" },
+    title: { type: "string" },
     crop: { type: "boolean" },
     crop_reason: { type: "string" },
     blocks: {
@@ -69,7 +71,7 @@ const EXTRACT_SCHEMA = {
       },
     },
   },
-  required: ["version", "crop", "crop_reason", "blocks"],
+  required: ["version", "title", "crop", "crop_reason", "blocks"],
 };
 
 async function extractModel(): Promise<string> {

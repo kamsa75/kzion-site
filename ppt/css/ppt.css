@@ -269,6 +269,24 @@ input{font-family:inherit;}
 .song-name-input:focus{border-color:var(--ui-gold); background:#fff;}
 .song-empty{color:var(--ui-sub); font-size:14px; text-align:center; padding:30px 0;}
 .song-warn{margin:10px 0 0; font-size:13px; color:#8A6D1F; background:var(--ui-warn-bg); padding:8px 10px; border-radius:8px;}
+.song-ok{margin:10px 0 0; font-size:13px; font-weight:700; color:var(--ui-gold); background:var(--ui-gold-soft); padding:8px 10px; border-radius:8px;}
+
+/* 여러 장 업로드 용도 선택 시트 */
+.sheet-overlay{
+  position:fixed; inset:0; z-index:100; background:rgba(20,24,31,.45);
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.sheet{
+  width:100%; max-width:480px; background:var(--ui-card);
+  border-radius:20px 20px 0 0; padding:22px 18px calc(18px + env(safe-area-inset-bottom));
+  display:flex; flex-direction:column; gap:10px;
+}
+.sheet-title{margin:0; font-size:17px; font-weight:800;}
+.sheet-desc{margin:0 0 8px; font-size:14px; color:var(--ui-sub);}
+@media(min-width:700px){
+  .sheet-overlay{align-items:center;}
+  .sheet{border-radius:20px;}
+}
 .spinner-note{font-size:14px; color:var(--ui-gold); font-weight:700;}
 .spinner-note::before{content:''; display:inline-block; width:12px; height:12px; margin-right:8px;
   border:2px solid var(--ui-gold); border-top-color:transparent; border-radius:50%;

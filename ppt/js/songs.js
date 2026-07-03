@@ -106,7 +106,6 @@ const SongStore = (function () {
 
 const Songs = (function () {
   const $ = (sel) => document.querySelector(sel);
-  let currentUploadSongId = null;
   let appendSongId = null;            // 기존 곡에 페이지 추가 모드 (D15)
   const fetchingThumbs = new Set();   // 썸네일 서명 URL 중복 요청 방지
 
@@ -366,6 +365,20 @@ const Songs = (function () {
         card.appendChild(warn);
       }
 
+      // 추출 결과를 카드에서 바로 보여줌 — "아무 일도 안 일어난" 느낌 방지
+      if (song.extractError) {
+        const err = document.createElement('p');
+        err.className = 'song-warn';
+        err.textContent = '⚠️ 가사를 자동으로 읽지 못했어요 — "검수하기"에서 가사를 직접 붙여넣을 수 있습니다.';
+        card.appendChild(err);
+      } else if (song.status === 'review' && (song.blocks || []).length) {
+        const ok = document.createElement('p');
+        ok.className = 'song-ok';
+        ok.textContent = '✓ 가사 추출 완료 — "검수하기"를 눌러 확인·수정하세요. ('
+          + song.blocks.map(b => b.label).join(' · ') + ')';
+        card.appendChild(ok);
+      }
+
       // 악보 페이지 썸네일 + 순서 조정 (D15)
       if ((song.images || []).length || SongStore.getImages(song.id).length) {
         card.appendChild(pageStrip(song));
@@ -419,7 +432,7 @@ const Songs = (function () {
   /* ---------- 곡 추가 → 곧바로 사진 선택창 → 업로드 → 추출 ----------
      팝업(prompt) 없이 버튼 클릭 그대로 파일창을 여는 게 핵심:
      prompt를 끼우면 사용자 제스처가 끊겨 브라우저가 파일창을 막는다.
-     곡명은 카드에서 직접 입력. */
+     여러 장 선택 시: "서로 다른 곡 N개 / 한 곡의 페이지 N장" 선택. */
 
   let pendingNew = false;
 
@@ -429,11 +442,15 @@ const Songs = (function () {
     $('#song-file').click();   // 버튼 클릭 제스처 유지 → 사진 선택창 정상 오픈
   }
 
-  async function onFiles(fileList) {
-    const song = SongStore.get(currentUploadSongId);
-    if (!song) return;
-    const files = [...fileList];
-    if (!files.length) { SongStore.remove(song.id); render(); return; }
+  // 파일 N장 → 곡 1개 (전 과정: 리사이즈→업로드→추출→저장)
+  async function createSong(files) {
+    const song = {
+      id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
+      name: '', status: 'extracting',
+      blocks: null, order: [], images: [], warnDark: false
+    };
+    SongStore.add(song);
+    render();
 
     let results;
     try {
@@ -448,7 +465,6 @@ const Songs = (function () {
     render();
 
     if (CONFIG.USE_SERVER) {
-      // 서버 모드: 원본 업로드 → 실제 Claude 비전 추출 (지침 12번)
       try { song.images = await uploadImages(results.map(r => r.dataUrl)); }
       catch (e) { alert('악보 저장 중 문제가 생겼습니다. 다시 시도해 주세요.'); SongStore.remove(song.id); render(); return; }
       try {
@@ -458,15 +474,11 @@ const Songs = (function () {
         song.status = 'review';
         song.blocks = [];
         song.extractError = e.message || '가사를 읽지 못했습니다';
-        await SongStore.pushNow(song);
-        render();
-        return;
       }
       await SongStore.pushNow(song);
       SongStore.save();
       render();
     } else {
-      // 목 모드: 1.5초 뒤 가짜 결과
       setTimeout(() => {
         song.blocks = JSON.parse(JSON.stringify(MOCK.extractResult.blocks));
         song.status = 'review';
@@ -474,6 +486,47 @@ const Songs = (function () {
         render();
       }, 1500);
     }
+  }
+
+  // 새로 고른 파일 처리: 1장이면 바로 곡 1개, 여러 장이면 용도 질문
+  function handleNewFiles(fileList) {
+    const files = [...fileList];
+    if (!files.length) return;
+    if (files.length === 1) { createSong(files); return; }
+    showMultiChoice(files);
+  }
+
+  function showMultiChoice(files) {
+    const ov = document.createElement('div');
+    ov.className = 'sheet-overlay';
+    const sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    const t = document.createElement('p');
+    t.className = 'sheet-title';
+    t.textContent = '사진 ' + files.length + '장을 선택했어요';
+    const d = document.createElement('p');
+    d.className = 'sheet-desc';
+    d.textContent = '어떻게 올릴까요?';
+    sheet.append(t, d);
+
+    const b1 = document.createElement('button');
+    b1.className = 'btn btn-primary btn-wide';
+    b1.textContent = '서로 다른 곡 ' + files.length + '개 — 곡마다 가사 추출';
+    b1.addEventListener('click', async () => {
+      ov.remove();
+      for (const f of files) await createSong([f]); // 순차 추출(과금·안정성)
+    });
+    const b2 = document.createElement('button');
+    b2.className = 'btn btn-outline btn-wide';
+    b2.textContent = '한 곡의 악보 ' + files.length + '페이지 (성가대 합창보 등)';
+    const b3 = document.createElement('button');
+    b3.className = 'btn btn-ghost btn-wide';
+    b3.textContent = '취소';
+    b2.addEventListener('click', () => { ov.remove(); createSong(files); });
+    b3.addEventListener('click', () => ov.remove());
+    sheet.append(b1, b2, b3);
+    ov.appendChild(sheet);
+    document.body.appendChild(ov);
   }
 
   // 추출 결과(JSON) → 곡에 반영. crop 배지 정보 포함 (지침 12-5)
@@ -487,6 +540,8 @@ const Songs = (function () {
     }));
     song.crop = !!r.crop;
     song.cropReason = r.crop_reason || '';
+    // 악보에 적힌 곡 제목 자동 입력 (사용자가 이미 입력했으면 유지)
+    if (!song.name && r.title) song.name = String(r.title).trim();
     song.extractError = null;
     song.status = 'review';
   }
@@ -500,15 +555,10 @@ const Songs = (function () {
         appendSongId = null;
         if (song) { appendFiles(song, files); return; }
       }
-      if (pendingNew) {                          // 새 곡 — 파일 고른 경우에만 곡 생성(취소 시 유령 카드 방지)
+      if (pendingNew) {                          // 새 곡 — 파일 고른 경우에만 진행(취소 시 유령 카드 방지)
         pendingNew = false;
-        if (!files.length) return;
-        const song = { id: 's' + Date.now(), name: '', status: 'extracting', blocks: null, order: [], images: [], warnDark: false };
-        SongStore.add(song);
-        currentUploadSongId = song.id;
-        render();
+        handleNewFiles(files);
       }
-      onFiles(files);
     });
     $('#btn-songs-back').addEventListener('click', () => KZ.show('home'));
 
@@ -516,13 +566,7 @@ const Songs = (function () {
     screen.addEventListener('dragover', (e) => e.preventDefault());
     screen.addEventListener('drop', (e) => {
       e.preventDefault();
-      if (!e.dataTransfer.files.length) return;
-      if (!currentUploadSongId || SongStore.get(currentUploadSongId)?.blocks) {
-        const song = { id: 's' + Date.now(), name: '', status: 'extracting', blocks: null, order: [], images: [], warnDark: false };
-        SongStore.add(song);
-        currentUploadSongId = song.id;
-      }
-      onFiles(e.dataTransfer.files);
+      handleNewFiles(e.dataTransfer.files);
     });
   }
 
