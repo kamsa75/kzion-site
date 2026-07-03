@@ -35,6 +35,44 @@ const MOCK = {
 
   statusLabel: { empty: '대기', progress: '작성 중', done: '완료' },
 
+  // 가짜 추출 결과 (4단계에서 실제 Claude API 비전 추출로 교체 — 지침 12번, D7·D8)
+  // 스키마: { version, blocks:[{ id, type, label, lines:[{text, low:[단어 인덱스]}], breaks:[줄 사이 분할 여부] }] }
+  extractResult: {
+    version: 1,
+    blocks: [
+      {
+        id: 'b1', type: 'verse', label: '1절',
+        lines: [
+          { text: '아버지 사랑 내가 노래해', low: [] },
+          { text: '아버지 은혜 내가 노래해', low: [] },
+          { text: '그 사랑 변함없네 나를 붙드시네', low: [1] },
+          { text: '영원히 신실하신 나의 아버지', low: [] }
+        ],
+        breaks: [false, true, false] // 2줄씩 제안 (지침 18번)
+      },
+      {
+        id: 'b2', type: 'chorus', label: '후렴',
+        lines: [
+          { text: '노래해 주 은혜를', low: [] },
+          { text: '노래해 주 사랑을', low: [] },
+          { text: '온 맘 다해 주를 찬양해', low: [3] },
+          { text: '나의 아버지 되신 주', low: [] }
+        ],
+        breaks: [false, true, false]
+      },
+      {
+        id: 'b3', type: 'verse', label: '2절',
+        lines: [
+          { text: '아버지 마음 내가 노래해', low: [] },
+          { text: '아버지 기쁨 내가 노래해', low: [] },
+          { text: '그 마음 变함없네 나를 안으시네', low: [1] },
+          { text: '영원히 함께하실 나의 아버지', low: [] }
+        ],
+        breaks: [false, true, false]
+      }
+    ]
+  },
+
   // 디자인 미리보기 데모 슬라이드 (지침 17번 레이아웃 5종)
   sampleSlides: [
     {

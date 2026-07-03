@@ -46,6 +46,61 @@
     </main>
   </section>
 
+  <!-- 곡 목록 (찬양팀/성가대 섹션 홈) -->
+  <section id="screen-songs" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-songs-back" class="btn btn-ghost">← 홈</button>
+        <span id="songs-title" class="topbar-title">곡 준비</span>
+      </div>
+    </header>
+    <main class="main">
+      <div id="songs-list" class="song-list"></div>
+      <button id="btn-song-add" class="btn btn-primary btn-wide" style="margin-top:14px">+ 곡 추가</button>
+      <input id="song-file" type="file" accept="image/*" multiple hidden>
+      <p class="dev-note">사진은 자동으로 압축됩니다. 추출 결과는 아직 예시(목)입니다 — 4단계에서 실제 AI 추출로 교체됩니다.</p>
+    </main>
+  </section>
+
+  <!-- 검수 화면 (3탭: 가사 / 미리보기 / 원본) -->
+  <section id="screen-review" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-review-back" class="btn btn-ghost">← 곡 목록</button>
+        <span id="review-title" class="topbar-title">검수</span>
+      </div>
+      <button id="btn-review-order" class="btn btn-primary" style="font-size:14px;padding:9px 14px">순서 지정 →</button>
+    </header>
+    <nav class="tabs" id="review-tabs">
+      <button class="tab on" data-tab="lyrics">가사</button>
+      <button class="tab" data-tab="slides">미리보기</button>
+      <button class="tab" data-tab="original">원본</button>
+    </nav>
+    <main class="main">
+      <div id="tab-lyrics" class="tab-panel"></div>
+      <div id="tab-slides" class="tab-panel" hidden></div>
+      <div id="tab-original" class="tab-panel" hidden></div>
+    </main>
+  </section>
+
+  <!-- 순서 지정 화면 -->
+  <section id="screen-order" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-order-back" class="btn btn-ghost">← 검수</button>
+        <span class="topbar-title">부르는 순서</span>
+      </div>
+      <button id="btn-order-done" class="btn btn-primary" style="font-size:14px;padding:9px 14px">완료</button>
+    </header>
+    <main class="main">
+      <p class="order-guide">부르는 순서대로 아래 블록을 누르세요. 같은 블록을 여러 번 누르면 그만큼 반복됩니다.</p>
+      <div id="order-blocks" class="order-blocks"></div>
+      <h3 class="order-sub">현재 순서</h3>
+      <div id="order-seq" class="order-seq"></div>
+      <div id="order-count" class="order-count"></div>
+    </main>
+  </section>
+
   <!-- 슬라이드 디자인 미리보기 (개발 확인용 데모) -->
   <section id="screen-preview" class="screen" hidden>
     <header class="topbar">
@@ -62,8 +117,10 @@
 
 </div>
 
-<script src="js/mock.js?v=1"></script>
-<script src="js/preview.js?v=1"></script>
-<script src="js/app.js?v=1"></script>
+<script src="js/mock.js?v=2"></script>
+<script src="js/preview.js?v=2"></script>
+<script src="js/songs.js?v=1"></script>
+<script src="js/review.js?v=1"></script>
+<script src="js/app.js?v=2"></script>
 </body>
 </html>

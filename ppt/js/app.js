@@ -14,8 +14,12 @@
   const screens = {
     pin: $('#screen-pin'),
     home: $('#screen-home'),
+    songs: $('#screen-songs'),
+    review: $('#screen-review'),
+    order: $('#screen-order'),
     preview: $('#screen-preview')
   };
+  let currentRole = null;
 
   /* ---------- 세션 ---------- */
 
@@ -61,6 +65,7 @@
   /* ---------- 홈 렌더 ---------- */
 
   function renderHome(role) {
+    currentRole = role;
     $('#home-role').textContent = MOCK.roles[role].label;
 
     $('#home-week').innerHTML = '';
@@ -112,8 +117,13 @@
         actions.className = 'sec-actions';
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
-        btn.disabled = true;
-        btn.innerHTML = '입력 시작 <span class="soon-tag">(2단계에서 열립니다)</span>';
+        if (role === 'praise' || role === 'choir') {
+          btn.textContent = '곡 준비 시작';
+          btn.addEventListener('click', () => Songs.open());
+        } else {
+          btn.disabled = true;
+          btn.innerHTML = '입력 시작 <span class="soon-tag">(다음 작업에서 열립니다)</span>';
+        }
         actions.appendChild(btn);
         card.appendChild(actions);
       }
@@ -205,7 +215,12 @@
 
   /* ---------- 시작 ---------- */
 
+  window.KZ = { show, role: () => currentRole };
+  Songs.init();
+  Review.init();
+
   const session = getSession();
+  if (session) currentRole = session.role;
   if (session) {
     renderHome(session.role);
     show('home');

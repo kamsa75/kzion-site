@@ -192,6 +192,89 @@ input{font-family:inherit;}
 .slide--image img{width:100%; height:100%; object-fit:cover;}
 .slide--image .sl-ph{color:#8A8F98; font-size:5cqh; font-weight:700; text-align:center;}
 
+/* ---------- 곡 목록 ---------- */
+.song-empty{color:var(--ui-sub); font-size:14px; text-align:center; padding:30px 0;}
+.song-warn{margin:10px 0 0; font-size:13px; color:#8A6D1F; background:var(--ui-warn-bg); padding:8px 10px; border-radius:8px;}
+.spinner-note{font-size:14px; color:var(--ui-gold); font-weight:700;}
+.spinner-note::before{content:''; display:inline-block; width:12px; height:12px; margin-right:8px;
+  border:2px solid var(--ui-gold); border-top-color:transparent; border-radius:50%;
+  animation:spin 0.8s linear infinite; vertical-align:-1px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ---------- 검수: 탭 (지침 10번 3탭) ---------- */
+.tabs{
+  position:sticky; top:0; z-index:9; display:flex;
+  background:var(--ui-card); border-bottom:1px solid var(--ui-line);
+}
+.tab{
+  flex:1; padding:12px 0; text-align:center; font-weight:700; font-size:15px;
+  color:var(--ui-sub); border-bottom:3px solid transparent;
+}
+.tab.on{color:var(--ui-ink); border-bottom-color:var(--ui-gold);}
+
+.review-tip{font-size:13px; color:var(--ui-sub); margin:4px 0 14px; line-height:1.6;}
+.review-badge{
+  font-size:13px; font-weight:700; color:#8A6D1F; background:var(--ui-warn-bg);
+  padding:10px 12px; border-radius:10px; margin:4px 0 12px; line-height:1.5;
+}
+
+/* ---------- 검수: 가사 블록 ---------- */
+.block-card{
+  background:var(--ui-card); border:1px solid var(--ui-line); border-radius:14px;
+  padding:14px 14px 8px; margin-bottom:16px;
+}
+.block-label{font-size:13px; font-weight:800; color:var(--ui-gold); margin-bottom:8px; letter-spacing:.04em;}
+.block-warn{font-size:12px; color:#8A6D1F; background:var(--ui-warn-bg); padding:7px 10px; border-radius:8px; margin-bottom:8px;}
+.line-row{padding:2px 0;}
+.line-text{font-size:16px; font-weight:600; padding:8px 6px; border-radius:8px; cursor:text;}
+@media(hover:hover){ .line-text:hover{background:#F1EFE9;} }
+.line-text mark{background:#FFE58F; border-radius:4px; padding:1px 3px;}
+.line-input{
+  width:100%; font-size:16px; font-weight:600; padding:8px 6px;
+  border:1.5px solid var(--ui-gold); border-radius:8px; outline:none; background:#fff; color:var(--ui-ink);
+}
+.divider{
+  display:block; width:100%; text-align:center; padding:2px 0;
+  color:#C9C5BB; font-size:13px; line-height:1;
+}
+.divider.cut{
+  color:var(--ui-gold); font-weight:700; font-size:11px; padding:5px 0;
+  background:linear-gradient(to right, transparent, var(--ui-gold-soft), transparent);
+}
+@media(hover:hover){ .divider:hover{color:var(--ui-gold);} }
+
+/* ---------- 검수: 원본 핀치 줌 ---------- */
+.zoom-wrap{
+  overflow:hidden; border:1px solid var(--ui-line); border-radius:10px;
+  margin-bottom:14px; touch-action:none; background:#fff;
+}
+.zoom-wrap img{display:block; width:100%; transform-origin:center; user-select:none; -webkit-user-drag:none;}
+
+/* ---------- 순서 지정 ---------- */
+.order-guide{font-size:14px; color:var(--ui-sub); margin:4px 0 14px; line-height:1.6;}
+.order-blocks{display:flex; flex-wrap:wrap; gap:10px;}
+.order-chip{
+  display:flex; flex-direction:column; align-items:flex-start; gap:2px;
+  background:var(--ui-card); border:1.5px solid var(--ui-line); border-radius:12px;
+  padding:10px 14px; min-width:130px; text-align:left;
+}
+.order-chip b{font-size:15px;}
+.order-chip span{font-size:12px; color:var(--ui-sub);}
+.order-chip.chorus{border-color:var(--ui-gold); background:var(--ui-gold-soft);}
+.order-chip:active{transform:scale(.96);}
+.order-sub{font-size:15px; margin:22px 0 10px;}
+.order-seq{display:flex; flex-direction:column; gap:6px;}
+.order-item{
+  display:flex; align-items:center; gap:10px;
+  background:var(--ui-card); border:1px solid var(--ui-line); border-radius:10px; padding:8px 12px;
+}
+.order-num{
+  width:24px; height:24px; border-radius:50%; background:var(--ui-dark); color:#fff;
+  font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.order-name{flex:1; font-weight:700;}
+.order-count{margin-top:14px; font-size:14px; font-weight:700; color:var(--ui-gold);}
+
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){
   .pin-title{font-size:32px;}
