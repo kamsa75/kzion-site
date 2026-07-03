@@ -398,6 +398,15 @@ const Songs = (function () {
         btnReview.textContent = song.status === 'ordered' ? '검수 다시 열기' : '검수하기';
         btnReview.addEventListener('click', () => Review.open(song.id));
         actions.appendChild(btnReview);
+
+        // 재추출 — 결과가 엉키면 삭제·재업로드 없이 그 자리에서 다시 읽기
+        if (CONFIG.USE_SERVER && (song.images || []).length) {
+          const btnRe = document.createElement('button');
+          btnRe.className = 'btn btn-outline';
+          btnRe.textContent = '다시 읽기';
+          btnRe.addEventListener('click', () => reExtract(song));
+          actions.appendChild(btnRe);
+        }
       }
 
       const idx = SongStore.all().indexOf(song);
@@ -486,6 +495,26 @@ const Songs = (function () {
         render();
       }, 1500);
     }
+  }
+
+  // 저장된 악보 이미지로 가사를 다시 추출 (검수한 내용은 새 결과로 대체됨)
+  async function reExtract(song) {
+    if (song.blocks && song.blocks.length &&
+        !confirm('가사를 다시 읽으면 지금 검수한 내용이 새 결과로 바뀝니다. 계속할까요?')) return;
+    song.status = 'extracting';
+    render();
+    try {
+      const r = await API.call('extract', { paths: song.images });
+      applyExtract(song, r);
+      song.order = []; // 블록이 새로 생겼으니 순서도 초기화
+    } catch (e) {
+      song.status = 'review';
+      song.blocks = song.blocks || [];
+      song.extractError = e.message || '가사를 읽지 못했습니다';
+    }
+    await SongStore.pushNow(song);
+    SongStore.save();
+    render();
   }
 
   // 새로 고른 파일 처리: 1장이면 바로 곡 1개, 여러 장이면 용도 질문
