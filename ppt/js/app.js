@@ -190,16 +190,36 @@
 
   /* ---------- 이벤트 ---------- */
 
-  $('#pin-form').addEventListener('submit', (e) => {
+  $('#pin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const pin = $('#pin-input').value.trim();
-    const role = MOCK.pins[pin]; // ⚠️ 목 검증 — 3단계에서 서버 검증으로 교체 (보안 규칙 9)
-    if (!role) {
-      $('#pin-error').hidden = false;
-      $('#pin-input').value = '';
-      $('#pin-input').focus();
-      return;
+    let role = null;
+
+    if (CONFIG.USE_SERVER) {
+      // 서버 검증 (보안 규칙 9, D14)
+      try {
+        const r = await API.call('login', { pin });
+        API.setToken(r.token);
+        role = r.role;
+      } catch (err) {
+        $('#pin-error').textContent = err.status === 401
+          ? 'PIN이 올바르지 않습니다. 다시 확인해 주세요.'
+          : '서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+        $('#pin-error').hidden = false;
+        $('#pin-input').value = '';
+        $('#pin-input').focus();
+        return;
+      }
+    } else {
+      role = MOCK.pins[pin]; // ⚠️ 목 모드 전용 — USE_SERVER 전환 시 미사용
+      if (!role) {
+        $('#pin-error').hidden = false;
+        $('#pin-input').value = '';
+        $('#pin-input').focus();
+        return;
+      }
     }
+
     $('#pin-error').hidden = true;
     $('#pin-input').value = '';
     setSession(role);
@@ -208,6 +228,8 @@
   });
 
   $('#btn-logout').addEventListener('click', () => {
+    if (CONFIG.USE_SERVER && API.hasToken()) { API.call('logout').catch(() => {}); }
+    API.clearToken();
     clearSession();
     show('pin');
   });
