@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>주일예배 준비실</title>
+<link rel="icon" href="../images/cropped-favicon-270x270.png">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="css/ppt.css?v=1">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- PIN 입장 화면 -->
+  <section id="screen-pin" class="screen screen-pin">
+    <div class="pin-box">
+      <p class="pin-church">시애틀 시온장로교회</p>
+      <h1 class="pin-title">주일예배 준비실</h1>
+      <p class="pin-desc">담당자용 페이지입니다. 전달받은 PIN을 입력하세요.</p>
+      <form id="pin-form" autocomplete="off">
+        <input id="pin-input" type="password" inputmode="numeric" pattern="[0-9]*"
+               maxlength="8" placeholder="PIN 입력" aria-label="PIN 입력">
+        <p id="pin-error" class="pin-error" hidden>PIN이 올바르지 않습니다. 다시 확인해 주세요.</p>
+        <button type="submit" class="btn btn-primary btn-wide">입장</button>
+      </form>
+      <p class="pin-foot">PIN을 모르시면 관리자에게 문의하세요.</p>
+    </div>
+  </section>
+
+  <!-- 역할별 홈 -->
+  <section id="screen-home" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title">주일예배 준비실</span>
+        <span id="home-role" class="role-chip"></span>
+      </div>
+      <button id="btn-logout" class="btn btn-ghost">로그아웃</button>
+    </header>
+    <main class="main">
+      <div id="home-week" class="week-head"></div>
+      <div id="home-sections" class="section-list"></div>
+      <div id="home-admin-extra"></div>
+      <p class="dev-note">개발 미리보기 단계 — 화면의 데이터는 예시(목 데이터)입니다. 저장되지 않습니다.</p>
+    </main>
+  </section>
+
+  <!-- 목사님 입력 (지침 28번 — 극단적으로 단순한 5개 항목 + 악보 1건) -->
+  <section id="screen-pastor" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-pastor-back" class="btn btn-ghost">← 홈</button>
+        <span class="topbar-title">이번 주 입력</span>
+      </div>
+      <span id="pastor-saved" class="save-note"></span>
+    </header>
+    <main class="main">
+
+      <div class="field">
+        <label for="pf-title">설교 제목</label>
+        <input id="pf-title" type="text" placeholder="예: 집착과 갈망">
+      </div>
+      <div class="field">
+        <label for="pf-ref">본문 구절 표기</label>
+        <input id="pf-ref" type="text" placeholder="예: 창세기 30:1–24">
+      </div>
+      <div id="pv-sermon" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-passage">성경 본문 붙여넣기</label>
+        <textarea id="pf-passage" rows="8" placeholder="성경 앱이나 사이트에서 본문을 복사해 그대로 붙여넣으세요. 절 번호가 섞여 있어도 됩니다."></textarea>
+      </div>
+      <div id="pv-passage" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-reading">함께 읽는 구절 (짧은 구절)</label>
+        <textarea id="pf-reading" rows="3" placeholder="예배 중 함께 읽을 짧은 구절"></textarea>
+      </div>
+      <div id="pv-reading" class="field-preview"></div>
+
+      <div class="field">
+        <label for="pf-prayer">기도 담당자 이름</label>
+        <input id="pf-prayer" type="text" placeholder="예: 홍길동 집사">
+      </div>
+      <div id="pv-prayer" class="field-preview"></div>
+
+      <div class="field">
+        <label>예배 중 찬송가 악보 (사진 여러 장 가능)</label>
+        <button id="btn-pastor-upload" class="btn btn-outline btn-wide">📷 악보 사진 올리기</button>
+        <input id="pastor-file" type="file" accept="image/*" multiple hidden>
+        <div id="pastor-thumbs" class="thumbs"></div>
+      </div>
+
+      <p class="dev-note">모든 항목은 입력하는 즉시 자동 저장됩니다.</p>
+    </main>
+  </section>
+
+  <!-- 곡 목록 (찬양팀/성가대 섹션 홈) -->
+  <section id="screen-songs" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-songs-back" class="btn btn-ghost">← 홈</button>
+        <span id="songs-title" class="topbar-title">곡 준비</span>
+      </div>
+    </header>
+    <main class="main">
+      <div id="songs-list" class="song-list"></div>
+      <button id="btn-song-add" class="btn btn-primary btn-wide" style="margin-top:14px">+ 곡 추가</button>
+      <input id="song-file" type="file" accept="image/*" multiple hidden>
+      <p class="dev-note">사진은 자동으로 압축됩니다. 추출 결과는 아직 예시(목)입니다 — 4단계에서 실제 AI 추출로 교체됩니다.</p>
+    </main>
+  </section>
+
+  <!-- 검수 화면 (3탭: 가사 / 미리보기 / 원본) -->
+  <section id="screen-review" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-review-back" class="btn btn-ghost">← 곡 목록</button>
+        <span id="review-title" class="topbar-title">검수</span>
+      </div>
+      <button id="btn-review-order" class="btn btn-primary" style="font-size:14px;padding:9px 14px">순서 지정 →</button>
+    </header>
+    <nav class="tabs" id="review-tabs">
+      <button class="tab on" data-tab="lyrics">가사 · 미리보기</button>
+      <button class="tab" data-tab="original">원본</button>
+    </nav>
+    <main class="main">
+      <div id="tab-lyrics" class="tab-panel"></div>
+      <div id="tab-original" class="tab-panel" hidden></div>
+    </main>
+  </section>
+
+  <!-- 순서 지정 화면 -->
+  <section id="screen-order" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-order-back" class="btn btn-ghost">← 검수</button>
+        <span class="topbar-title">부르는 순서</span>
+      </div>
+      <button id="btn-order-done" class="btn btn-primary" style="font-size:14px;padding:9px 14px">완료</button>
+    </header>
+    <main class="main">
+      <p class="order-guide">부르는 순서대로 아래 블록을 누르세요. 같은 블록을 여러 번 누르면 그만큼 반복됩니다.</p>
+      <div id="order-blocks" class="order-blocks"></div>
+      <h3 class="order-sub">현재 순서</h3>
+      <div id="order-seq" class="order-seq"></div>
+      <div id="order-count" class="order-count"></div>
+    </main>
+  </section>
+
+  <!-- 슬라이드 디자인 미리보기 (개발 확인용 데모) -->
+  <section id="screen-preview" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-preview-back" class="btn btn-ghost">← 돌아가기</button>
+        <span class="topbar-title">슬라이드 디자인 미리보기</span>
+      </div>
+    </header>
+    <main class="main">
+      <p class="preview-guide">레이아웃 5종을 실제 비율(16:9)로 렌더링한 데모입니다. 방송 화면에서 초록 부분은 영상으로 대체(크로마키)됩니다.</p>
+      <div id="preview-list" class="preview-list"></div>
+    </main>
+  </section>
+
+</div>
+
+<script src="js/config.js?v=2"></script>
+<script src="js/api.js?v=2"></script>
+<script src="js/mock.js?v=3"></script>
+<script src="js/preview.js?v=3"></script>
+<script src="js/songs.js?v=4"></script>
+<script src="js/review.js?v=4"></script>
+<script src="js/pastor.js?v=2"></script>
+<script src="js/app.js?v=4"></script>
+</body>
+</html>
