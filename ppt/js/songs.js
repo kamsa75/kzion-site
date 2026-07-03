@@ -347,9 +347,12 @@ const Songs = (function () {
 
       const head = document.createElement('div');
       head.className = 'sec-head';
-      const name = document.createElement('div');
-      name.className = 'sec-name';
-      name.textContent = song.name || '(곡명 없음)';
+      const name = document.createElement('input');
+      name.className = 'song-name-input';
+      name.type = 'text';
+      name.value = song.name || '';
+      name.placeholder = role === 'choir' ? '곡명 입력 (필수)' : '곡명 (선택)';
+      name.addEventListener('input', () => { song.name = name.value; SongStore.save(); });
       const st = document.createElement('span');
       st.className = 'status ' + (song.status === 'ordered' ? 'status-done' : song.status === 'review' ? 'status-progress' : 'status-empty');
       st.textContent = STATUS[song.status] || song.status;
@@ -413,25 +416,17 @@ const Songs = (function () {
     });
   }
 
-  /* ---------- 곡 추가 → 파일 선택 → 업로드 → 추출(목) ---------- */
+  /* ---------- 곡 추가 → 곧바로 사진 선택창 → 업로드 → 추출 ----------
+     팝업(prompt) 없이 버튼 클릭 그대로 파일창을 여는 게 핵심:
+     prompt를 끼우면 사용자 제스처가 끊겨 브라우저가 파일창을 막는다.
+     곡명은 카드에서 직접 입력. */
+
+  let pendingNew = false;
 
   function addSong() {
-    const role = KZ.role();
-    let name = prompt(role === 'choir' ? '곡명을 입력하세요 (필수)' : '곡명을 입력하세요 (건너뛰려면 확인)');
-    if (name === null) return;
-    name = name.trim();
-    if (role === 'choir' && !name) { alert('성가대는 곡명이 필요합니다.'); return; }
-
-    const song = {
-      id: 's' + Date.now(),
-      name, status: 'extracting',
-      blocks: null, order: [], images: [], warnDark: false
-    };
-    SongStore.add(song);
-    currentUploadSongId = song.id;
+    pendingNew = true;
     $('#song-file').value = '';
-    $('#song-file').click();
-    render();
+    $('#song-file').click();   // 버튼 클릭 제스처 유지 → 사진 선택창 정상 오픈
   }
 
   async function onFiles(fileList) {
@@ -499,12 +494,21 @@ const Songs = (function () {
   function init() {
     $('#btn-song-add').addEventListener('click', addSong);
     $('#song-file').addEventListener('change', (e) => {
-      if (appendSongId) {
+      const files = e.target.files;
+      if (appendSongId) {                       // 기존 곡에 페이지 추가
         const song = SongStore.get(appendSongId);
         appendSongId = null;
-        if (song) { appendFiles(song, e.target.files); return; }
+        if (song) { appendFiles(song, files); return; }
       }
-      onFiles(e.target.files);
+      if (pendingNew) {                          // 새 곡 — 파일 고른 경우에만 곡 생성(취소 시 유령 카드 방지)
+        pendingNew = false;
+        if (!files.length) return;
+        const song = { id: 's' + Date.now(), name: '', status: 'extracting', blocks: null, order: [], images: [], warnDark: false };
+        SongStore.add(song);
+        currentUploadSongId = song.id;
+        render();
+      }
+      onFiles(files);
     });
     $('#btn-songs-back').addEventListener('click', () => KZ.show('home'));
 

@@ -259,6 +259,14 @@ input{font-family:inherit;}
 @media(hover:hover){ .page-add:hover{border-color:var(--ui-gold); color:var(--ui-gold);} }
 
 /* ---------- 곡 목록 ---------- */
+.song-name-input{
+  flex:1; min-width:0; font-size:16px; font-weight:800; color:var(--ui-ink);
+  border:1.5px solid transparent; border-radius:8px; padding:6px 8px; margin:-6px -8px;
+  background:transparent; outline:none; font-family:inherit;
+}
+.song-name-input::placeholder{font-weight:600; color:var(--ui-sub);}
+.song-name-input:hover{background:#F1EFE9;}
+.song-name-input:focus{border-color:var(--ui-gold); background:#fff;}
 .song-empty{color:var(--ui-sub); font-size:14px; text-align:center; padding:30px 0;}
 .song-warn{margin:10px 0 0; font-size:13px; color:#8A6D1F; background:var(--ui-warn-bg); padding:8px 10px; border-radius:8px;}
 .spinner-note{font-size:14px; color:var(--ui-gold); font-weight:700;}
