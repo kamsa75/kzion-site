@@ -239,14 +239,19 @@ input{font-family:inherit;}
   border:1.5px solid var(--ui-gold); border-radius:8px; outline:none; background:#fff; color:var(--ui-ink);
 }
 .divider{
-  display:block; width:100%; text-align:center; padding:2px 0;
-  color:#C9C5BB; font-size:13px; line-height:1;
+  display:flex; align-items:center; gap:10px; width:100%; padding:4px 0;
 }
-.divider.cut{
-  color:var(--ui-gold); font-weight:700; font-size:11px; padding:5px 0;
-  background:linear-gradient(to right, transparent, var(--ui-gold-soft), transparent);
+.divider::before, .divider::after{content:''; flex:1; border-top:1.5px dashed #D8D4CA;}
+.divider span{
+  font-size:11px; font-weight:700; color:var(--ui-sub);
+  border:1px solid var(--ui-line); border-radius:999px; padding:4px 12px; background:#fff;
+  white-space:nowrap;
 }
-@media(hover:hover){ .divider:hover{color:var(--ui-gold);} }
+.divider.cut::before, .divider.cut::after{border-top:2px solid var(--ui-gold);}
+.divider.cut span{color:#fff; background:var(--ui-gold); border-color:var(--ui-gold);}
+@media(hover:hover){
+  .divider:not(.cut):hover span{color:var(--ui-gold); border-color:var(--ui-gold);}
+}
 
 .block-slides{
   display:flex; flex-direction:column; gap:12px;
