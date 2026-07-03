@@ -57,9 +57,9 @@ const Pastor = (function () {
     previewBox($('#pv-reading'),
       readingLines.length ? { layout: 'band', lyrics: readingLines.slice(0, 2) } : null);
 
-    // 기도 (순서표 8번, 그린 자막형 — 고정 문구 + 이름)
+    // 기도 (순서표 8번, 그린 자막형) — "기도 : 이름" 한 줄, 동일 크기 (D13)
     previewBox($('#pv-prayer'),
-      data.prayer.trim() ? { layout: 'green', text: '기도', sub: data.prayer.trim() } : null);
+      data.prayer.trim() ? { layout: 'green', text: '기도 : ' + data.prayer.trim() } : null);
   }
 
   /* ---------- 악보 업로드 ---------- */
