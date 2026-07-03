@@ -1,0 +1,203 @@
+/* ============================================================
+   주일예배 준비실 /ppt/ 전용 스타일
+   - 슬라이드 토큰(지침 16번)은 --sl-* 로 분리 (추후 DB 스냅샷 값으로 교체, D6)
+   - UI에는 초록 계열 미사용(지침 20번 준수, 골드가 유일한 악센트)
+   ============================================================ */
+
+:root{
+  /* 슬라이드 디자인 토큰 (지침 16번) */
+  --sl-chroma:#70AD47;
+  --sl-band:#000000;
+  --sl-dark:#14181F;
+  --sl-warm:#F5F2EA;
+  --sl-white:#FFFFFF;
+  --sl-gold:#C9A66B;
+  --sl-caption:#6E6E6E;
+
+  /* UI 토큰 */
+  --ui-bg:#F7F6F2;
+  --ui-card:#FFFFFF;
+  --ui-ink:#22262C;
+  --ui-sub:#6E7278;
+  --ui-line:#E4E1D9;
+  --ui-gold:#B08D53;
+  --ui-gold-soft:#F4ECDF;
+  --ui-dark:#14181F;
+  --ui-danger:#C0392B;
+  --ui-warn-bg:#FBF3DA;
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0;}
+body{
+  font-family:'Pretendard',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  background:var(--ui-bg); color:var(--ui-ink);
+  min-height:100dvh; line-height:1.5;
+}
+button{
+  font-family:inherit; font-size:inherit; color:inherit;
+  background:none; border:none; padding:0; cursor:pointer;
+  touch-action:manipulation;
+}
+input{font-family:inherit;}
+
+.screen{min-height:100dvh;}
+[hidden]{display:none !important;}
+
+/* ---------- 버튼 ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:12px 18px; border-radius:10px; font-weight:700; font-size:15px;
+  border:1px solid transparent; user-select:none; -webkit-user-select:none;
+}
+.btn-primary{background:var(--ui-dark); color:#fff;}
+.btn-ghost{color:var(--ui-sub); padding:10px 12px;}
+.btn-wide{width:100%;}
+.btn[disabled]{opacity:.4; cursor:default;}
+.btn:active{transform:scale(.98);}
+@media(hover:hover){
+  .btn-primary:hover{background:#2A3140;}
+  .btn-ghost:hover{color:var(--ui-ink);}
+}
+
+/* ---------- PIN 입장 ---------- */
+.screen-pin{
+  display:flex; align-items:center; justify-content:center;
+  padding:24px; background:var(--ui-dark);
+}
+.pin-box{width:100%; max-width:360px; text-align:center; color:var(--sl-warm);}
+.pin-church{margin:0 0 6px; font-size:14px; letter-spacing:.12em; color:var(--sl-gold); font-weight:700;}
+.pin-title{margin:0 0 10px; font-size:28px; font-weight:800; color:#fff;}
+.pin-desc{margin:0 0 28px; font-size:14px; color:#9AA0A8;}
+#pin-input{
+  width:100%; padding:14px 16px; border-radius:12px; border:1px solid #3A4150;
+  background:#1D232E; color:#fff; font-size:22px; font-weight:700;
+  text-align:center; letter-spacing:.4em; outline:none;
+}
+#pin-input::placeholder{letter-spacing:0; font-size:15px; font-weight:400; color:#6E7480;}
+#pin-input:focus{border-color:var(--sl-gold);}
+.pin-error{margin:10px 0 0; font-size:13px; color:#E8A19A; font-weight:700;}
+#pin-form .btn-primary{margin-top:16px; background:var(--sl-gold); color:#14181F; font-size:16px; padding:14px;}
+@media(hover:hover){ #pin-form .btn-primary:hover{background:#D8B87E;} }
+.pin-foot{margin-top:28px; font-size:12px; color:#6E7480;}
+
+/* ---------- 상단바 ---------- */
+.topbar{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top));
+  background:var(--ui-card); border-bottom:1px solid var(--ui-line);
+}
+.topbar-left{display:flex; align-items:center; gap:10px; min-width:0;}
+.topbar-title{font-weight:800; font-size:16px; white-space:nowrap;}
+.role-chip{
+  font-size:12px; font-weight:700; color:var(--ui-gold);
+  background:var(--ui-gold-soft); padding:4px 10px; border-radius:999px; white-space:nowrap;
+}
+
+/* ---------- 홈 ---------- */
+.main{max-width:760px; margin:0 auto; padding:18px 16px 40px;}
+.week-head{margin:6px 0 18px;}
+.week-head .week-label{font-size:13px; color:var(--ui-sub); font-weight:700;}
+.week-head .week-date{font-size:22px; font-weight:800; margin-top:2px;}
+
+.section-list{display:flex; flex-direction:column; gap:12px;}
+.sec-card{
+  background:var(--ui-card); border:1px solid var(--ui-line); border-radius:14px;
+  padding:16px;
+}
+.sec-card.mine{border-color:var(--ui-gold);}
+.sec-head{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.sec-name{font-weight:800; font-size:16px;}
+.sec-owner{font-size:12px; color:var(--ui-sub); margin-top:2px;}
+.status{font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap;}
+.status-empty{background:#EFEDE7; color:var(--ui-sub);}
+.status-progress{background:var(--ui-warn-bg); color:#8A6D1F;}
+.status-done{background:var(--ui-dark); color:#fff;}
+.sec-items{margin:10px 0 0; padding:0; list-style:none; font-size:14px; color:var(--ui-sub);}
+.sec-items li{padding:3px 0;}
+.sec-actions{margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;}
+.sec-actions .btn{font-size:14px; padding:10px 14px;}
+.btn-outline{border-color:var(--ui-line); background:var(--ui-card);}
+@media(hover:hover){ .btn-outline:hover{border-color:var(--ui-ink);} }
+.soon-tag{font-size:11px; color:var(--ui-sub); font-weight:400;}
+
+.admin-block{margin-top:22px;}
+.admin-block h2{font-size:15px; color:var(--ui-sub); margin:0 0 10px; font-weight:700;}
+.dev-note{margin-top:30px; font-size:12px; color:var(--ui-sub); text-align:center;}
+
+/* ---------- 슬라이드 미리보기 (지침 17번 레이아웃 5종) ---------- */
+.preview-guide{font-size:14px; color:var(--ui-sub); margin:6px 0 16px;}
+.preview-list{display:flex; flex-direction:column; gap:22px;}
+.preview-item .pv-label{font-size:13px; font-weight:700; margin-bottom:6px;}
+.preview-item .pv-note{font-size:12px; color:var(--ui-sub); margin-top:6px;}
+
+.slide{
+  width:100%; aspect-ratio:16/9; position:relative; overflow:hidden;
+  border-radius:6px; border:1px solid var(--ui-line);
+  container-type:size;
+  font-family:'Pretendard',sans-serif; font-weight:700;
+}
+
+/* 그린 자막형 */
+.slide--green{background:var(--sl-chroma);}
+.slide--green .sl-text{
+  position:absolute; left:4cqw; right:4cqw; bottom:10cqh;
+  text-align:center; color:var(--sl-white);
+  font-size:10cqh; font-weight:800; line-height:1.35;
+  text-shadow:0 0 1.2cqh rgba(0,0,0,.45);
+}
+.slide--green .sl-sub{
+  position:absolute; left:4cqw; right:4cqw; bottom:2.5cqh;
+  text-align:center; color:var(--sl-white); font-size:5cqh; font-weight:700;
+  text-shadow:0 0 1.2cqh rgba(0,0,0,.45); opacity:.95;
+}
+
+/* 크로마 밴드형 */
+.slide--band{background:var(--sl-chroma);}
+.slide--band .sl-band{
+  position:absolute; left:0; right:0; bottom:0; height:20cqh;
+  background:var(--sl-band);
+  display:flex; align-items:center; justify-content:center;
+}
+.slide--band .sl-lyrics{
+  text-align:center; color:var(--sl-white);
+  font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 14cqw;
+}
+.slide--band .sl-cap{
+  position:absolute; left:2.2cqw; bottom:1.8cqh;
+  font-size:3.2cqh; color:var(--sl-caption); font-weight:700;
+}
+
+/* 다크 전체화면형 */
+.slide--dark{background:var(--sl-dark);}
+.slide--dark .sl-cap{
+  position:absolute; top:6cqh; left:6cqw; right:6cqw;
+  color:var(--sl-gold); font-size:4.6cqh; font-weight:800; letter-spacing:.06em;
+}
+.slide--dark .sl-body{
+  position:absolute; top:17cqh; left:6cqw; right:6cqw; bottom:6cqh;
+  color:var(--sl-warm); font-size:6.4cqh; font-weight:700; line-height:1.62;
+  overflow:hidden;
+}
+.slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
+
+/* 악보 통짜형 */
+.slide--score{background:var(--sl-white); display:flex; align-items:center; justify-content:center;}
+.slide--score img{width:100%; height:100%; object-fit:cover;}
+.slide--score.is-43 img{width:auto; height:100%; object-fit:contain;}
+.slide--score .sl-ph{
+  color:var(--ui-sub); font-size:5cqh; font-weight:700; text-align:center;
+  border:2px dashed var(--ui-line); border-radius:1.5cqh; padding:8cqh 10cqw;
+}
+
+/* 이미지형 */
+.slide--image{background:var(--sl-dark); display:flex; align-items:center; justify-content:center;}
+.slide--image img{width:100%; height:100%; object-fit:cover;}
+.slide--image .sl-ph{color:#8A8F98; font-size:5cqh; font-weight:700; text-align:center;}
+
+/* ---------- 데스크톱 보정 ---------- */
+@media(min-width:700px){
+  .pin-title{font-size:32px;}
+  .main{padding-top:26px;}
+}
