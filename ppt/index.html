@@ -143,6 +143,48 @@
     </div>
   </section>
 
+  <!-- 관리자 이미지·썸네일 관리 (④-a) -->
+  <section id="screen-admin" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-adm-back" class="btn btn-ghost">← 홈</button>
+        <span class="topbar-title">이미지 · 썸네일 관리</span>
+      </div>
+      <span id="adm-busy" class="save-note"></span>
+    </header>
+    <main class="main">
+      <input id="adm-file" type="file" accept="image/*" hidden>
+
+      <div class="adm-section">
+        <h2>날짜 썸네일 (첫 장)</h2>
+        <p class="adm-desc">파일명 끝 번호가 그 해 <b>N번째 주일</b>로 자동 매핑됩니다. 예: "시애틀시온장로교회 - 27.jpg" → 27주(7/5). 27~52를 한 번에 올리세요.</p>
+        <button id="btn-adm-thumbs" class="btn btn-primary btn-wide">＋ 썸네일 여러 장 올리기</button>
+        <div id="adm-thumbs" class="adm-grid"></div>
+      </div>
+
+      <div class="adm-section">
+        <h2>봉헌송 악보</h2>
+        <p class="adm-desc">봉헌 다음에 순서대로 들어갑니다. 여러 장 올리면 올린 순서로 배치됩니다.</p>
+        <button id="btn-adm-offering" class="btn btn-outline btn-wide">＋ 봉헌송 악보 추가</button>
+        <div id="adm-offering" class="adm-grid"></div>
+      </div>
+
+      <div class="adm-section">
+        <h2>폐회송 악보</h2>
+        <p class="adm-desc">축도 직전에 순서대로 들어갑니다.</p>
+        <button id="btn-adm-closing" class="btn btn-outline btn-wide">＋ 폐회송 악보 추가</button>
+        <div id="adm-closing" class="adm-grid"></div>
+      </div>
+
+      <div class="adm-section">
+        <h2>마침 이미지 (마지막 장)</h2>
+        <p class="adm-desc">"예배를 마쳤습니다" — 항상 맨 끝에 들어갑니다. 1장.</p>
+        <button id="btn-adm-ending" class="btn btn-outline btn-wide">이미지 교체</button>
+        <div id="adm-ending" class="adm-grid"></div>
+      </div>
+    </main>
+  </section>
+
   <!-- PPT 미리보기 · 생성 (관리자 — 5단계 ③) -->
   <section id="screen-generate" class="screen" hidden>
     <header class="topbar">
@@ -184,7 +226,8 @@
 <script src="js/songs.js?v=8"></script>
 <script src="js/review.js?v=6"></script>
 <script src="js/pastor.js?v=4"></script>
-<script src="js/generate.js?v=1"></script>
-<script src="js/app.js?v=6"></script>
+<script src="js/admin.js?v=1"></script>
+<script src="js/generate.js?v=2"></script>
+<script src="js/app.js?v=7"></script>
 </body>
 </html>
