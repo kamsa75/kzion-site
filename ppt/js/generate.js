@@ -14,8 +14,18 @@ const Generate = (function () {
   const C = { green: '70AD47', band: '000000', dark: '14181F', warm: 'F5F2EA', white: 'FFFFFF', gold: 'C9A66B' };
   const FONT = 'Pretendard';
 
-  let items = [];   // [{ label, slide, missing }]
+  let items = [];   // [{ label, slide, missing, phase }]
   let weekId = '';
+
+  // 슬롯 → 예배 순서 단계 (미리보기 그룹핑용, D). 슬롯 id 기준
+  const PHASE = {
+    thumbnail: '여는 순서', call: '여는 순서', creed: '여는 순서', 'praise-all': '여는 순서',
+    'live-1': '여는 순서', 'praise-songs': '여는 순서', 'live-2': '여는 순서', 'pray-together': '여는 순서',
+    hymn: '찬양과 기도', prayer: '찬양과 기도', 'choir-name': '찬양과 기도', 'choir-songs': '찬양과 기도',
+    'live-3': '찬양과 기도', offering: '찬양과 기도', 'offering-img': '찬양과 기도', 'live-4': '찬양과 기도',
+    news: '말씀', sermon: '말씀', passage: '말씀', reading: '말씀',
+    'live-5': '마침', 'closing-img': '마침', benediction: '마침', ending: '마침'
+  };
 
   /* ---------- 데이터 정규화 (서버/목 양쪽 스키마 흡수) ---------- */
   function getRole(s) { return s.role; }
@@ -203,7 +213,7 @@ const Generate = (function () {
     ctx.settings = ctx.settings || {};
     ctx.sundayIndex = Template.sundayIndexOfYear(ctx.weekId);
     const out = [];
-    Template.slots().forEach(slot => expandSlot(slot, ctx).forEach(it => out.push(it)));
+    Template.slots().forEach(slot => expandSlot(slot, ctx).forEach(it => { it.phase = PHASE[slot.id] || '그 외'; out.push(it); }));
     return out;
   }
 
@@ -225,16 +235,95 @@ const Generate = (function () {
 
     const list = $('#gen-list');
     list.innerHTML = '';
-    items.forEach((it, i) => {
-      const item = document.createElement('div');
-      item.className = 'preview-item' + (it.missing ? ' gen-missing' : '');
-      const label = document.createElement('div');
-      label.className = 'pv-label';
-      label.textContent = (i + 1) + '. ' + it.label;
-      item.appendChild(label);
-      item.appendChild(renderSlide(it.slide));
-      list.appendChild(item);
+
+    // 순서대로 이어지는 같은 단계끼리 묶기 (D)
+    const groups = [];
+    let cur = null;
+    items.forEach((it, idx) => {
+      it._idx = idx;
+      if (!cur || cur.phase !== it.phase) { cur = { phase: it.phase || '그 외', items: [] }; groups.push(cur); }
+      cur.items.push(it);
     });
+
+    groups.forEach(g => {
+      const sec = document.createElement('section');
+      sec.className = 'gen-phase';
+      const miss = g.items.filter(i => i.missing).length;
+      const head = document.createElement('button');
+      head.type = 'button';
+      head.className = 'gen-phase-head';
+      head.innerHTML = '<span class="gp-fold">▾</span><span class="gp-name">' + g.phase + '</span>'
+        + '<span class="gp-meta">' + g.items.length + '장'
+        + (miss ? ' · <span class="gp-miss">채울 것 ' + miss + '</span>' : ' <span class="gp-ok">준비됨 ✓</span>') + '</span>';
+      const grid = document.createElement('div');
+      grid.className = 'gen-grid';
+      g.items.forEach(it => {
+        const cell = document.createElement('div');
+        cell.className = 'gen-cell' + (it.missing ? ' gen-missing' : '');
+        const label = document.createElement('div');
+        label.className = 'gen-cell-label';
+        label.textContent = (it._idx + 1) + '. ' + it.label;
+        cell.appendChild(label);
+        cell.appendChild(renderSlide(it.slide));
+        cell.addEventListener('click', () => openLightbox(it._idx));
+        grid.appendChild(cell);
+      });
+      head.addEventListener('click', () => sec.classList.toggle('folded'));
+      sec.append(head, grid);
+      list.appendChild(sec);
+    });
+  }
+
+  // 클릭한 슬라이드를 크게 보기 + 좌우 이동 (D)
+  function openLightbox(startIdx) {
+    let idx = startIdx;
+    const ov = document.createElement('div');
+    ov.className = 'gen-lightbox';
+    const inner = document.createElement('div');
+    inner.className = 'glb-inner';
+    const cap = document.createElement('div'); cap.className = 'glb-cap';
+    const slideWrap = document.createElement('div'); slideWrap.className = 'glb-slide';
+    const prev = document.createElement('button'); prev.className = 'glb-nav glb-prev'; prev.textContent = '‹';
+    const next = document.createElement('button'); next.className = 'glb-nav glb-next'; next.textContent = '›';
+    const close = document.createElement('button'); close.className = 'glb-close'; close.textContent = '✕';
+
+    function show(i) {
+      idx = (i + items.length) % items.length;
+      cap.textContent = (idx + 1) + ' / ' + items.length + ' · ' + items[idx].label;
+      slideWrap.innerHTML = '';
+      slideWrap.appendChild(renderSlide(items[idx].slide));
+    }
+    function destroy() { ov.remove(); document.removeEventListener('keydown', onKey); }
+    function onKey(e) {
+      if (e.key === 'Escape') destroy();
+      else if (e.key === 'ArrowLeft') show(idx - 1);
+      else if (e.key === 'ArrowRight') show(idx + 1);
+    }
+    prev.addEventListener('click', e => { e.stopPropagation(); show(idx - 1); });
+    next.addEventListener('click', e => { e.stopPropagation(); show(idx + 1); });
+    close.addEventListener('click', destroy);
+    ov.addEventListener('click', destroy);
+    inner.addEventListener('click', e => e.stopPropagation());
+    inner.append(close, cap, slideWrap, prev, next);
+    ov.appendChild(inner);
+    document.body.appendChild(ov);
+    document.addEventListener('keydown', onKey);
+    show(idx);
+  }
+
+  /* ---------- 다크 배경 그레이디언트 이미지 (PptxGenJS는 배경 그레이디언트 미지원 → 이미지로) ---------- */
+  let darkBgCache;
+  function darkBg() {
+    if (darkBgCache !== undefined) return darkBgCache;
+    try {
+      const c = document.createElement('canvas'); c.width = 8; c.height = 720;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, 720);
+      g.addColorStop(0, '#1A1F28'); g.addColorStop(0.55, '#14181F'); g.addColorStop(1, '#0F1319');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, 8, 720);
+      darkBgCache = c.toDataURL('image/png');
+    } catch (e) { darkBgCache = ''; }
+    return darkBgCache;
   }
 
   /* ---------- PPTX 생성 (PptxGenJS) ---------- */
@@ -257,7 +346,8 @@ const Generate = (function () {
         break;
       }
       case 'dark': {
-        s.background = { color: C.dark };
+        const bg = darkBg();
+        s.background = bg ? { data: bg } : { color: C.dark };
         if (sl.caption) s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
         let body;
         if (sl.verses) {
