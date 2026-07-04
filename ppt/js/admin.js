@@ -84,6 +84,27 @@ const AssetStore = (function () {
   return { load, set, remove, srcList, keys, dataUrlMap };
 })();
 
+/* 고정 문구(사도신경 본문·다함께 찬양 곡명 등) — settings 테이블 (B) */
+const SettingsStore = (function () {
+  let map = {};
+  const MOCK_KEY = 'kzppt_settings';
+  async function load() {
+    if (CONFIG.USE_SERVER) {
+      const r = await API.call('getSettings');
+      map = r.settings || {};
+    } else {
+      try { map = JSON.parse(localStorage.getItem(MOCK_KEY) || '{}'); } catch (e) { map = {}; }
+    }
+  }
+  function get(key) { return map[key] || ''; }
+  async function set(key, value) {
+    map[key] = value;
+    if (CONFIG.USE_SERVER) { await API.call('saveSetting', { key, value }); }
+    else { try { localStorage.setItem(MOCK_KEY, JSON.stringify(map)); } catch (e) {} }
+  }
+  return { load, get, set };
+})();
+
 const Admin = (function () {
   const $ = (sel) => document.querySelector(sel);
   let pending = null; // 업로드 대기 컨텍스트 { kind, mode:'thumbs'|'set'|'single', key? }
@@ -101,6 +122,33 @@ const Admin = (function () {
     renderSet('offering', '#adm-offering');
     renderSet('closing', '#adm-closing');
     renderSingle('ending', '#adm-ending');
+    renderSettings();
+  }
+
+  /* ---------- 고정 문구 (B) ---------- */
+  const setTimers = {}; // 키별 디바운스 (공유 타이머면 서로의 저장을 취소함)
+  function renderSettings() {
+    const creed = $('#set-creed'), praise = $('#set-praise');
+    if (creed.value !== SettingsStore.get('creed_text')) creed.value = SettingsStore.get('creed_text');
+    if (praise.value !== SettingsStore.get('praise_all_sub')) praise.value = SettingsStore.get('praise_all_sub');
+    drawCreedPv(); drawPraisePv();
+  }
+  function drawCreedPv() {
+    const box = $('#set-creed-pv'); box.innerHTML = '';
+    const t = $('#set-creed').value.trim();
+    if (t) box.appendChild(renderSlide({ layout: 'dark', caption: '사도신경', body: t.replace(/\s+/g, ' ') }));
+  }
+  function drawPraisePv() {
+    const box = $('#set-praise-pv'); box.innerHTML = '';
+    box.appendChild(renderSlide({ layout: 'green', text: '다함께 찬양', sub: $('#set-praise').value.trim() }));
+  }
+  function saveSettingDebounced(key, value, redraw) {
+    redraw();
+    clearTimeout(setTimers[key]);
+    setTimers[key] = setTimeout(async () => {
+      try { await SettingsStore.set(key, value); $('#adm-busy').textContent = '✓ 저장됨'; setTimeout(() => { $('#adm-busy').textContent = ''; }, 1200); }
+      catch (e) { $('#adm-busy').textContent = '⚠ 저장 실패'; }
+    }, 600);
   }
 
   // 이번 주(다가오는 일요일)의 연도·주 번호
@@ -266,7 +314,7 @@ const Admin = (function () {
   async function open() {
     KZ.show('admin');
     $('#adm-thumbs').innerHTML = '<p class="adm-empty">불러오는 중…</p>';
-    try { await AssetStore.load(); }
+    try { await AssetStore.load(); await SettingsStore.load(); }
     catch (e) { alert('자산을 불러오지 못했습니다. 네트워크를 확인해 주세요.'); KZ.show('home'); return; }
     render();
   }
@@ -278,6 +326,8 @@ const Admin = (function () {
     $('#btn-adm-offering').addEventListener('click', () => pick({ mode: 'set', key: 'offering' }));
     $('#btn-adm-closing').addEventListener('click', () => pick({ mode: 'set', key: 'closing' }));
     $('#btn-adm-ending').addEventListener('click', () => pick({ mode: 'single', key: 'ending' }));
+    $('#set-creed').addEventListener('input', () => saveSettingDebounced('creed_text', $('#set-creed').value, drawCreedPv));
+    $('#set-praise').addEventListener('input', () => saveSettingDebounced('praise_all_sub', $('#set-praise').value, drawPraisePv));
   }
 
   return { init, open };

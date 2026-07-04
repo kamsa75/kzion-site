@@ -150,7 +150,7 @@
 
       const btnAssets = document.createElement('button');
       btnAssets.className = 'btn btn-outline';
-      btnAssets.textContent = '이미지 · 썸네일 관리';
+      btnAssets.textContent = '이미지 · 문구 관리';
       btnAssets.addEventListener('click', () => Admin.open());
       actions.appendChild(btnAssets);
 
