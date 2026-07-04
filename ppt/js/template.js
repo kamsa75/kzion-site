@@ -91,6 +91,15 @@ const Template = {
     return Math.round((target - firstSun) / (7 * 86400000)) + 1;
   },
 
+  // N번째 주일의 날짜 (sundayIndexOfYear의 역함수) — 썸네일 라벨용
+  sundayDate(year, n) {
+    const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
+    const first = Date.UTC(year, 0, 1 + ((7 - jan1Day) % 7));
+    const d = new Date(first + (n - 1) * 7 * 86400000);
+    const mm = String(d.getUTCMonth() + 1).padStart(2, '0'), dd = String(d.getUTCDate()).padStart(2, '0');
+    return d.getUTCFullYear() + '-' + mm + '-' + dd;
+  },
+
   // 주 문서 생성 시 템플릿을 문서 안으로 복사(스냅샷) → 이후 그 주만 편집 (D6·D25)
   // 반환: 주별 순서 인스턴스 배열(각 슬롯에 고정 uid 부여, 원본 불변)
   buildWeekOrder() {

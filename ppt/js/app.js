@@ -17,6 +17,7 @@
     pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
     review: $('#screen-review'),
+    admin: $('#screen-admin'),
     generate: $('#screen-generate'),
     preview: $('#screen-preview')
   };
@@ -147,6 +148,12 @@
       const actions = document.createElement('div');
       actions.className = 'sec-actions';
 
+      const btnAssets = document.createElement('button');
+      btnAssets.className = 'btn btn-outline';
+      btnAssets.textContent = '이미지 · 썸네일 관리';
+      btnAssets.addEventListener('click', () => Admin.open());
+      actions.appendChild(btnAssets);
+
       const btnPreview = document.createElement('button');
       btnPreview.className = 'btn btn-outline';
       btnPreview.textContent = '슬라이드 디자인 미리보기';
@@ -241,6 +248,7 @@
   window.KZ = { show, role: () => currentRole };
   Songs.init();
   Review.init();
+  Admin.init();
   Generate.init();
 
   const session = getSession();

@@ -295,6 +295,41 @@ Deno.serve(async (req) => {
       return json({ urls: data.map((d) => d.signedUrl) });
     }
 
+    // ── 관리자 자산: 날짜 썸네일·봉헌송·폐회송·마침 이미지 (④-a, D21·D22) ──
+    // 교회 공용·매주 재사용. assets 테이블(key→paths jsonb)에 저장, 파일은 scores 버킷 assets/ 경로
+    case "assetUploadUrl": {
+      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      const kind = String(body.kind || "misc").replace(/[^a-z0-9_-]/gi, "").slice(0, 32) || "misc";
+      const path = `assets/${kind}/${crypto.randomUUID()}.jpg`;
+      const { data, error } = await db.storage.from("scores").createSignedUploadUrl(path);
+      if (error || !data) return json({ error: "업로드 URL 발급 실패" }, 500);
+      return json({ path, url: data.signedUrl });
+    }
+
+    case "getAssets": {
+      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      const { data: rows } = await db.from("assets").select("key, paths");
+      const all = (rows || []).flatMap((r) => (r.paths as string[]) || []);
+      const urls: Record<string, string> = {};
+      if (all.length) {
+        const { data: signed } = await db.storage.from("scores").createSignedUrls(all, 3600);
+        (signed || []).forEach((s, i) => { if (s.signedUrl) urls[all[i]] = s.signedUrl; });
+      }
+      return json({ assets: rows || [], urls });
+    }
+
+    case "saveAsset": {
+      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      const key = String(body.key || "").slice(0, 64);
+      if (!key) return json({ error: "key 필요" }, 400);
+      const paths = (body.paths as string[]) || [];
+      const { error } = await db
+        .from("assets")
+        .upsert({ key, paths, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) return json({ error: "저장 실패" }, 500);
+      return json({ ok: true });
+    }
+
     // 악보 이미지 → 가사 추출 (지침 12번). storage 경로 배열을 받아 서버가 내려받아 비전 호출
     case "extract": {
       if (role !== "praise" && role !== "choir" && role !== "pastor")

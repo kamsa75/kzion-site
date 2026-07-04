@@ -82,8 +82,11 @@ const Generate = (function () {
   function expandSlot(slot, ctx) {
     const p = ctx.pastor || {};
     switch (slot.source) {
-      case 'thumbnail':
-        return [{ label: '날짜 썸네일 (' + ctx.sundayIndex + '번째 주일)', slide: { layout: 'image', placeholder: '날짜 썸네일 ' + ctx.sundayIndex + '번 — 업로드 예정(④)' }, missing: true }];
+      case 'thumbnail': {
+        const src = (ctx.assets.thumbs || {})[ctx.sundayIndex];
+        if (src) return [{ label: '날짜 썸네일 (' + ctx.sundayIndex + '번째 주일)', slide: { layout: 'image', src } }];
+        return [{ label: '날짜 썸네일 (' + ctx.sundayIndex + '번째 주일)', slide: { layout: 'image', placeholder: '날짜 썸네일 ' + ctx.sundayIndex + '번 — 업로드 필요(관리자)' }, missing: true }];
+      }
 
       case 'fixed':
         if (slot.type === 'green_blank') return [{ label: slot.title, slide: { layout: 'green_blank' } }];
@@ -136,9 +139,21 @@ const Generate = (function () {
       }
       case 'choir_songs': return []; // choir_name에서 곡명+가사 함께 생성
 
-      case 'offering_images': return [{ label: '봉헌송 악보', slide: { layout: 'score', placeholder: '봉헌송 악보 — 업로드 예정(④)' }, missing: true }];
-      case 'closing_images': return [{ label: '폐회송 악보', slide: { layout: 'score', placeholder: '폐회송 악보 — 업로드 예정(④)' }, missing: true }];
-      case 'ending': return [{ label: '예배를 마쳤습니다', slide: { layout: 'image', placeholder: '마침 이미지 — 업로드 예정(④)' }, missing: true }];
+      case 'offering_images': {
+        const imgs = ctx.assets.offering || [];
+        if (imgs.length) return imgs.map((src, i) => ({ label: '봉헌송 악보 ' + (i + 1), slide: { layout: 'score', src } }));
+        return [{ label: '봉헌송 악보', slide: { layout: 'score', placeholder: '봉헌송 악보 — 업로드 필요(관리자)' }, missing: true }];
+      }
+      case 'closing_images': {
+        const imgs = ctx.assets.closing || [];
+        if (imgs.length) return imgs.map((src, i) => ({ label: '폐회송 악보 ' + (i + 1), slide: { layout: 'score', src } }));
+        return [{ label: '폐회송 악보', slide: { layout: 'score', placeholder: '폐회송 악보 — 업로드 필요(관리자)' }, missing: true }];
+      }
+      case 'ending': {
+        const src = ctx.assets.ending;
+        if (src) return [{ label: '예배를 마쳤습니다', slide: { layout: 'image', src } }];
+        return [{ label: '예배를 마쳤습니다', slide: { layout: 'image', placeholder: '마침 이미지 — 업로드 필요(관리자)' }, missing: true }];
+      }
       default: return [];
     }
   }
@@ -151,20 +166,28 @@ const Generate = (function () {
     return d.getFullYear() + '-' + mm + '-' + dd;
   }
 
+  async function loadAssets() {
+    // 실패해도 자리표시로 진행 (자산 미설정 상태에서도 미리보기 가능)
+    try { await AssetStore.load(); return await AssetStore.dataUrlMap(); }
+    catch (e) { return { thumbs: {}, offering: [], closing: [], ending: null }; }
+  }
+
   async function loadCtx() {
+    const assets = await loadAssets();
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
-      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [] };
+      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets };
     }
     let pastor = {}, praise = [], choir = [];
     try { pastor = JSON.parse(localStorage.getItem('kzppt_pastor') || '{}'); } catch (e) {}
     try { praise = JSON.parse(localStorage.getItem('kzppt_songs_praise') || '[]'); } catch (e) {}
     try { choir = JSON.parse(localStorage.getItem('kzppt_songs_choir') || '[]'); } catch (e) {}
     const songs = praise.map(s => Object.assign({ role: 'praise' }, s)).concat(choir.map(s => Object.assign({ role: 'choir' }, s)));
-    return { weekId: thisSundayISO(), pastor, songs };
+    return { weekId: thisSundayISO(), pastor, songs, assets };
   }
 
   function build(ctx) {
+    ctx.assets = ctx.assets || { thumbs: {}, offering: [], closing: [], ending: null };
     ctx.sundayIndex = Template.sundayIndexOfYear(ctx.weekId);
     const out = [];
     Template.slots().forEach(slot => expandSlot(slot, ctx).forEach(it => out.push(it)));
@@ -236,12 +259,16 @@ const Generate = (function () {
       }
       case 'score': {
         s.background = { color: C.white };
-        s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '888888' });
+        // 악보는 잘리면 안 됨 → contain(비율 유지, 중앙) (지침 14번)
+        if (sl.src) s.addImage({ data: sl.src, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'contain', w: 13.33, h: 7.5 } });
+        else s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '888888' });
         break;
       }
       case 'image': {
         s.background = { color: C.dark };
-        s.addText(sl.placeholder || '이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '8A8F98' });
+        // 타이틀·마침은 전체 채움(cover)
+        if (sl.src) s.addImage({ data: sl.src, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'cover', w: 13.33, h: 7.5 } });
+        else s.addText(sl.placeholder || '이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '8A8F98' });
         break;
       }
     }
