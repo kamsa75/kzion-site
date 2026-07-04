@@ -91,6 +91,14 @@ const Template = {
     return Math.round((target - firstSun) / (7 * 86400000)) + 1;
   },
 
+  // 그 해 마지막 주일 번호(52 또는 53) — 썸네일 커버리지 그리드 범위용
+  sundaysInYear(year) {
+    const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
+    const first = Date.UTC(year, 0, 1 + ((7 - jan1Day) % 7));
+    const dec31 = Date.UTC(year, 11, 31);
+    return Math.floor((dec31 - first) / (7 * 86400000)) + 1;
+  },
+
   // N번째 주일의 날짜 (sundayIndexOfYear의 역함수) — 썸네일 라벨용
   sundayDate(year, n) {
     const jan1Day = new Date(Date.UTC(year, 0, 1)).getUTCDay();
