@@ -88,8 +88,6 @@ const Admin = (function () {
   const $ = (sel) => document.querySelector(sel);
   let pending = null; // 업로드 대기 컨텍스트 { kind, mode:'thumbs'|'set'|'single', key? }
 
-  function year() { return new Date().getFullYear(); }
-
   // 파일명 끝 번호 파싱: "시애틀시온장로교회 - 27.jpg" → 27
   function parseNum(name) {
     const base = name.replace(/\.[^.]+$/, '');
@@ -105,35 +103,62 @@ const Admin = (function () {
     renderSingle('ending', '#adm-ending');
   }
 
+  // 이번 주(다가오는 일요일)의 연도·주 번호
+  function thisSundayInfo() {
+    const now = new Date(), d = new Date(now);
+    d.setDate(now.getDate() + ((7 - now.getDay()) % 7));
+    const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return { year: d.getFullYear(), n: Template.sundayIndexOfYear(iso) };
+  }
+
+  // 커버리지 그리드: 올해 주일을 고정 슬롯으로 — 채워짐/빈칸/빠진 주가 한눈에 (#2)
   function renderThumbs() {
     const box = $('#adm-thumbs');
     box.innerHTML = '';
-    const present = AssetStore.keys().filter(k => k.indexOf('thumb:') === 0)
-      .map(k => parseInt(k.slice(6), 10)).sort((a, b) => a - b);
-    if (!present.length) {
-      const p = document.createElement('p');
-      p.className = 'adm-empty';
-      p.textContent = '아직 업로드된 썸네일이 없습니다. 파일명 끝 번호(예: … - 27)로 자동 매핑됩니다.';
-      box.appendChild(p);
-    }
-    present.forEach(n => {
+    const { year, n: curN } = thisSundayInfo();
+    const uploaded = AssetStore.keys().filter(k => k.indexOf('thumb:') === 0).map(k => parseInt(k.slice(6), 10));
+    const endN = Template.sundaysInYear(year);
+    let startN = Math.min(curN, uploaded.length ? Math.min.apply(null, uploaded) : curN);
+    if (startN < 1) startN = 1;
+
+    const range = [];
+    for (let n = startN; n <= endN; n++) range.push(n);
+    const missing = range.filter(n => uploaded.indexOf(n) < 0);
+
+    const sum = document.createElement('div');
+    sum.className = 'adm-summary';
+    sum.innerHTML = uploaded.length
+      ? ('올해 ' + startN + '~' + endN + '주 중 <b>' + (range.length - missing.length) + '개 완료</b>'
+        + (missing.length ? ' · 빠진 주: <span class="adm-miss">' + missing.map(n => n + '주').join(', ') + '</span>' : ' · 모두 채워짐 ✓'))
+      : '아직 업로드된 썸네일이 없습니다. 파일명 끝 번호(예: … - 27)로 자동 매핑됩니다.';
+    box.appendChild(sum);
+
+    const grid = document.createElement('div');
+    grid.className = 'adm-cover';
+    range.forEach(n => {
+      const src = AssetStore.srcList('thumb:' + n)[0];
       const cell = document.createElement('div');
-      cell.className = 'adm-cell';
-      const img = document.createElement('img');
-      img.src = AssetStore.srcList('thumb:' + n)[0] || '';
-      img.alt = n + '번째 주일';
+      cell.className = 'cover-cell' + (src ? '' : ' empty') + (n < curN ? ' past' : '');
+      if (src) {
+        const img = document.createElement('img'); img.src = src; img.alt = n + '주';
+        const del = document.createElement('button');
+        del.className = 'thumb-del'; del.textContent = '✕';
+        del.addEventListener('click', async () => {
+          if (!confirm(n + '주(' + Template.sundayDate(year, n) + ') 썸네일을 삭제할까요?')) return;
+          await AssetStore.remove('thumb:' + n); render();
+        });
+        cell.append(img, del);
+      } else {
+        const e = document.createElement('div'); e.className = 'cover-empty'; e.textContent = '비어있음';
+        cell.appendChild(e);
+      }
       const cap = document.createElement('div');
-      cap.className = 'adm-cap';
-      cap.textContent = n + '주 · ' + Template.sundayDate(year(), n);
-      const del = document.createElement('button');
-      del.className = 'thumb-del'; del.textContent = '✕';
-      del.addEventListener('click', async () => {
-        if (!confirm(n + '번째 주일 썸네일을 삭제할까요?')) return;
-        await AssetStore.remove('thumb:' + n); render();
-      });
-      cell.append(img, cap, del);
-      box.appendChild(cell);
+      cap.className = 'cover-cap';
+      cap.textContent = n + '주 · ' + Template.sundayDate(year, n).slice(5);
+      cell.appendChild(cap);
+      grid.appendChild(cell);
     });
+    box.appendChild(grid);
   }
 
   function renderSet(key, sel) {
@@ -189,19 +214,29 @@ const Admin = (function () {
     setBusy(true);
     try {
       if (ctx.mode === 'thumbs') {
-        const unmatched = [];
+        // 한 장씩 즉시 반영 + 진행 표시 + 한 장 실패해도 계속 (#1)
+        const unmatched = [], failed = [];
+        let done = 0;
         for (const f of files) {
           const n = parseNum(f.name);
-          if (n == null || n < 1 || n > 53) { unmatched.push(f.name); continue; }
-          const r = await Songs.resizeImage(f);
-          await AssetStore.set('thumb:' + n, [r.dataUrl], 'thumb');
+          if (n == null || n < 1 || n > 60) { unmatched.push(f.name); continue; }
+          try {
+            const r = await Songs.resizeImage(f);
+            await AssetStore.set('thumb:' + n, [r.dataUrl], 'thumb');
+          } catch (e) { failed.push(f.name); }
+          done++; setBusy(true, done + ' / ' + files.length); render();
         }
-        render();
-        if (unmatched.length) alert('파일명에서 주일 번호를 찾지 못해 건너뛴 파일:\n' + unmatched.join('\n') + '\n\n파일명이 "… - 27.jpg"처럼 끝에 번호가 오도록 해주세요.');
+        if (unmatched.length || failed.length) {
+          let msg = '';
+          if (unmatched.length) msg += '파일명에서 주일 번호를 못 찾아 건너뜀:\n' + unmatched.join('\n') + '\n(파일명 끝이 "… - 27.jpg"처럼 번호로 끝나야 합니다)\n\n';
+          if (failed.length) msg += '업로드 실패(다시 시도해 주세요):\n' + failed.join('\n');
+          alert(msg);
+        }
       } else if (ctx.mode === 'set') {
         const existing = await currentDataUrls(ctx.key);
         const added = [];
-        for (const f of files) added.push((await Songs.resizeImage(f)).dataUrl);
+        let done = 0;
+        for (const f of files) { added.push((await Songs.resizeImage(f)).dataUrl); done++; setBusy(true, done + ' / ' + files.length); }
         await AssetStore.set(ctx.key, existing.concat(added), ctx.key);
         render();
       } else { // single
@@ -214,9 +249,9 @@ const Admin = (function () {
     } finally { setBusy(false); }
   }
 
-  function setBusy(b) {
+  function setBusy(b, txt) {
     const note = $('#adm-busy');
-    if (note) note.textContent = b ? '저장 중…' : '';
+    if (note) note.textContent = b ? ('올리는 중… ' + (txt || '')) : '';
   }
 
   function pick(ctx) {

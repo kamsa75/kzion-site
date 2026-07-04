@@ -416,6 +416,20 @@ input{font-family:inherit;}
   font-size:11px; font-weight:800; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center;}
 .adm-empty{font-size:13px; color:var(--ui-sub); margin:6px 0;}
 
+/* 썸네일 커버리지 그리드 (#2) — 채워짐/빈칸/빠진 주 한눈에 */
+.adm-summary{font-size:13px; color:var(--ui-ink); margin:10px 0 4px; font-weight:600;}
+.adm-summary .adm-miss{color:#b5432f; font-weight:800;}
+.adm-cover{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-top:10px;}
+.cover-cell{position:relative; aspect-ratio:16/9; border-radius:7px; overflow:hidden; border:1px solid var(--ui-line); background:#fff;}
+.cover-cell img{width:100%; height:100%; object-fit:cover; display:block;}
+.cover-cell.empty{border:1.5px dashed var(--ui-line); background:#faf9f6;}
+.cover-cell.empty .cover-empty{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:11px; color:var(--ui-sub); font-weight:600;}
+.cover-cell.past{opacity:.5;}
+.cover-cap{position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.62); color:#fff;
+  font-size:10px; font-weight:700; text-align:center; padding:2px 1px; letter-spacing:-.02em;}
+.cover-cell .thumb-del{width:18px; height:18px; font-size:11px;}
+
 /* ---------- 검수: 원본 핀치 줌 ---------- */
 .zoom-wrap{
   overflow:hidden; border:1px solid var(--ui-line); border-radius:10px;
