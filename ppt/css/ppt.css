@@ -381,6 +381,15 @@ input{font-family:inherit;}
   .block-slides .slide{flex:0 0 auto; width:calc(25% - 9px);}
 }
 
+/* ---------- 목사님 찬송가 가사 미리보기 (D19) ---------- */
+#hymn-preview{margin-top:12px;}
+.hymn-block{margin-top:10px;}
+.hymn-block-label{font-weight:800; font-size:14px; color:var(--ui-gold); margin-bottom:2px;}
+.hymn-block .block-slides{border-top:none; padding-top:4px;}
+.hymn-alt{margin-top:14px; border-top:1px solid var(--ui-line); padding-top:10px;}
+.hymn-alt summary{cursor:pointer; color:var(--ui-sub); font-size:13px; font-weight:600; padding:4px 0;}
+.hymn-alt[open] summary{margin-bottom:8px;}
+
 /* ---------- 검수: 원본 핀치 줌 ---------- */
 .zoom-wrap{
   overflow:hidden; border:1px solid var(--ui-line); border-radius:10px;

@@ -21,7 +21,7 @@ const MOCK = {
   sections: [
     {
       id: 'pastor', name: '목사님 섹션', owner: 'pastor', status: 'progress',
-      items: ['설교 제목·본문 구절', '성경 본문 붙여넣기', '함께 읽는 구절', '기도 담당자명', '예배 중 찬송가 악보 업로드']
+      items: ['설교 제목·본문 구절', '성경 본문 붙여넣기', '함께 읽는 구절', '기도 담당자명', '예배 중 찬송가 가사 입력']
     },
     {
       id: 'praise', name: '찬양팀 섹션', owner: 'praise', status: 'done',
