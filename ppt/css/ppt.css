@@ -153,6 +153,13 @@ input{font-family:inherit;}
   text-shadow:0 0 1.2cqh rgba(0,0,0,.45); opacity:.95;
 }
 
+/* 빈 그린스크린 — 라이브/전환 (D20) */
+.slide--green-blank{background:var(--sl-chroma); display:flex; align-items:center; justify-content:center;}
+.slide--green-blank .sl-live{
+  color:var(--sl-white); font-size:4.5cqh; font-weight:700; opacity:.5;
+  letter-spacing:.02em; text-shadow:0 0 1cqh rgba(0,0,0,.35);
+}
+
 /* 크로마 밴드형 */
 .slide--band{background:var(--sl-chroma);}
 .slide--band .sl-band{
