@@ -148,12 +148,27 @@
     <header class="topbar">
       <div class="topbar-left">
         <button id="btn-adm-back" class="btn btn-ghost">← 홈</button>
-        <span class="topbar-title">이미지 · 썸네일 관리</span>
+        <span class="topbar-title">이미지 · 문구 관리</span>
       </div>
       <span id="adm-busy" class="save-note"></span>
     </header>
     <main class="main">
       <input id="adm-file" type="file" accept="image/*" hidden>
+
+      <div class="adm-section">
+        <h2>고정 문구</h2>
+        <p class="adm-desc">한 번 입력하면 매주 자동 반영됩니다. 입력하는 즉시 저장돼요.</p>
+        <div class="field">
+          <label for="set-creed">사도신경 본문 <span class="label-hint">— 짙은 배경(다크) 슬라이드로 나옵니다</span></label>
+          <textarea id="set-creed" rows="6" placeholder="교회에서 쓰는 사도신경 본문을 붙여넣으세요."></textarea>
+          <div id="set-creed-pv" class="field-preview"></div>
+        </div>
+        <div class="field">
+          <label for="set-praise">다함께 찬양 곡명 <span class="label-hint">— "다함께 찬양" 슬라이드 아래에 표시</span></label>
+          <input id="set-praise" type="text" placeholder="예: 블레싱">
+          <div id="set-praise-pv" class="field-preview"></div>
+        </div>
+      </div>
 
       <div class="adm-section">
         <h2>날짜 썸네일 (첫 장)</h2>
@@ -226,8 +241,8 @@
 <script src="js/songs.js?v=8"></script>
 <script src="js/review.js?v=6"></script>
 <script src="js/pastor.js?v=4"></script>
-<script src="js/admin.js?v=2"></script>
-<script src="js/generate.js?v=2"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/admin.js?v=3"></script>
+<script src="js/generate.js?v=3"></script>
+<script src="js/app.js?v=8"></script>
 </body>
 </html>

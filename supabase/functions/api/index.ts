@@ -330,6 +330,27 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ── 관리자 고정 문구 (사도신경 본문·다함께 찬양 곡명 등, B) — settings 테이블 ──
+    case "getSettings": {
+      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      const { data } = await db.from("settings").select("key, value");
+      const map: Record<string, string> = {};
+      (data || []).forEach((r) => { map[r.key] = r.value; });
+      return json({ settings: map });
+    }
+
+    case "saveSetting": {
+      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      const key = String(body.key || "").slice(0, 64);
+      if (!key) return json({ error: "key 필요" }, 400);
+      const value = String(body.value ?? "");
+      const { error } = await db
+        .from("settings")
+        .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) return json({ error: "저장 실패" }, 500);
+      return json({ ok: true });
+    }
+
     // 악보 이미지 → 가사 추출 (지침 12번). storage 경로 배열을 받아 서버가 내려받아 비전 호출
     case "extract": {
       if (role !== "praise" && role !== "choir" && role !== "pastor")

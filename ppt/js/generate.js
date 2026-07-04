@@ -88,11 +88,17 @@ const Generate = (function () {
         return [{ label: '날짜 썸네일 (' + ctx.sundayIndex + '번째 주일)', slide: { layout: 'image', placeholder: '날짜 썸네일 ' + ctx.sundayIndex + '번 — 업로드 필요(관리자)' }, missing: true }];
       }
 
-      case 'fixed':
+      case 'fixed': {
         if (slot.type === 'green_blank') return [{ label: slot.title, slide: { layout: 'green_blank' } }];
-        if (slot.type === 'dark') // 사도신경 등 고정 텍스트 (본문 미입력)
-          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: slot.placeholder || '' }, missing: true }];
-        return [{ label: slot.title, slide: { layout: 'green', text: slot.title, sub: slot.sub || '' } }];
+        if (slot.type === 'dark') { // 사도신경 등 고정 텍스트 — settings.creed_text (B)
+          const body = slot.id === 'creed' ? (ctx.settings.creed_text || '').trim() : '';
+          if (!body) return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: slot.placeholder || '' }, missing: true }];
+          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: body.replace(/\s+/g, ' ') } }];
+        }
+        // 다함께 찬양 부제(곡명) = settings.praise_all_sub (B)
+        const sub = slot.id === 'praise-all' ? (ctx.settings.praise_all_sub || '') : (slot.sub || '');
+        return [{ label: slot.title, slide: { layout: 'green', text: slot.title, sub } }];
+      }
 
       case 'sermon': {
         const t = (p.title || '').trim(), r = (p.ref || '').trim();
@@ -172,22 +178,29 @@ const Generate = (function () {
     catch (e) { return { thumbs: {}, offering: [], closing: [], ending: null }; }
   }
 
+  async function loadSettings() {
+    try { await SettingsStore.load(); return { creed_text: SettingsStore.get('creed_text'), praise_all_sub: SettingsStore.get('praise_all_sub') }; }
+    catch (e) { return {}; }
+  }
+
   async function loadCtx() {
     const assets = await loadAssets();
+    const settings = await loadSettings();
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
-      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets };
+      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets, settings };
     }
     let pastor = {}, praise = [], choir = [];
     try { pastor = JSON.parse(localStorage.getItem('kzppt_pastor') || '{}'); } catch (e) {}
     try { praise = JSON.parse(localStorage.getItem('kzppt_songs_praise') || '[]'); } catch (e) {}
     try { choir = JSON.parse(localStorage.getItem('kzppt_songs_choir') || '[]'); } catch (e) {}
     const songs = praise.map(s => Object.assign({ role: 'praise' }, s)).concat(choir.map(s => Object.assign({ role: 'choir' }, s)));
-    return { weekId: thisSundayISO(), pastor, songs, assets };
+    return { weekId: thisSundayISO(), pastor, songs, assets, settings };
   }
 
   function build(ctx) {
     ctx.assets = ctx.assets || { thumbs: {}, offering: [], closing: [], ending: null };
+    ctx.settings = ctx.settings || {};
     ctx.sundayIndex = Template.sundayIndexOfYear(ctx.weekId);
     const out = [];
     Template.slots().forEach(slot => expandSlot(slot, ctx).forEach(it => out.push(it)));
