@@ -12,7 +12,8 @@ const Pastor = (function () {
   const KEY = 'kzppt_pastor';
 
   // passages/readings는 페이지(슬라이드)별 문자열 배열
-  let data = { title: '', ref: '', passages: [''], readings: [''], prayer: '' };
+  // hymn = 예배 중 찬송가 가사(붙여넣기 → 절/후렴 블록). 절 순서대로 자동 배치 (D19)
+  let data = { title: '', ref: '', passages: [''], readings: [''], prayer: '', hymn: { raw: '', title: '', blocks: [] } };
   let hymnPaths = [];
   let thumbUrls = [];
   let noteTimer = null;
@@ -20,10 +21,12 @@ const Pastor = (function () {
 
   // 옛 단일 문자열 스키마 → 배열로 변환 (하위 호환)
   function normalize(d) {
+    const h = d.hymn || {};
     const out = {
       title: d.title || '', ref: d.ref || '', prayer: d.prayer || '',
       passages: Array.isArray(d.passages) ? d.passages : (d.passage ? [d.passage] : ['']),
-      readings: Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : [''])
+      readings: Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : ['']),
+      hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [] }
     };
     if (!out.passages.length) out.passages = [''];
     if (!out.readings.length) out.readings = [''];
@@ -166,6 +169,87 @@ const Pastor = (function () {
     }
   }
 
+  /* ---------- 예배 중 찬송가 가사(붙여넣기 → 절/후렴 밴드) — D19 ---------- */
+
+  // breaks 기준으로 줄을 슬라이드 그룹(2줄)으로 묶음 (review.js blockSlides와 동일 규칙)
+  function blockSlides(block) {
+    const groups = [[0]];
+    for (let i = 1; i < block.lines.length; i++) {
+      if (block.breaks[i - 1]) groups.push([i]);
+      else groups[groups.length - 1].push(i);
+    }
+    return groups;
+  }
+
+  function renderHymnPreview() {
+    const el = $('#hymn-preview');
+    el.innerHTML = '';
+    const blocks = data.hymn.blocks || [];
+    if (!blocks.length) return;
+
+    const tip = document.createElement('p');
+    tip.className = 'pv-note';
+    tip.textContent = '절 순서대로 자동 배치됩니다. 가사를 고치려면 위 칸에서 수정하고 “가사 정리하기”를 다시 누르세요.';
+    el.appendChild(tip);
+
+    let count = 0;
+    blocks.forEach(block => {
+      const card = document.createElement('div');
+      card.className = 'hymn-block';
+      const lab = document.createElement('div');
+      lab.className = 'hymn-block-label';
+      lab.textContent = block.label + (block.type === 'chorus' && block.label !== '후렴' ? ' (후렴)' : '');
+      card.appendChild(lab);
+      const strip = document.createElement('div');
+      strip.className = 'block-slides';
+      blockSlides(block).forEach(g => {
+        strip.appendChild(renderSlide({ layout: 'band', lyrics: g.map(i => block.lines[i].text) }));
+        count++;
+      });
+      card.appendChild(strip);
+      el.appendChild(card);
+    });
+
+    const sum = document.createElement('div');
+    sum.className = 'pv-note';
+    sum.textContent = '= 찬송가 슬라이드 ' + count + '장';
+    el.appendChild(sum);
+  }
+
+  // 추출 결과(JSON) → data.hymn.blocks (songs.applyExtract와 동일 스키마)
+  function applyHymnExtract(r) {
+    data.hymn.blocks = (r.blocks || []).map((b, i) => ({
+      id: b.id || ('h' + (i + 1)),
+      type: b.type || 'verse',
+      label: b.label || ('' + (i + 1)),
+      lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
+      breaks: b.breaks || []
+    }));
+    if (r.title) data.hymn.title = String(r.title).trim();
+  }
+
+  async function parseHymn() {
+    const text = $('#hymn-input').value.trim();
+    data.hymn.raw = text;
+    if (!text) { data.hymn.blocks = []; renderHymnPreview(); save(); return; }
+    const btn = $('#btn-hymn-parse');
+    btn.disabled = true; btn.textContent = '정리 중…';
+    try {
+      const r = CONFIG.USE_SERVER
+        ? await API.call('extractText', { text })
+        : { blocks: [{ id: 'h1', type: 'verse', label: '1절',
+            lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })),
+            breaks: text.split('\n').filter(Boolean).map((_, i) => i % 2 === 1) }] };
+      applyHymnExtract(r);
+      renderHymnPreview();
+      save();
+    } catch (e) {
+      alert('가사를 정리하지 못했습니다: ' + (e.message || '') + '\n네트워크를 확인하거나 잠시 후 다시 시도해 주세요.');
+    } finally {
+      btn.disabled = false; btn.textContent = '가사 정리하기';
+    }
+  }
+
   function removeBtn(fn, label) {
     const b = document.createElement('button');
     b.className = 'btn btn-ghost page-remove';
@@ -216,6 +300,8 @@ const Pastor = (function () {
     renderFixedPreviews();
     renderPassages();
     renderReadings();
+    $('#hymn-input').value = data.hymn.raw || '';
+    renderHymnPreview();
     renderThumbs();
   }
 
@@ -257,6 +343,9 @@ const Pastor = (function () {
     $('#pf-ref').addEventListener('input', () => renderPassages());
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
     $('#btn-add-reading').addEventListener('click', () => { data.readings.push(''); renderReadings(); save(); });
+    // 찬송가: 입력은 자동 저장(raw만), 블록은 "정리하기"를 눌러야 갱신 (API 호출 아끼기)
+    $('#hymn-input').addEventListener('input', () => { data.hymn.raw = $('#hymn-input').value; save(); });
+    $('#btn-hymn-parse').addEventListener('click', parseHymn);
     $('#btn-pastor-back').addEventListener('click', () => KZ.show('home'));
     $('#btn-pastor-upload').addEventListener('click', () => { $('#pastor-file').value = ''; $('#pastor-file').click(); });
     $('#pastor-file').addEventListener('change', (e) => onFiles(e.target.files));

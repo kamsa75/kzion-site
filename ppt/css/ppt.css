@@ -132,6 +132,18 @@ input{font-family:inherit;}
 .preview-item .pv-label{font-size:13px; font-weight:700; margin-bottom:6px;}
 .preview-item .pv-note{font-size:12px; color:var(--ui-sub); margin-top:6px;}
 
+/* ---------- PPT 미리보기·생성 (③) ---------- */
+#gen-list.preview-list{display:grid; grid-template-columns:1fr; gap:16px;}
+@media(min-width:560px){ #gen-list.preview-list{grid-template-columns:1fr 1fr;} }
+@media(min-width:900px){ #gen-list.preview-list{grid-template-columns:1fr 1fr 1fr;} }
+.gen-count{font-size:13px; color:var(--ui-sub); font-weight:700; margin:2px 0 14px;}
+.gen-warnbox{background:var(--ui-gold-soft); border:1px solid var(--ui-gold); color:#6b5326;
+  border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:14px;}
+.gen-warn-sub{color:var(--ui-sub); font-size:12px;}
+.preview-item.gen-missing .pv-label{color:var(--ui-gold);}
+.preview-item.gen-missing .slide{outline:2px dashed var(--ui-gold); outline-offset:2px;}
+#btn-gen-download{white-space:nowrap;}
+
 .slide{
   width:100%; aspect-ratio:16/9; position:relative; overflow:hidden;
   border-radius:6px; border:1px solid var(--ui-line);
@@ -151,6 +163,13 @@ input{font-family:inherit;}
   position:absolute; left:4cqw; right:4cqw; bottom:2.5cqh;
   text-align:center; color:var(--sl-white); font-size:5cqh; font-weight:700;
   text-shadow:0 0 1.2cqh rgba(0,0,0,.45); opacity:.95;
+}
+
+/* 빈 그린스크린 — 라이브/전환 (D20) */
+.slide--green-blank{background:var(--sl-chroma); display:flex; align-items:center; justify-content:center;}
+.slide--green-blank .sl-live{
+  color:var(--sl-white); font-size:4.5cqh; font-weight:700; opacity:.5;
+  letter-spacing:.02em; text-shadow:0 0 1cqh rgba(0,0,0,.35);
 }
 
 /* 크로마 밴드형 */
@@ -373,6 +392,15 @@ input{font-family:inherit;}
   .block-slides{flex-direction:row; flex-wrap:wrap;}
   .block-slides .slide{flex:0 0 auto; width:calc(25% - 9px);}
 }
+
+/* ---------- 목사님 찬송가 가사 미리보기 (D19) ---------- */
+#hymn-preview{margin-top:12px;}
+.hymn-block{margin-top:10px;}
+.hymn-block-label{font-weight:800; font-size:14px; color:var(--ui-gold); margin-bottom:2px;}
+.hymn-block .block-slides{border-top:none; padding-top:4px;}
+.hymn-alt{margin-top:14px; border-top:1px solid var(--ui-line); padding-top:10px;}
+.hymn-alt summary{cursor:pointer; color:var(--ui-sub); font-size:13px; font-weight:600; padding:4px 0;}
+.hymn-alt[open] summary{margin-bottom:8px;}
 
 /* ---------- 검수: 원본 핀치 줌 ---------- */
 .zoom-wrap{

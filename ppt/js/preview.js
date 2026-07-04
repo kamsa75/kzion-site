@@ -24,6 +24,15 @@ function renderSlide(slide) {
       break;
     }
 
+    case 'green_blank': { // 빈 그린스크린 — 라이브/전환 (D20). 실제 방송은 순수 그린, 여기선 편집자 식별용 흐린 라벨만
+      el.className = 'slide slide--green-blank';
+      const hint = document.createElement('div');
+      hint.className = 'sl-live';
+      hint.textContent = '라이브 (빈 그린스크린)';
+      el.appendChild(hint);
+      break;
+    }
+
     case 'band': { // 크로마 밴드형
       el.className = 'slide slide--band';
       const band = document.createElement('div');

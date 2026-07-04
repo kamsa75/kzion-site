@@ -86,10 +86,16 @@
       <div id="pv-prayer" class="field-preview"></div>
 
       <div class="field">
-        <label>예배 중 찬송가 악보 (사진 여러 장 가능)</label>
-        <button id="btn-pastor-upload" class="btn btn-outline btn-wide">📷 악보 사진 올리기</button>
-        <input id="pastor-file" type="file" accept="image/*" multiple hidden>
-        <div id="pastor-thumbs" class="thumbs"></div>
+        <label>예배 중 찬송가 <span class="label-hint">— 가사를 붙여넣으면 크로마 밴드 슬라이드로 나옵니다</span></label>
+        <textarea id="hymn-input" rows="6" placeholder="찬송가 가사를 붙여넣으세요. 절·후렴은 자동으로 나뉘고, 절 순서대로 슬라이드가 만들어집니다."></textarea>
+        <button id="btn-hymn-parse" class="btn btn-primary btn-wide">가사 정리하기</button>
+        <div id="hymn-preview"></div>
+        <details class="hymn-alt">
+          <summary>또는 악보 이미지로 올리기 (jpg·png)</summary>
+          <button id="btn-pastor-upload" class="btn btn-outline btn-wide">📷 악보 사진 올리기</button>
+          <input id="pastor-file" type="file" accept="image/*" multiple hidden>
+          <div id="pastor-thumbs" class="thumbs"></div>
+        </details>
       </div>
 
       <p class="dev-note">모든 항목은 입력하는 즉시 자동 저장됩니다.</p>
@@ -137,6 +143,22 @@
     </div>
   </section>
 
+  <!-- PPT 미리보기 · 생성 (관리자 — 5단계 ③) -->
+  <section id="screen-generate" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-gen-back" class="btn btn-ghost">← 홈</button>
+        <span class="topbar-title">PPT 미리보기 · 생성</span>
+      </div>
+      <button id="btn-gen-download" class="btn btn-primary">⬇ PPTX 다운로드</button>
+    </header>
+    <main class="main">
+      <div id="gen-warn"></div>
+      <div id="gen-count" class="gen-count"></div>
+      <div id="gen-list" class="preview-list"></div>
+    </main>
+  </section>
+
   <!-- 슬라이드 디자인 미리보기 (개발 확인용 데모) -->
   <section id="screen-preview" class="screen" hidden>
     <header class="topbar">
@@ -153,13 +175,16 @@
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="js/config.js?v=2"></script>
 <script src="js/api.js?v=2"></script>
-<script src="js/mock.js?v=3"></script>
-<script src="js/preview.js?v=3"></script>
+<script src="js/template.js?v=1"></script>
+<script src="js/mock.js?v=4"></script>
+<script src="js/preview.js?v=4"></script>
 <script src="js/songs.js?v=8"></script>
 <script src="js/review.js?v=6"></script>
-<script src="js/pastor.js?v=3"></script>
-<script src="js/app.js?v=5"></script>
+<script src="js/pastor.js?v=4"></script>
+<script src="js/generate.js?v=1"></script>
+<script src="js/app.js?v=6"></script>
 </body>
 </html>

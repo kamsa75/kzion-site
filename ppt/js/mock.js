@@ -21,7 +21,7 @@ const MOCK = {
   sections: [
     {
       id: 'pastor', name: '목사님 섹션', owner: 'pastor', status: 'progress',
-      items: ['설교 제목·본문 구절', '성경 본문 붙여넣기', '함께 읽는 구절', '기도 담당자명', '예배 중 찬송가 악보 업로드']
+      items: ['설교 제목·본문 구절', '성경 본문 붙여넣기', '함께 읽는 구절', '기도 담당자명', '예배 중 찬송가 가사 입력']
     },
     {
       id: 'praise', name: '찬양팀 섹션', owner: 'praise', status: 'done',
@@ -82,6 +82,11 @@ const MOCK = {
       note: '설교 제목·본문 구절 (순서표 14번)',
       text: '집착과 갈망',
       sub: '창세기 30:1–24'
+    },
+    {
+      layout: 'green_blank',
+      label: '빈 그린스크린 — 라이브/전환',
+      note: '글씨 없는 순수 그린. 방송에서 목사님·현장을 라이브로 보여주는 자리입니다(크로마 키잉). 찬양팀·성가대 곡 앞뒤에 들어갑니다 (D20).'
     },
     {
       layout: 'band',
