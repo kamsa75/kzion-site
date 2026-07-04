@@ -132,6 +132,18 @@ input{font-family:inherit;}
 .preview-item .pv-label{font-size:13px; font-weight:700; margin-bottom:6px;}
 .preview-item .pv-note{font-size:12px; color:var(--ui-sub); margin-top:6px;}
 
+/* ---------- PPT 미리보기·생성 (③) ---------- */
+#gen-list.preview-list{display:grid; grid-template-columns:1fr; gap:16px;}
+@media(min-width:560px){ #gen-list.preview-list{grid-template-columns:1fr 1fr;} }
+@media(min-width:900px){ #gen-list.preview-list{grid-template-columns:1fr 1fr 1fr;} }
+.gen-count{font-size:13px; color:var(--ui-sub); font-weight:700; margin:2px 0 14px;}
+.gen-warnbox{background:var(--ui-gold-soft); border:1px solid var(--ui-gold); color:#6b5326;
+  border-radius:10px; padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:14px;}
+.gen-warn-sub{color:var(--ui-sub); font-size:12px;}
+.preview-item.gen-missing .pv-label{color:var(--ui-gold);}
+.preview-item.gen-missing .slide{outline:2px dashed var(--ui-gold); outline-offset:2px;}
+#btn-gen-download{white-space:nowrap;}
+
 .slide{
   width:100%; aspect-ratio:16/9; position:relative; overflow:hidden;
   border-radius:6px; border:1px solid var(--ui-line);

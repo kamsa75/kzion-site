@@ -17,6 +17,7 @@
     pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
     review: $('#screen-review'),
+    generate: $('#screen-generate'),
     preview: $('#screen-preview')
   };
   let currentRole = null;
@@ -154,8 +155,8 @@
 
       const btnGen = document.createElement('button');
       btnGen.className = 'btn btn-primary';
-      btnGen.disabled = true;
-      btnGen.innerHTML = 'PPT 생성 <span class="soon-tag">(5단계에서 열립니다)</span>';
+      btnGen.textContent = 'PPT 미리보기 · 생성';
+      btnGen.addEventListener('click', () => Generate.open());
       actions.appendChild(btnGen);
 
       card.appendChild(actions);
@@ -240,6 +241,7 @@
   window.KZ = { show, role: () => currentRole };
   Songs.init();
   Review.init();
+  Generate.init();
 
   const session = getSession();
   if (session) currentRole = session.role;
