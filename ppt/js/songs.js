@@ -337,13 +337,6 @@ const Songs = (function () {
     const list = $('#songs-list');
     list.innerHTML = '';
 
-    if (!SongStore.all().length) {
-      const empty = document.createElement('p');
-      empty.className = 'song-empty';
-      empty.textContent = '아직 곡이 없습니다. 아래 "곡 추가"를 눌러 악보 사진을 올려주세요.';
-      list.appendChild(empty);
-    }
-
     SongStore.all().forEach(song => {
       const card = document.createElement('div');
       card.className = 'sec-card song-card';
@@ -440,6 +433,20 @@ const Songs = (function () {
       card.appendChild(actions);
       list.appendChild(card);
     });
+
+    // 기본 3곡 힌트 슬롯: 실제 곡이 3개 미만이면 빈 힌트 카드로 채운다.
+    // 힌트는 SongStore에 없는 안내용일 뿐이라 완료 판정과 무관(비워둬도 됨).
+    for (let i = SongStore.all().length; i < 3; i++) {
+      const hint = document.createElement('button');
+      hint.type = 'button';
+      hint.className = 'song-hint';
+      hint.innerHTML =
+        '<span class="song-hint-num">곡 ' + (i + 1) + '</span>' +
+        '<span class="song-hint-main"><span class="song-hint-plus">+</span> 악보 사진 올리기</span>' +
+        '<span class="song-hint-sub">탭해서 곡 추가 · 비워둬도 됩니다</span>';
+      hint.addEventListener('click', addSong);
+      list.appendChild(hint);
+    }
   }
 
   /* ---------- 곡 추가 → 곧바로 사진 선택창 → 업로드 → 추출 ----------

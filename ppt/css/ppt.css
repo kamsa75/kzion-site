@@ -317,7 +317,22 @@ input{font-family:inherit;}
 .song-name-input::placeholder{font-weight:600; color:var(--ui-sub);}
 .song-name-input:hover{background:#F1EFE9;}
 .song-name-input:focus{border-color:var(--ui-gold); background:#fff;}
-.song-empty{color:var(--ui-sub); font-size:14px; text-align:center; padding:30px 0;}
+.song-list{display:flex; flex-direction:column; gap:12px;}
+.song-hint{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  width:100%; text-align:center; cursor:pointer;
+  background:var(--ui-card); border:1.5px dashed var(--ui-line); border-radius:14px;
+  padding:22px 16px; -webkit-tap-highlight-color:transparent;
+  transition:border-color .15s, background .15s;
+}
+.song-hint-num{font-size:12px; font-weight:700; color:var(--ui-sub);}
+.song-hint-main{font-size:15px; font-weight:800; color:var(--ui-ink);}
+.song-hint-plus{color:var(--ui-gold);}
+.song-hint-sub{font-size:12px; color:var(--ui-sub);}
+.song-hint:active{background:var(--ui-gold-soft); border-color:var(--ui-gold);}
+@media(hover:hover){
+  .song-hint:hover{background:var(--ui-gold-soft); border-color:var(--ui-gold);}
+}
 .song-warn{margin:10px 0 0; font-size:13px; color:#8A6D1F; background:var(--ui-warn-bg); padding:8px 10px; border-radius:8px;}
 .song-ok{margin:10px 0 0; font-size:13px; font-weight:700; color:var(--ui-gold); background:var(--ui-gold-soft); padding:8px 10px; border-radius:8px;}
 
