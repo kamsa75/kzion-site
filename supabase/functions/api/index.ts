@@ -259,6 +259,8 @@ Deno.serve(async (req) => {
         status: String(s.status ?? "review"),
         blocks: s.blocks ?? null,
         ord: s.ord ?? [],
+        arrange: s.arrange ?? null,          // 세트 편곡(회차·×N·간주·메모) — D29
+        song_key: String(s.songKey ?? ""),   // 곡 키
         images: s.images ?? [],
         warn_dark: Boolean(s.warnDark),
         updated_at: new Date().toISOString(),
