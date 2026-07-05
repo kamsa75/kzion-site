@@ -177,56 +177,15 @@ const SetOrder = (function () {
     });
   }
 
-  /* ---------- 곡 카드 드래그로 순서 변경 (=PPT/곡 순서) ---------- */
+  /* ---------- 곡 순서 변경 = PPT 순서 (D28) — ▲▼ 버튼 (모바일 확실) ---------- */
 
-  function enableSongDrag(card, grip, list) {
-    let pid = null, dragging = false, pressTimer = null, isDown = false, startY = 0;
-
-    const start = () => {
-      dragging = true;
-      card.classList.add('so-dragging');
-      try { card.setPointerCapture(pid); } catch (e) {}
-      if (navigator.vibrate) navigator.vibrate(10);
-    };
-
-    grip.addEventListener('pointerdown', (e) => {
-      isDown = true; pid = e.pointerId; startY = e.clientY;
-      if (e.pointerType === 'mouse') start();          // 데스크톱: 바로
-      else pressTimer = setTimeout(start, 200);        // 폰: 꾹 눌러
-    });
-
-    card.addEventListener('pointermove', (e) => {
-      if (!isDown) return;
-      if (!dragging) {
-        if (e.pointerType !== 'mouse' && Math.abs(e.clientY - startY) > 8) clearTimeout(pressTimer);
-        return;
-      }
-      const others = [...list.querySelectorAll('.so-card')].filter(c => c !== card);
-      let best = null, bestDist = Infinity, after = false;
-      for (const c of others) {
-        const r = c.getBoundingClientRect();
-        const cy = r.top + r.height / 2;
-        const d = Math.abs(e.clientY - cy);
-        if (d < bestDist) { bestDist = d; best = c; after = e.clientY > cy; }
-      }
-      if (best) list.insertBefore(card, after ? best.nextSibling : best);
-    });
-
-    card.addEventListener('touchmove', (e) => { if (dragging) e.preventDefault(); }, { passive: false });
-
-    const finish = () => {
-      isDown = false;
-      clearTimeout(pressTimer);
-      if (dragging) {
-        card.classList.remove('so-dragging');
-        const ids = [...list.querySelectorAll('.so-card')].map(c => c.dataset.id);
-        SongStore.reorder(ids);   // 곡 순서 = PPT 순서 (D28)
-        render();
-      }
-      dragging = false;
-    };
-    card.addEventListener('pointerup', finish);
-    card.addEventListener('pointercancel', finish);
+  function moveSong(i, dir) {
+    const ids = SongStore.all().map(s => s.id);
+    const j = i + dir;
+    if (j < 0 || j >= ids.length) return;
+    const t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+    SongStore.reorder(ids);       // 곡 순서 = PPT 순서 (D28)
+    render();
   }
 
   /* ---------- 편곡 에디터 (회차 + 칩 + 담기 팔레트) ---------- */
@@ -476,10 +435,18 @@ const SetOrder = (function () {
 
       const head = document.createElement('div');
       head.className = 'so-head';
-      const grip = document.createElement('span');
-      grip.className = 'so-grip';
-      grip.textContent = '⠿';
-      grip.title = '끌어서 곡 순서 변경';
+      // ▲▼ 곡 순서 이동 (모바일에서 확실 — 드래그 대체)
+      const mv = document.createElement('div');
+      mv.className = 'so-move';
+      const up = document.createElement('button');
+      up.type = 'button'; up.className = 'so-move-btn'; up.textContent = '▲'; up.title = '위로';
+      up.disabled = (i === 0);
+      up.addEventListener('click', () => moveSong(i, -1));
+      const down = document.createElement('button');
+      down.type = 'button'; down.className = 'so-move-btn'; down.textContent = '▼'; down.title = '아래로';
+      down.disabled = (i === songs.length - 1);
+      down.addEventListener('click', () => moveSong(i, +1));
+      mv.append(up, down);
       const num = document.createElement('span');
       num.className = 'so-num';
       num.textContent = (i + 1) + '.';
@@ -495,12 +462,11 @@ const SetOrder = (function () {
       const cnt = document.createElement('span');
       cnt.className = 'so-count';
       cnt.textContent = songSlideCount(song) + '장';
-      head.append(grip, num, title, key, cnt);
+      head.append(mv, num, title, key, cnt);
       card.appendChild(head);
 
       renderArrange(song, card);
 
-      enableSongDrag(card, grip, list);
       list.appendChild(card);
     });
 
