@@ -1,7 +1,7 @@
 /* ============================================================
    곡 목록 + 악보 업로드 (찬양팀/성가대 섹션)
    - 업로드: 모바일 탭(촬영·사진첩) / 데스크톱 드래그앤드랍 (지침 7번)
-   - 클라이언트 리사이즈 가로 1920px JPEG (지침 9번)
+   - 클라이언트 리사이즈 가로 2560px JPEG 품질 0.92 (지침 9번, Sonnet5 고해상도 비전 2576px/3.75MP 활용)
    - 밝기 간이 체크 → 재촬영 안내, 강제 아님 (지침 8번)
    - 저장: USE_SERVER=true면 Supabase(Edge Function api) 자동 저장 (지침 3번, D14)
            false면 localStorage(목 모드)
@@ -122,7 +122,7 @@ const Songs = (function () {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = () => {
-        const maxW = 1920;
+        const maxW = 2560;
         const scale = Math.min(1, maxW / img.naturalWidth);
         const w = Math.round(img.naturalWidth * scale);
         const h = Math.round(img.naturalHeight * scale);
@@ -140,7 +140,7 @@ const Songs = (function () {
         const brightness = sum / (d.length / 4);
 
         URL.revokeObjectURL(url);
-        resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.85), brightness });
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), brightness });
       };
       img.onerror = reject;
       img.src = url;

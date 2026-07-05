@@ -31,7 +31,7 @@ function extractInstruction(): string {
     "3) 반복 기호를 따라 부르는 순서로 재조립: 도돌이표(:||)는 그 구간을 다시 부르는 것이고, 그 구간에 가사가 2줄 쌓여 있으면 1회차=윗줄, 2회차=아랫줄입니다. 1./2. 엔딩(첫 번째/두 번째 마침)은 회차별로 해당 엔딩만 부릅니다. 'D.C. al Fine'은 곡 처음으로 돌아가 'Fine'에서 끝나는 것입니다. 여러 절이 후렴을 공유하면 절 블록 N개 + 후렴 블록 1개로 나누세요.",
     "3-1) 자기 검증: 조립을 마친 뒤, 악보에 인쇄된 모든 가사 음절이 빠짐없이 정확히 한 번씩(반복 기호에 의한 반복 제외) 어떤 블록에 들어갔는지 확인하세요. 악보에 없는 단어를 지어내거나, 서로 다른 절의 구절을 합쳐 새 문장을 만들면 안 됩니다.",
     "4) 각 블록의 lines는 부르기 좋은 길이로, 기본적으로 짧은 소절 2개를 한 줄로 합친 수준(공백 포함 약 20~28자)으로 나누세요. breaks는 lines 사이마다 슬라이드를 나눌지(true=나눔)를 나타내며 기본은 2줄씩 한 슬라이드가 되도록 채우세요(즉 두 줄마다 true).",
-    "5) 잘못 읽었을 가능성이 있는(흐리거나 확신이 낮은) 단어는 그 줄의 low 배열에 단어 인덱스(0부터)를 넣으세요. 확신하면 빈 배열.",
+    "5) 판독 원칙(매우 중요): 악보에 인쇄된 글자를 실제로 읽어서만 옮기세요. 음표 아래 한글이 작거나 흐려 또렷이 안 보이면, 문맥상 그럴듯한 예배 가사를 지어내지 말고 보이는 그대로 최선의 글자를 적되 그 단어 인덱스(0부터)를 그 줄의 low 배열에 반드시 넣으세요. 확신이 없으면 확신 있는 척하지 말 것 — 틀린 글자를 자신 있게 적는 것보다 low로 표시하는 편이 낫습니다. 곡 제목이나 자주 쓰는 찬양 관용구로 빈칸을 채우지 마세요. 확실히 읽은 단어만 low에서 빼세요.",
     "6) 사진 잘림 판정(crop): 오선이 이미지 가장자리에서 물리적으로 절단됐거나 종지선(겹세로줄)이 보이지 않을 때만 crop=true. 가사·멜로디 내용으로 추측하지 마세요. 텍스트 입력일 땐 항상 false.",
     "type은 verse/chorus/bridge 중 하나, label은 '1절','후렴' 등 한국어 라벨.",
   ].join("\n");
@@ -91,7 +91,7 @@ async function callClaude(content: unknown[]): Promise<Record<string, unknown>> 
     },
     body: JSON.stringify({
       model,
-      max_tokens: 10000, // Sonnet급 모델은 내부 사고에도 토큰을 쓰므로 여유 확보
+      max_tokens: 24000, // Sonnet5는 적응형 사고에도 토큰을 쓰므로 긴 곡(다절) JSON이 잘리지 않게 여유 확보
       system: EXTRACT_SYSTEM,
       output_config: { format: { type: "json_schema", schema: EXTRACT_SCHEMA } },
       messages: [{ role: "user", content }],
@@ -102,6 +102,8 @@ async function callClaude(content: unknown[]): Promise<Record<string, unknown>> 
     throw new Error(data?.error?.message || "추출 API 오류 " + res.status);
   }
   if (data.stop_reason === "refusal") throw new Error("추출이 거부되었습니다");
+  if (data.stop_reason === "max_tokens")
+    throw new Error("가사가 너무 길어 추출이 중간에 잘렸습니다. 페이지를 나눠 올리거나 가사 붙여넣기로 시도해 주세요.");
   const textBlock = (data.content || []).find((b: { type: string }) => b.type === "text");
   if (!textBlock) throw new Error("추출 결과가 비어 있습니다");
   return JSON.parse(textBlock.text);
