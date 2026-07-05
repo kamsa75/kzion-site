@@ -351,7 +351,7 @@ const Generate = (function () {
       case 'dark': {
         const bg = darkBg();
         s.background = bg ? { data: bg } : { color: C.dark };
-        if (sl.caption) s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
+        if (sl.caption) s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: sl.fit ? 'center' : 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
         let body;
         if (sl.verses) {
           body = [];

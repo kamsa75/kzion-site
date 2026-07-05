@@ -226,6 +226,7 @@ input{font-family:inherit;}
   overflow:hidden; white-space:pre-wrap; /* 붙여넣은 줄바꿈(엔터) 그대로 표시 */
 }
 .slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
+.slide--dark.is-fit .sl-cap{text-align:center;}  /* 사도신경 제목도 가운데 */
 .slide--dark.is-fit .sl-body{text-align:center;} /* 사도신경 등 한 페이지 맞춤 = 가운데 정렬 */
 
 /* 악보 통짜형 */
