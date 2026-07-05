@@ -554,6 +554,24 @@ input{font-family:inherit;}
 .order-name{flex:1; font-weight:700;}
 .order-count{margin-top:14px; font-size:14px; font-weight:700; color:var(--ui-gold);}
 
+/* ---------- 리더용 세트 찬양 순서 화면 (Phase 3) ---------- */
+.setorder-head{display:flex; align-items:center; justify-content:space-between; margin:4px 0 14px;}
+.setorder-title{font-size:20px; font-weight:800;}
+.setorder-total{font-size:12px; font-weight:800; color:#4a2e0c; background:#EFE3CC; padding:5px 12px; border-radius:999px;}
+.setorder-list{display:flex; flex-direction:column; gap:12px;}
+.so-card{background:var(--ui-card); border:1px solid var(--ui-line); border-radius:14px; padding:12px 14px;}
+.so-card.so-dragging{opacity:.85; border-color:var(--ui-gold); box-shadow:0 6px 18px rgba(20,24,31,.12);}
+.so-head{display:flex; align-items:center; gap:8px;}
+.so-grip{cursor:grab; color:var(--ui-sub); font-size:16px; padding:2px 4px; touch-action:none; -webkit-tap-highlight-color:transparent;}
+.so-num{font-weight:800; color:var(--ui-sub); font-size:14px;}
+.so-title{font-weight:800; font-size:15px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.so-key{width:56px; flex:0 0 auto; font-size:13px; font-weight:700; text-align:center; padding:6px 6px;
+  border:1px solid var(--ui-line); border-radius:8px; background:#F6F4EF; color:var(--ui-ink);}
+.so-key:focus{border-color:var(--ui-gold); background:#fff; outline:none;}
+.so-count{flex:0 0 auto; font-size:12px; font-weight:800; color:var(--ui-gold);}
+.so-summary{margin-top:8px; font-size:13px; color:var(--ui-ink); line-height:1.5;}
+.so-summary-empty{color:var(--ui-sub);}
+
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){
   .pin-title{font-size:32px;}

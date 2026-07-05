@@ -17,6 +17,7 @@
     pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
     review: $('#screen-review'),
+    setorder: $('#screen-setorder'),
     admin: $('#screen-admin'),
     generate: $('#screen-generate'),
     preview: $('#screen-preview')
@@ -248,6 +249,7 @@
   window.KZ = { show, role: () => currentRole };
   Songs.init();
   Review.init();
+  SetOrder.init();
   Admin.init();
   Generate.init();
 

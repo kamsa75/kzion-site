@@ -99,6 +99,10 @@ const SongStore = (function () {
       [songs[i], songs[j]] = [songs[j], songs[i]];
       save();
     },
+    reorder: (ids) => { // 세트 화면 드래그 결과대로 곡 순서 재배열 (=PPT 순서)
+      songs.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+      save();
+    },
     setImages: (id, arr) => { imgCache[id] = arr; },
     getImages: (id) => imgCache[id] || []
   };
