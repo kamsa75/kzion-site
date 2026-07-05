@@ -49,7 +49,7 @@ function renderSlide(slide) {
     }
 
     case 'dark': { // 다크 전체화면형
-      el.className = 'slide slide--dark';
+      el.className = 'slide slide--dark' + (slide.fit ? ' is-fit' : '');
       if (slide.caption) {
         const cap = document.createElement('div');
         cap.className = 'sl-cap';
@@ -108,4 +108,20 @@ function renderSlide(slide) {
   }
 
   return el;
+}
+
+// 다크 '한 페이지 맞춤' 슬라이드(사도신경 등): 본문이 넘치지 않게 글자 크기 자동 축소.
+// 요소가 화면에 붙은 뒤(측정 가능해진 뒤) 호출해야 함.
+function fitDarkSlides(root) {
+  (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
+    if (!b.clientHeight) return;
+    var size = 6.4;
+    b.style.fontSize = size + 'cqh';
+    var guard = 0;
+    while (b.scrollHeight > b.clientHeight + 1 && size > 2.2 && guard < 60) {
+      size -= 0.25;
+      b.style.fontSize = size + 'cqh';
+      guard++;
+    }
+  });
 }
