@@ -322,7 +322,7 @@ const Generate = (function () {
       const c = document.createElement('canvas'); c.width = 8; c.height = 720;
       const ctx = c.getContext('2d');
       const g = ctx.createLinearGradient(0, 0, 0, 720);
-      g.addColorStop(0, '#1A1F28'); g.addColorStop(0.55, '#14181F'); g.addColorStop(1, '#0F1319');
+      g.addColorStop(0, '#2A3242'); g.addColorStop(0.52, '#171D28'); g.addColorStop(1, '#0B0E13');
       ctx.fillStyle = g; ctx.fillRect(0, 0, 8, 720);
       darkBgCache = c.toDataURL('image/png');
     } catch (e) { darkBgCache = ''; }
@@ -361,7 +361,7 @@ const Generate = (function () {
           });
         } else body = [{ text: sl.body || '', options: { color: C.warm } }];
         const dopts = { x: 0.8, y: 1.3, w: 11.73, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5 };
-        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; } // 사도신경 등 한 페이지 자동 축소
+        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center'; } // 사도신경 등 한 페이지·가운데
         s.addText(body, dopts);
         break;
       }

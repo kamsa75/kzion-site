@@ -214,8 +214,8 @@ input{font-family:inherit;}
   word-break:keep-all;
 }
 
-/* 다크 전체화면형 — 은은한 세로 그레이디언트(위 밝음 → 아래 어두움), 초록 없음(크로마 안전) */
-.slide--dark{background:linear-gradient(180deg,#1A1F28 0%,#14181F 55%,#0F1319 100%);}
+/* 다크 전체화면형 — 세로 그레이디언트(위 밝음 → 아래 어두움), 초록 없음(크로마 안전) */
+.slide--dark{background:linear-gradient(180deg,#2A3242 0%,#171D28 52%,#0B0E13 100%);}
 .slide--dark .sl-cap{
   position:absolute; top:6cqh; left:6cqw; right:6cqw;
   color:var(--sl-gold); font-size:4.6cqh; font-weight:800; letter-spacing:.06em;
@@ -226,6 +226,7 @@ input{font-family:inherit;}
   overflow:hidden; white-space:pre-wrap; /* 붙여넣은 줄바꿈(엔터) 그대로 표시 */
 }
 .slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
+.slide--dark.is-fit .sl-body{text-align:center;} /* 사도신경 등 한 페이지 맞춤 = 가운데 정렬 */
 
 /* 악보 통짜형 */
 .slide--score{background:var(--sl-white); display:flex; align-items:center; justify-content:center;}
@@ -430,6 +431,9 @@ input{font-family:inherit;}
 .hymn-alt{margin-top:14px; border-top:1px solid var(--ui-line); padding-top:10px;}
 .hymn-alt summary{cursor:pointer; color:var(--ui-sub); font-size:13px; font-weight:600; padding:4px 0;}
 .hymn-alt[open] summary{margin-bottom:8px;}
+
+/* 고정 문구 미리보기는 작은 썸네일로 — 화면이 길어지지 않게(저장 버튼 가시성↑) + 생성 미리보기와 크기 유사 */
+#set-creed-pv .slide, #set-praise-pv .slide{max-width:300px;}
 
 /* ---------- 관리자 이미지·썸네일 관리 (④-a) ---------- */
 .adm-section{margin-bottom:26px;}

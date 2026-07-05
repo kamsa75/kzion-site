@@ -118,8 +118,8 @@ function fitDarkSlides(root) {
     var size = 6.4;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
-    while (b.scrollHeight > b.clientHeight + 1 && size > 2.2 && guard < 60) {
-      size -= 0.25;
+    while (b.scrollHeight > b.clientHeight + 1 && size > 1.4 && guard < 80) {
+      size -= 0.2;
       b.style.fontSize = size + 'cqh';
       guard++;
     }
