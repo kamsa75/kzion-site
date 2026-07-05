@@ -96,19 +96,75 @@ const Review = (function () {
   }
 
   function dividerNode(block, gi) {
-    // gi = 줄 i 와 i+1 사이. 클릭으로 슬라이드 분할 토글 (지침 19)
+    // gi = 줄 i 와 i+1 사이. 상태형 토글선 (지침 19): 진한 선=슬라이드 나뉨 / 연한 점선=같은 슬라이드.
+    // 텍스트 버튼 폐기(읽기 피로 제거) — 선을 눌러 뒤집기, 기호(✂)만 은은히.
+    const cut = !!block.breaks[gi];
     const div = document.createElement('button');
     div.type = 'button';
-    div.className = 'divider' + (block.breaks[gi] ? ' cut' : '');
-    div.innerHTML = block.breaks[gi]
-      ? '<span>슬라이드 하나로 합치기</span>'
-      : '<span>✂ 여기서 나누기</span>';
+    div.className = 'divider' + (cut ? ' cut' : '');
+    div.setAttribute('aria-label', cut
+      ? '여기서 슬라이드가 나뉩니다 — 눌러서 한 슬라이드로 합치기'
+      : '같은 슬라이드입니다 — 눌러서 여기서 나누기');
+    div.innerHTML = '<span class="div-mark">' + (cut ? '✂' : '') + '</span>';
     div.addEventListener('click', () => {
       block.breaks[gi] = !block.breaks[gi];
       SongStore.save();
       renderLyricsTab();
     });
     return div;
+  }
+
+  // 절 이름(라벨) 바로 바꾸기 — AI 오분류 교정 (절 편집 C의 일부)
+  function editBlockLabel(block, labelEl) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'block-label-input';
+    input.value = block.label || '';
+    labelEl.replaceWith(input);
+    input.focus(); input.select();
+    const commit = () => {
+      const v = input.value.trim();
+      if (v) {
+        block.label = v;
+        block.type = /후렴|렴|chorus/i.test(v) ? 'chorus'
+          : /브릿지|bridge/i.test(v) ? 'bridge' : 'verse';
+      }
+      SongStore.save();
+      renderLyricsTab();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+  }
+
+  // 가독형 슬라이드 썸네일(필름스트립용): 그린 위 + 밴드에 가사 2줄(폭 맞춰 자동 축소)
+  function filmThumb(lines) {
+    const t = document.createElement('div');
+    t.className = 'film-thumb';
+    const green = document.createElement('div');
+    green.className = 'film-green';
+    const band = document.createElement('div');
+    band.className = 'film-band';
+    (lines || []).slice(0, 2).forEach(tx => {
+      const d = document.createElement('div');
+      d.className = 'film-line';
+      d.textContent = tx;
+      band.appendChild(d);
+    });
+    t.append(green, band);
+    return t;
+  }
+
+  // 썸네일 가사가 폭을 넘으면 글자만 줄여 전체가 보이게 (잘림 없이)
+  function fitFilm(root) {
+    root.querySelectorAll('.film-line').forEach(l => {
+      if (!l.clientWidth) return;
+      let size = 11;
+      l.style.fontSize = size + 'px';
+      while (l.scrollWidth > l.clientWidth && size > 6) {
+        size -= 0.5;
+        l.style.fontSize = size + 'px';
+      }
+    });
   }
 
   function blockSlides(block) {
@@ -206,15 +262,18 @@ const Review = (function () {
     tip.className = 'review-tip';
     tip.innerHTML = '<span class="tip-line"><mark>노란 표시</mark>는 잘못 읽혔을 수 있는 단어입니다.</span>'
       + '<span class="tip-line">"원본" 탭의 악보 사진과 대조해 주세요.</span>'
-      + '<span class="tip-line tip-sub">줄을 누르면 수정 · 수정 중 엔터 = 줄 나누기 · 줄 맨 앞에서 지우기(⌫) = 윗줄과 합치기</span>';
+      + '<span class="tip-line tip-sub">줄 사이 선을 누르면 슬라이드 나눔/합침 · 줄을 누르면 수정(엔터=줄 나누기, 맨앞 ⌫=윗줄과 합치기) · 절 이름은 눌러서 변경</span>';
     el.appendChild(tip);
 
     s.blocks.forEach(block => {
       const card = document.createElement('div');
       card.className = 'block-card';
-      const label = document.createElement('div');
+      const label = document.createElement('button');
+      label.type = 'button';
       label.className = 'block-label';
-      label.textContent = block.label + (block.type === 'chorus' && block.label !== '후렴' ? ' (후렴)' : '');
+      label.textContent = block.label;
+      label.title = '눌러서 절 이름 바꾸기 (1절 · 후렴 등)';
+      label.addEventListener('click', () => editBlockLabel(block, label));
       card.appendChild(label);
 
       const over = blockSlides(block).some(g => g.length > 2);
@@ -229,14 +288,6 @@ const Review = (function () {
         card.appendChild(lineNode(block, li));
         if (li < block.lines.length - 1) card.appendChild(dividerNode(block, li));
       });
-
-      // 이 블록의 슬라이드 미리보기 — 가사와 한 화면 (지침 10번 갱신, D12)
-      const sl = document.createElement('div');
-      sl.className = 'block-slides';
-      blockSlides(block).forEach(g => {
-        sl.appendChild(renderSlide({ layout: 'band', lyrics: g.map(i => block.lines[i].text) }));
-      });
-      card.appendChild(sl);
 
       el.appendChild(card);
     });
@@ -350,11 +401,12 @@ const Review = (function () {
     if (!s || !(s.blocks || []).length) { bar.hidden = true; return; }
     bar.hidden = false;
 
+    // 위: 담기 버튼 (누르는 도구)
     const add = $('#obar-add');
     add.innerHTML = '';
     const lbl = document.createElement('span');
     lbl.className = 'obar-label';
-    lbl.textContent = '부르는 순서:';
+    lbl.textContent = '담기';
     add.appendChild(lbl);
     s.blocks.forEach(b => {
       const c = document.createElement('button');
@@ -369,38 +421,82 @@ const Review = (function () {
       add.appendChild(c);
     });
 
+    // 아래: 담긴 순서 = 슬라이드 필름스트립 (이대로 PPT가 됨)
     const seq = $('#obar-seq');
     seq.innerHTML = '';
+
     if (!s.order.length) {
+      // AI 추천 순서 — 비파괴(버튼으로 적용). 빈 상태로 시작하지 않게 (⭐ 최대 절감)
+      const suggest = suggestOrder(s);
+      if (suggest.length) {
+        const apply = document.createElement('button');
+        apply.className = 'obar-suggest';
+        apply.innerHTML = '✨ AI 추천 순서 적용 <em>('
+          + suggest.map(id => { const b = s.blocks.find(x => x.id === id); return b ? b.label : '?'; }).join(' → ')
+          + ')</em>';
+        apply.addEventListener('click', () => {
+          s.order = suggest.slice();
+          s.status = 'ordered';
+          SongStore.save();
+          renderOrderBar();
+        });
+        seq.appendChild(apply);
+      }
       const hint = document.createElement('span');
       hint.className = 'obar-hint';
-      hint.textContent = '부르는 순서대로 위 버튼을 누르세요 (같은 블록 반복 가능) · 자동 저장';
+      hint.textContent = '또는 위 “담기” 버튼을 부르는 순서대로 누르세요 · 자동 저장';
       seq.appendChild(hint);
       return;
     }
+
+    let count = 0;
+    s.order.forEach(bid => { const b = s.blocks.find(x => x.id === bid); if (b) count += blockSlides(b).length; });
+    const head = document.createElement('div');
+    head.className = 'ofilm-head';
+    head.innerHTML = '<span class="ofilm-title">이대로 PPT가 됩니다 · ' + count + '장</span>'
+      + '<span class="ofilm-sub">칩 ✕ = 빼기</span>';
+    seq.appendChild(head);
+
+    const strip = document.createElement('div');
+    strip.className = 'ofilm';
     s.order.forEach((bid, i) => {
       const b = s.blocks.find(x => x.id === bid);
-      const chip = document.createElement('button');
-      chip.className = 'obar-item';
-      chip.textContent = (i + 1) + '. ' + (b ? b.label : '?') + ' ✕';
-      chip.title = '눌러서 빼기';
-      chip.addEventListener('click', () => {
+      const group = document.createElement('div');
+      group.className = 'ofilm-group';
+      const thumbs = document.createElement('div');
+      thumbs.className = 'ofilm-thumbs';
+      if (b) blockSlides(b).forEach(g => thumbs.appendChild(filmThumb(g.map(idx => b.lines[idx].text))));
+      group.appendChild(thumbs);
+      const x = document.createElement('button');
+      x.className = 'ofilm-x';
+      x.textContent = '✕';
+      x.title = (b ? b.label : '') + ' 빼기';
+      x.addEventListener('click', () => {
         s.order.splice(i, 1);
         if (!s.order.length) s.status = 'review';
         SongStore.save();
         renderOrderBar();
       });
-      seq.appendChild(chip);
+      group.appendChild(x);
+      const cap = document.createElement('div');
+      cap.className = 'ofilm-cap';
+      cap.textContent = (i + 1) + '. ' + (b ? b.label : '?');
+      group.appendChild(cap);
+      strip.appendChild(group);
     });
-    let count = 0;
-    s.order.forEach(bid => {
-      const b = s.blocks.find(x => x.id === bid);
-      if (b) count += blockSlides(b).length;
-    });
-    const cnt = document.createElement('span');
-    cnt.className = 'obar-count';
-    cnt.textContent = '= 슬라이드 ' + count + '장';
-    seq.appendChild(cnt);
+    seq.appendChild(strip);
+    fitFilm(strip);
+  }
+
+  // AI 추천 부르는 순서: 절 → 후렴 반복 (후렴 공유 곡의 기본, 지침 12-3).
+  // 서버 추출이 순서를 따로 주기 전까지의 클라이언트 휴리스틱.
+  function suggestOrder(s) {
+    const chorus = (s.blocks || []).find(b => b.type === 'chorus');
+    const verses = (s.blocks || []).filter(b => b !== chorus);
+    const order = [];
+    verses.forEach(v => { order.push(v.id); if (chorus) order.push(chorus.id); });
+    if (!order.length && s.blocks && s.blocks[0]) order.push(s.blocks[0].id);
+    return order;
   }
 
   /* ================= 진입/이벤트 ================= */
