@@ -149,6 +149,73 @@ const Songs = (function () {
     });
   }
 
+  /* ---------- PDF 지원 (D33) — pdf.js 지연 로드 후 페이지를 고해상 이미지로 렌더 ---------- */
+
+  function isPdf(f) { return f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''); }
+
+  const PDFJS_VER = '3.11.174';
+  let pdfLibPromise = null;
+  function loadPdfLib() {
+    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+    if (pdfLibPromise) return pdfLibPromise;
+    pdfLibPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VER + '/pdf.min.js';
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + PDFJS_VER + '/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      };
+      s.onerror = () => reject(new Error('PDF 라이브러리를 불러오지 못했습니다'));
+      document.head.appendChild(s);
+    });
+    return pdfLibPromise;
+  }
+
+  // PDF 파일 → 페이지별 { dataUrl, brightness, srcLong } 배열 (resizeImage와 같은 모양)
+  async function renderPdf(file) {
+    const lib = await loadPdfLib();
+    const buf = await file.arrayBuffer();
+    const pdf = await lib.getDocument({ data: buf }).promise;
+    const out = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const base = page.getViewport({ scale: 1 });
+      // 목표 긴 변 ~2200px (약 200DPI). 상한 2560(D33), 스케일 안전상한 4
+      let scale = 2200 / Math.max(base.width, base.height);
+      scale = Math.min(scale, 2560 / Math.max(base.width, base.height), 4);
+      const vp = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(vp.width);
+      canvas.height = Math.round(vp.height);
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); // 투명 PDF 대비 흰 배경
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+      const s = document.createElement('canvas'); s.width = 64; s.height = 64;
+      const sc = s.getContext('2d'); sc.drawImage(canvas, 0, 0, 64, 64);
+      const d = sc.getImageData(0, 0, 64, 64).data;
+      let sum = 0; for (let i = 0; i < d.length; i += 4) sum += (d[i] + d[i + 1] + d[i + 2]) / 3;
+
+      out.push({
+        dataUrl: canvas.toDataURL('image/jpeg', 0.92),
+        brightness: sum / (d.length / 4),
+        srcLong: Math.max(canvas.width, canvas.height)
+      });
+    }
+    return out;
+  }
+
+  // 파일 목록 → { dataUrl, brightness, srcLong } 배열 (PDF는 페이지들로 펼침)
+  async function filesToPages(files) {
+    const results = [];
+    for (const f of files) {
+      if (isPdf(f)) results.push(...await renderPdf(f));
+      else results.push(await resizeImage(f));
+    }
+    return results;
+  }
+
   // 서명 URL로 서버 스토리지에 업로드 → 경로 반환 (지침 5번)
   async function uploadImages(dataUrls) {
     const paths = [];
@@ -316,8 +383,7 @@ const Songs = (function () {
     const files = [...fileList];
     if (!files.length) return;
     try {
-      const results = [];
-      for (const f of files) results.push(await resizeImage(f));
+      const results = await filesToPages(files); // PDF 페이지 포함 (D33)
       const cache = SongStore.getImages(song.id);
       if (CONFIG.USE_SERVER) {
         const paths = await uploadImages(results.map(r => r.dataUrl));
@@ -488,7 +554,7 @@ const Songs = (function () {
     // 2순위: 악보 이미지 (또렷한 고해상도일 때)
     const b2 = document.createElement('button');
     b2.className = 'btn btn-outline btn-wide';
-    b2.innerHTML = '🖼 악보 이미지 올리기 <small>또렷하게 · 긴 변 2000px 이상 권장</small>';
+    b2.innerHTML = '🖼 악보 이미지·PDF 올리기 <small>또렷하게 · 긴 변 2000px 이상 권장</small>';
     b2.addEventListener('click', () => {
       ov.remove();
       pendingNew = true;
@@ -530,13 +596,12 @@ const Songs = (function () {
 
     let results;
     try {
-      results = [];
-      for (const f of files) results.push(await resizeImage(f));
+      results = await filesToPages(files); // PDF는 페이지들로 펼쳐짐 (D33)
       SongStore.setImages(song.id, results.map(r => r.dataUrl));
       song.warnDark = results.some(r => r.brightness < 90); // 지침 8번
       song.warnLowRes = results.some(r => r.srcLong < 1200); // D33 해상도 경고(클라 전용)
     } catch (e) {
-      alert('이미지를 읽지 못했습니다. 다른 사진으로 다시 시도해 주세요.');
+      alert((e && e.message) || '파일을 읽지 못했습니다. 다른 이미지/PDF로 다시 시도해 주세요.');
       SongStore.remove(song.id); render(); return;
     }
     render();
@@ -678,5 +743,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages, applyExtract };
+  return { init, open, render, resizeImage, uploadImages, applyExtract, renderPdf, isPdf };
 })();
