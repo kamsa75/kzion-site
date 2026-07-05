@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=13">
+<link rel="stylesheet" href="css/ppt.css?v=14">
 </head>
 <body>
 
@@ -157,9 +157,23 @@
         <span class="setorder-title">이번 주 찬양 순서</span>
         <span id="setorder-total" class="setorder-total">총 0장</span>
       </div>
+      <button id="btn-kakao" class="btn btn-primary btn-wide kakao-btn">📋 카톡 순서 만들기</button>
       <div id="setorder-list" class="setorder-list"></div>
-      <p class="dev-note">곡 왼쪽 ⠿ 을 눌러 끌면 곡 순서(=PPT 순서)가 바뀝니다. 편곡·카톡 내보내기는 다음 단계에서 추가됩니다.</p>
+      <p class="dev-note">곡 왼쪽 ⠿ 을 눌러 끌면 곡 순서(=PPT 순서)가 바뀝니다. 회차 줄을 눌러 담을 곳을 고르고, 블록 칩의 −/+ 로 반복(×N)을 정합니다. ✎메모·간주는 카톡에만 나오고 PPT엔 안 뜹니다.</p>
     </main>
+
+    <!-- 카톡 순서 미리보기 (편집 가능) + 전체 복사 (D31) -->
+    <div id="kakao-panel" class="kakao-panel" hidden>
+      <div class="kakao-sheet">
+        <div class="kakao-sheet-head">
+          <span class="kakao-sheet-title">카톡용 찬양 순서</span>
+          <button id="btn-kakao-close" class="btn btn-ghost">닫기</button>
+        </div>
+        <p class="kakao-sheet-tip">아래 내용을 고쳐도 됩니다. “전체 복사”를 눌러 단톡방에 붙여넣으세요.</p>
+        <textarea id="kakao-text" class="kakao-text" rows="12"></textarea>
+        <button id="btn-kakao-copy" class="btn btn-primary btn-wide">전체 복사</button>
+      </div>
+    </div>
   </section>
 
   <!-- 관리자 이미지·썸네일 관리 (④-a) -->
@@ -264,7 +278,7 @@
 <script src="js/pastor.js?v=4"></script>
 <script src="js/admin.js?v=4"></script>
 <script src="js/generate.js?v=8"></script>
-<script src="js/setorder.js?v=3"></script>
+<script src="js/setorder.js?v=4"></script>
 <script src="js/app.js?v=9"></script>
 </body>
 </html>

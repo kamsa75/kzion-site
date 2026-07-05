@@ -102,8 +102,47 @@ const SetOrder = (function () {
   }
 
   function syncStatus(song) {
-    const has = (song.arrange || []).some(p => (p.items || []).length);
+    const has = (song.arrange || []).some(p => (p.items || []).some(it => !it.memo && (it.gap || it.block)));
     song.status = has ? 'ordered' : 'review';
+  }
+
+  /* ---------- 카톡용 순서 텍스트 (D31) — 표기 표준 V1/V2/C/PreC ---------- */
+
+  function tokenMap(song) {
+    const map = {};
+    let v = 0;
+    (song.blocks || []).forEach(b => {
+      const label = b.label || '';
+      if (/프리|pre-?\s*chorus|prechorus/i.test(label)) map[b.id] = 'PreC';
+      else if (b.type === 'chorus') map[b.id] = 'C';
+      else if (b.type === 'bridge') map[b.id] = 'B';
+      else { v++; map[b.id] = 'V' + v; }
+    });
+    return map;
+  }
+
+  function buildKakao() {
+    const songs = SongStore.all();
+    const lines = ['🎵 이번 주 찬양 순서'];
+    songs.forEach((s, i) => {
+      const tm = tokenMap(s);
+      lines.push('');
+      lines.push((i + 1) + '. ' + (s.name || '제목 미정') + (s.key ? ' (' + s.key + ')' : ''));
+      const arr = ensureArrange(s);
+      const passStrs = arr.map(p => {
+        const toks = [], memos = [];
+        (p.items || []).forEach(it => {
+          if (it.memo != null) { if (it.memo) memos.push(it.memo); }
+          else if (it.gap) toks.push('(간주)');
+          else { const t = tm[it.block]; if (t) toks.push(t + ((it.times || 1) > 1 ? '×' + it.times : '')); }
+        });
+        let str = toks.join('+');
+        if (memos.length) str += (str ? ' ' : '') + memos.join(' ');
+        return str;
+      }).filter(Boolean);
+      if (passStrs.length) lines.push(passStrs.join(' / '));
+    });
+    return lines.join('\n');
   }
 
   /* ---------- 썸네일(작은 페이지 미리보기) ---------- */
@@ -261,6 +300,32 @@ const SetOrder = (function () {
           return;
         }
 
+        // ✎메모 (D30) — 팀 지시(3번째 목소리만·즉흥멘트·키 등). PPT엔 안 뜨고 카톡에만.
+        if (it.memo != null) {
+          const chip = document.createElement('div');
+          chip.className = 'so-chip memo';
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.className = 'so-memo-input';
+          inp.value = it.memo;
+          inp.placeholder = '팀 지시 (카톡에만)';
+          if (it.memo === '') setTimeout(() => inp.focus(), 0);
+          inp.addEventListener('click', (ev) => ev.stopPropagation());
+          inp.addEventListener('input', () => { it.memo = inp.value; });
+          inp.addEventListener('blur', () => {
+            it.memo = inp.value.trim();
+            if (it.memo === '') { removeItem(ii); return; }
+            SongStore.save();
+          });
+          chip.appendChild(inp);
+          const x = document.createElement('button');
+          x.className = 'so-chip-x'; x.type = 'button'; x.textContent = '✕'; x.title = '메모 빼기';
+          x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(ii); });
+          chip.appendChild(x);
+          chips.appendChild(chip);
+          return;
+        }
+
         const b = m[it.block];
         if (!b) return;
         const times = it.times || 1;
@@ -357,6 +422,20 @@ const SetOrder = (function () {
     });
     pal.appendChild(addGap);
 
+    // ✎메모 (D30) — 카톡에만 나오는 팀 지시
+    const addMemo = document.createElement('button');
+    addMemo.type = 'button';
+    addMemo.className = 'so-add memo';
+    addMemo.textContent = '+ ✎메모';
+    addMemo.title = '팀 지시 (PPT엔 안 뜨고 카톡에만)';
+    addMemo.addEventListener('click', () => {
+      if (!arr.length) { arr.push({ items: [] }); activePass[song.id] = 0; }
+      arr[activeIndex(song)].items.push({ memo: '' });
+      SongStore.save();
+      render();
+    });
+    pal.appendChild(addMemo);
+
     const addPass = document.createElement('button');
     addPass.type = 'button';
     addPass.className = 'so-add-pass';
@@ -440,6 +519,28 @@ const SetOrder = (function () {
     if (back) back.addEventListener('click', () => { Songs.render(); KZ.show('songs'); });
     const entry = $('#btn-open-setorder');
     if (entry) entry.addEventListener('click', () => open());
+
+    // 카톡 순서 패널 (D31)
+    const kbtn = $('#btn-kakao');
+    if (kbtn) kbtn.addEventListener('click', () => {
+      $('#kakao-text').value = buildKakao();
+      $('#kakao-panel').hidden = false;
+    });
+    const kclose = $('#btn-kakao-close');
+    if (kclose) kclose.addEventListener('click', () => { $('#kakao-panel').hidden = true; });
+    const kcopy = $('#btn-kakao-copy');
+    if (kcopy) kcopy.addEventListener('click', async () => {
+      const ta = $('#kakao-text');
+      try {
+        await navigator.clipboard.writeText(ta.value);
+      } catch (e) {
+        ta.focus(); ta.select();
+        try { document.execCommand('copy'); } catch (e2) {}
+      }
+      const old = kcopy.textContent;
+      kcopy.textContent = '복사됨 ✓';
+      setTimeout(() => { kcopy.textContent = old; }, 1500);
+    });
   }
 
   return { init, open, render };
