@@ -202,7 +202,7 @@ const Review = (function () {
       box.className = 'manual-box';
       box.innerHTML = '<p class="review-badge">' +
         (s.extractError ? '가사를 자동으로 읽지 못했어요: ' + s.extractError : '아직 가사가 없습니다.') +
-        '</p><p class="review-tip">아래에 가사를 붙여넣거나 직접 입력한 뒤 “정리하기”를 누르면 절/후렴으로 나눠 드립니다.</p>';
+        '</p><p class="review-tip">아래에 가사를 붙여넣거나 직접 입력한 뒤 “정리하기”를 누르면 절/후렴으로 나눠 드립니다. <b>절 사이를 빈 줄로 띄우면 더 정확히 나뉘어요.</b></p>';
       const ta = document.createElement('textarea');
       ta.className = 'manual-ta';
       ta.rows = 8;

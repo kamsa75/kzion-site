@@ -348,6 +348,7 @@ input{font-family:inherit;}
 }
 .sheet-title{margin:0; font-size:17px; font-weight:800;}
 .sheet-desc{margin:0 0 8px; font-size:14px; color:var(--ui-sub);}
+.sheet .btn small{display:block; font-size:12px; font-weight:600; margin-top:3px; opacity:.82;}
 @media(min-width:700px){
   .sheet-overlay{align-items:center;}
   .sheet{border-radius:20px;}

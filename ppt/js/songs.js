@@ -140,7 +140,9 @@ const Songs = (function () {
         const brightness = sum / (d.length / 4);
 
         URL.revokeObjectURL(url);
-        resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), brightness });
+        // 원본 긴 변(px) — 해상도 경고용 (D33: 최소 1200px)
+        const srcLong = Math.max(img.naturalWidth, img.naturalHeight);
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), brightness, srcLong });
       };
       img.onerror = reject;
       img.src = url;
@@ -362,6 +364,13 @@ const Songs = (function () {
         card.appendChild(warn);
       }
 
+      if (song.warnLowRes) {
+        const warn = document.createElement('p');
+        warn.className = 'song-warn';
+        warn.textContent = '📐 이미지 해상도가 낮아요(긴 변 1200px 미만) — 글자가 뭉개질 수 있습니다. 더 큰 이미지(긴 변 2000px 이상)나 가사 붙여넣기를 권합니다.';
+        card.appendChild(warn);
+      }
+
       // 추출 결과를 카드에서 바로 보여줌 — "아무 일도 안 일어난" 느낌 방지
       if (song.extractError) {
         const err = document.createElement('p');
@@ -456,7 +465,7 @@ const Songs = (function () {
 
   let pendingNew = false;
 
-  // "+ 곡 추가" → 사진 올리기 / 가사 붙여넣기 중 선택 (지침 12-7 입구를 항상 노출)
+  // "+ 곡 추가" → 가사 붙여넣기(추천) / 악보 이미지 중 선택 (D33: 텍스트 우선 유도)
   function addSong() {
     const ov = document.createElement('div');
     ov.className = 'sheet-overlay';
@@ -465,21 +474,28 @@ const Songs = (function () {
     const t = document.createElement('p');
     t.className = 'sheet-title';
     t.textContent = '곡을 어떻게 추가할까요?';
-    sheet.appendChild(t);
+    const d = document.createElement('p');
+    d.className = 'sheet-desc';
+    d.textContent = '가사 텍스트가 있으면 붙여넣기가 제일 정확합니다.';
+    sheet.append(t, d);
 
+    // 1순위: 가사 붙여넣기 (해상도 무관 + 100% 정확)
     const b1 = document.createElement('button');
     b1.className = 'btn btn-primary btn-wide';
-    b1.textContent = '📷 악보 사진 올리기 — 가사 자동 추출';
-    b1.addEventListener('click', () => {
+    b1.innerHTML = '📋 가사 붙여넣기 <small>추천 · 가장 빠르고 정확</small>';
+    b1.addEventListener('click', () => { ov.remove(); createPasteSong(); });
+
+    // 2순위: 악보 이미지 (또렷한 고해상도일 때)
+    const b2 = document.createElement('button');
+    b2.className = 'btn btn-outline btn-wide';
+    b2.innerHTML = '🖼 악보 이미지 올리기 <small>또렷하게 · 긴 변 2000px 이상 권장</small>';
+    b2.addEventListener('click', () => {
       ov.remove();
       pendingNew = true;
       $('#song-file').value = '';
       $('#song-file').click();   // 버튼 클릭 제스처 그대로 → 사진 선택창 정상 오픈
     });
-    const b2 = document.createElement('button');
-    b2.className = 'btn btn-outline btn-wide';
-    b2.textContent = '📋 가사 붙여넣기 — 사진 없이 입력';
-    b2.addEventListener('click', () => { ov.remove(); createPasteSong(); });
+
     const b3 = document.createElement('button');
     b3.className = 'btn btn-ghost btn-wide';
     b3.textContent = '취소';
@@ -518,6 +534,7 @@ const Songs = (function () {
       for (const f of files) results.push(await resizeImage(f));
       SongStore.setImages(song.id, results.map(r => r.dataUrl));
       song.warnDark = results.some(r => r.brightness < 90); // 지침 8번
+      song.warnLowRes = results.some(r => r.srcLong < 1200); // D33 해상도 경고(클라 전용)
     } catch (e) {
       alert('이미지를 읽지 못했습니다. 다른 사진으로 다시 시도해 주세요.');
       SongStore.remove(song.id); render(); return;
