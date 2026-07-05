@@ -572,6 +572,37 @@ input{font-family:inherit;}
 .so-summary{margin-top:8px; font-size:13px; color:var(--ui-ink); line-height:1.5;}
 .so-summary-empty{color:var(--ui-sub);}
 
+/* 편곡 에디터 (회차 + 칩 + 담기 팔레트) — Phase 3-2 */
+.so-body{margin-top:10px; display:flex; flex-direction:column; gap:8px;}
+.so-pass{display:flex; gap:8px; align-items:flex-start;
+  border:1px dashed var(--ui-line); border-radius:10px; padding:8px; cursor:pointer;}
+.so-pass.active{border-style:solid; border-color:var(--ui-gold); background:var(--ui-gold-soft);}
+.so-pass-n{flex:0 0 auto; min-width:38px; padding-top:6px; font-size:11px; font-weight:800; color:var(--ui-sub);}
+.so-pass.active .so-pass-n{color:var(--ui-gold);}
+.so-pass-empty{font-size:12px; color:var(--ui-sub); padding:8px 2px;}
+.so-chips{display:flex; gap:10px; overflow-x:auto; flex:1; min-width:0; padding:2px 2px 4px; scrollbar-width:none;}
+.so-chips::-webkit-scrollbar{display:none;}
+.so-chip{position:relative; flex:0 0 auto;}
+.so-thumbs{display:flex; gap:2px;}
+.so-thumb{width:78px; border-radius:4px; overflow:hidden; border:1px solid rgba(0,0,0,.2);}
+.so-thumb-green{background:var(--sl-chroma); height:14px;}
+.so-thumb-band{background:var(--sl-band); min-height:26px; padding:3px; gap:1px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.so-thumb-line{color:var(--sl-white); font-size:8px; font-weight:700; line-height:1.25; text-align:center;
+  white-space:nowrap; max-width:100%;}
+.so-chip-cap{margin-top:3px; font-size:11px; font-weight:800; color:var(--ui-ink); text-align:center;}
+.so-chip-x{position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%;
+  background:#2b1f0e; color:#fff; font-size:10px; border:1.5px solid var(--ui-gold); line-height:1;
+  -webkit-tap-highlight-color:transparent;}
+.so-palette{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:2px;}
+.so-palette-label{font-size:11px; font-weight:800; color:var(--ui-sub); margin-right:2px;}
+.so-add{font-size:12px; font-weight:800; color:var(--ui-ink); background:var(--ui-card);
+  border:1.5px solid var(--ui-line); border-radius:999px; padding:6px 12px; -webkit-tap-highlight-color:transparent;}
+.so-add.chorus{border-color:var(--ui-gold); background:var(--ui-gold-soft);}
+.so-add:active{transform:scale(.95);}
+.so-add-pass{font-size:12px; font-weight:800; color:var(--ui-gold); background:transparent;
+  border:1.5px dashed var(--ui-gold); border-radius:999px; padding:6px 12px;}
+
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){
   .pin-title{font-size:32px;}

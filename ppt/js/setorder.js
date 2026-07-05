@@ -1,16 +1,28 @@
 /* ============================================================
    리더용 세트 찬양 순서 화면 (D28~D32) — Phase 3
    - 그 주 전체 곡을 한눈에: 곡 카드 스택 + 곡 ⠿ 드래그(=PPT/곡 순서)
-   - 곡별 편곡(회차·×N·간주·메모)·카톡 내보내기는 이후 단계에서 추가
+   - 곡별 편곡 = 회차(pass) 배열 + 블록 칩(실제 페이지 썸네일)  ← Phase 3-2
+     · 데이터: song.arrange = [ {items:[{block, times}]}, ... ]  (회차 = 배열 한 줄, D29)
+     · 담기 팔레트로 활성 회차에 블록 담기 / 칩 ✕ = 빼기 / +회차 = 새 줄
+   - ×N 스테퍼·간주·메모·카톡 내보내기는 이후 단계(3-3~3-5)
    - 이 화면이 최종 PPT 페이지 순서의 원천 (D28)
    ============================================================ */
 
 const SetOrder = (function () {
   const $ = (sel) => document.querySelector(sel);
 
-  /* ---------- 슬라이드(페이지) 수 계산 ---------- */
+  // 곡별 '지금 담는 회차' 인덱스 (렌더 사이 유지, 저장 안 함)
+  const activePass = {};
 
-  // 블록의 슬라이드 그룹 수 (breaks 기준 2줄 묶음) — review.blockSlides와 동일 규칙
+  /* ---------- 블록/슬라이드 계산 ---------- */
+
+  function byId(song) {
+    const m = {};
+    (song.blocks || []).forEach(b => { m[b.id] = b; });
+    return m;
+  }
+
+  // 블록의 슬라이드(페이지) 그룹 수 — review.blockSlides와 동일 규칙(breaks 기준 2줄 묶음)
   function blockSlideCount(block) {
     const lines = block.lines || [];
     if (!lines.length) return 0;
@@ -20,20 +32,110 @@ const SetOrder = (function () {
     return groups;
   }
 
-  // 곡의 페이지 수: order(부르는 순서)가 있으면 그 기준, 없으면 블록 전체
+  // 블록을 페이지 그룹(각 그룹 = 줄 텍스트 배열)으로 — 썸네일용
+  function blockPages(block) {
+    const lines = block.lines || [];
+    const breaks = block.breaks || [];
+    const groups = [[]];
+    lines.forEach((ln, i) => {
+      if (i > 0 && breaks[i - 1]) groups.push([]);
+      groups[groups.length - 1].push(ln.text);
+    });
+    return groups.filter(g => g.length);
+  }
+
+  // ×N 페이지 규칙(D29): 1페이지 블록 → 1장(한 장 띄워두고 반복) / 여러 페이지 → 실제 복제(pages×N)
+  function itemSlideCount(block, times) {
+    const pages = blockSlideCount(block);
+    if (pages <= 1) return pages;          // 0 or 1
+    return pages * (times || 1);
+  }
+
+  // 곡의 페이지 수: arrange 있으면 그 기준(회차·×N 반영), 없으면 order, 없으면 블록 전체
   function songSlideCount(song) {
+    const m = byId(song);
+    if (Array.isArray(song.arrange) && song.arrange.length) {
+      let n = 0;
+      song.arrange.forEach(p => (p.items || []).forEach(it => {
+        if (m[it.block]) n += itemSlideCount(m[it.block], it.times);
+      }));
+      return n;
+    }
     const blocks = song.blocks || [];
     if (!blocks.length) return 0;
-    const byId = {};
-    blocks.forEach(b => { byId[b.id] = b; });
     if ((song.order || []).length) {
-      return song.order.reduce((n, bid) => n + (byId[bid] ? blockSlideCount(byId[bid]) : 0), 0);
+      return song.order.reduce((n, bid) => n + (m[bid] ? blockSlideCount(m[bid]) : 0), 0);
     }
     return blocks.reduce((n, b) => n + blockSlideCount(b), 0);
   }
 
   function totalSlides() {
     return SongStore.all().reduce((n, s) => n + songSlideCount(s), 0);
+  }
+
+  /* ---------- 편곡(arrange) 상태 ---------- */
+
+  // AI 추천 부르는 순서: 절 → 후렴 반복 (review.suggestOrder와 동일 휴리스틱)
+  function suggest(song) {
+    const chorus = (song.blocks || []).find(b => b.type === 'chorus');
+    const verses = (song.blocks || []).filter(b => b !== chorus);
+    const order = [];
+    verses.forEach(v => { order.push(v.id); if (chorus) order.push(chorus.id); });
+    if (!order.length && song.blocks && song.blocks[0]) order.push(song.blocks[0].id);
+    return order;
+  }
+
+  // arrange가 없으면 order(부르는 순서)·추천에서 1회차로 자동 이관(seed)
+  function ensureArrange(song) {
+    if (Array.isArray(song.arrange)) return song.arrange;
+    const src = (song.order || []).length ? song.order : suggest(song);
+    const items = src.map(bid => ({ block: bid, times: 1 }));
+    song.arrange = items.length ? [{ items }] : [];
+    return song.arrange;
+  }
+
+  function activeIndex(song) {
+    const arr = song.arrange || [];
+    let i = activePass[song.id];
+    if (i == null || i >= arr.length) i = Math.max(0, arr.length - 1);
+    return i;
+  }
+
+  function syncStatus(song) {
+    const has = (song.arrange || []).some(p => (p.items || []).length);
+    song.status = has ? 'ordered' : 'review';
+  }
+
+  /* ---------- 썸네일(작은 페이지 미리보기) ---------- */
+
+  function miniThumb(lines) {
+    const t = document.createElement('div');
+    t.className = 'so-thumb';
+    const green = document.createElement('div');
+    green.className = 'so-thumb-green';
+    const band = document.createElement('div');
+    band.className = 'so-thumb-band';
+    (lines || []).slice(0, 2).forEach(tx => {
+      const d = document.createElement('div');
+      d.className = 'so-thumb-line';
+      d.textContent = tx;
+      band.appendChild(d);
+    });
+    t.append(green, band);
+    return t;
+  }
+
+  // 썸네일 가사가 폭을 넘으면 글자만 줄여 전체가 보이게(잘림 없이)
+  function fitThumbs(root) {
+    root.querySelectorAll('.so-thumb-line').forEach(l => {
+      if (!l.clientWidth) return;
+      let size = 8;
+      l.style.fontSize = size + 'px';
+      while (l.scrollWidth > l.clientWidth && size > 4.5) {
+        size -= 0.5;
+        l.style.fontSize = size + 'px';
+      }
+    });
   }
 
   /* ---------- 곡 카드 드래그로 순서 변경 (=PPT/곡 순서) ---------- */
@@ -57,7 +159,7 @@ const SetOrder = (function () {
     card.addEventListener('pointermove', (e) => {
       if (!isDown) return;
       if (!dragging) {
-        if (e.pointerType !== 'mouse' && Math.abs(e.clientY - startY) > 8) clearTimeout(pressTimer); // 세로 스크롤로 판단
+        if (e.pointerType !== 'mouse' && Math.abs(e.clientY - startY) > 8) clearTimeout(pressTimer);
         return;
       }
       const others = [...list.querySelectorAll('.so-card')].filter(c => c !== card);
@@ -71,7 +173,6 @@ const SetOrder = (function () {
       if (best) list.insertBefore(card, after ? best.nextSibling : best);
     });
 
-    // iOS: 드래그 중 화면 스크롤 차단
     card.addEventListener('touchmove', (e) => { if (dragging) e.preventDefault(); }, { passive: false });
 
     const finish = () => {
@@ -87,6 +188,131 @@ const SetOrder = (function () {
     };
     card.addEventListener('pointerup', finish);
     card.addEventListener('pointercancel', finish);
+  }
+
+  /* ---------- 편곡 에디터 (회차 + 칩 + 담기 팔레트) ---------- */
+
+  function renderArrange(song, card) {
+    const m = byId(song);
+    const arr = ensureArrange(song);
+    const active = activeIndex(song);
+
+    const body = document.createElement('div');
+    body.className = 'so-body';
+
+    if (!(song.blocks || []).length) {
+      const empty = document.createElement('div');
+      empty.className = 'so-summary so-summary-empty';
+      empty.textContent = '가사 없음 — "곡 목록"에서 먼저 추출/붙여넣기';
+      card.appendChild(empty);
+      return;
+    }
+
+    // 회차 줄들
+    arr.forEach((pass, pi) => {
+      const row = document.createElement('div');
+      row.className = 'so-pass' + (pi === active ? ' active' : '');
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.so-chip-x')) return;   // ✕는 별도 처리
+        activePass[song.id] = pi;
+        render();
+      });
+
+      const n = document.createElement('span');
+      n.className = 'so-pass-n';
+      n.textContent = (pi + 1) + '회차';
+      row.appendChild(n);
+
+      const chips = document.createElement('div');
+      chips.className = 'so-chips';
+
+      if (!(pass.items || []).length) {
+        const e = document.createElement('span');
+        e.className = 'so-pass-empty';
+        e.textContent = '여기에 담아주세요';
+        chips.appendChild(e);
+      }
+
+      (pass.items || []).forEach((it, ii) => {
+        const b = m[it.block];
+        if (!b) return;
+        const chip = document.createElement('div');
+        chip.className = 'so-chip';
+
+        const thumbs = document.createElement('div');
+        thumbs.className = 'so-thumbs';
+        blockPages(b).forEach(g => thumbs.appendChild(miniThumb(g)));
+        chip.appendChild(thumbs);
+
+        const cap = document.createElement('div');
+        cap.className = 'so-chip-cap';
+        cap.textContent = b.label + ((it.times || 1) > 1 ? ' ×' + it.times : '');
+        chip.appendChild(cap);
+
+        const x = document.createElement('button');
+        x.className = 'so-chip-x';
+        x.type = 'button';
+        x.textContent = '✕';
+        x.title = b.label + ' 빼기';
+        x.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          pass.items.splice(ii, 1);
+          if (!pass.items.length && arr.length > 1) {
+            arr.splice(pi, 1);
+            if (activePass[song.id] >= arr.length) activePass[song.id] = arr.length - 1;
+          }
+          syncStatus(song);
+          SongStore.save();
+          render();
+        });
+        chip.appendChild(x);
+
+        chips.appendChild(chip);
+      });
+
+      row.appendChild(chips);
+      body.appendChild(row);
+    });
+
+    // 담기 팔레트
+    const pal = document.createElement('div');
+    pal.className = 'so-palette';
+    const plabel = document.createElement('span');
+    plabel.className = 'so-palette-label';
+    plabel.textContent = (active + 1) + '회차에 담기';
+    pal.appendChild(plabel);
+
+    (song.blocks || []).forEach(b => {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'so-add' + (b.type === 'chorus' ? ' chorus' : '');
+      add.textContent = '+ ' + b.label;
+      add.addEventListener('click', () => {
+        if (!arr.length) { arr.push({ items: [] }); activePass[song.id] = 0; }
+        const idx = activeIndex(song);
+        arr[idx].items.push({ block: b.id, times: 1 });
+        syncStatus(song);
+        SongStore.save();
+        render();
+      });
+      pal.appendChild(add);
+    });
+
+    const addPass = document.createElement('button');
+    addPass.type = 'button';
+    addPass.className = 'so-add-pass';
+    addPass.textContent = '+ 회차';
+    addPass.title = '새 회차(줄) 추가';
+    addPass.addEventListener('click', () => {
+      arr.push({ items: [] });
+      activePass[song.id] = arr.length - 1;
+      SongStore.save();
+      render();
+    });
+    pal.appendChild(addPass);
+
+    body.appendChild(pal);
+    card.appendChild(body);
   }
 
   /* ---------- 렌더 ---------- */
@@ -134,25 +360,13 @@ const SetOrder = (function () {
       head.append(grip, num, title, key, cnt);
       card.appendChild(head);
 
-      // 편곡 요약(다음 단계에서 회차·×N·간주로 확장). 지금은 현재 부르는 순서 요약만.
-      const summ = document.createElement('div');
-      summ.className = 'so-summary';
-      if (song.order && song.order.length) {
-        summ.textContent = song.order
-          .map(bid => { const b = (song.blocks || []).find(x => x.id === bid); return b ? b.label : '?'; })
-          .join(' · ');
-      } else if ((song.blocks || []).length) {
-        summ.textContent = '편곡 미정 — 곡을 눌러 회차·반복을 짭니다 (다음 단계)';
-        summ.classList.add('so-summary-empty');
-      } else {
-        summ.textContent = '가사 없음 — "곡 목록"에서 먼저 추출/붙여넣기';
-        summ.classList.add('so-summary-empty');
-      }
-      card.appendChild(summ);
+      renderArrange(song, card);
 
       enableSongDrag(card, grip, list);
       list.appendChild(card);
     });
+
+    fitThumbs(list);
   }
 
   /* ---------- 진입/이벤트 ---------- */
