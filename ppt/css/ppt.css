@@ -223,7 +223,7 @@ input{font-family:inherit;}
 .slide--dark .sl-body{
   position:absolute; top:17cqh; left:6cqw; right:6cqw; bottom:6cqh;
   color:var(--sl-warm); font-size:6.4cqh; font-weight:700; line-height:1.62;
-  overflow:hidden;
+  overflow:hidden; white-space:pre-wrap; /* 붙여넣은 줄바꿈(엔터) 그대로 표시 */
 }
 .slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
 

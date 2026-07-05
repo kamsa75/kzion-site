@@ -103,7 +103,8 @@ const Generate = (function () {
         if (slot.type === 'dark') { // 사도신경 등 고정 텍스트 — settings.creed_text (B)
           const body = slot.id === 'creed' ? (ctx.settings.creed_text || '').trim() : '';
           if (!body) return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: slot.placeholder || '' }, missing: true }];
-          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: body.replace(/\s+/g, ' ') } }];
+          // 줄바꿈 그대로 유지 + 한 페이지 맞춤(fit) — 요청 반영
+          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: body, fit: true } }];
         }
         // 다함께 찬양 부제(곡명) = settings.praise_all_sub (B)
         const sub = slot.id === 'praise-all' ? (ctx.settings.praise_all_sub || '') : (slot.sub || '');
@@ -272,6 +273,7 @@ const Generate = (function () {
       sec.append(head, grid);
       list.appendChild(sec);
     });
+    requestAnimationFrame(() => fitDarkSlides(list)); // 사도신경 등 한 페이지 맞춤
   }
 
   // 클릭한 슬라이드를 크게 보기 + 좌우 이동 (D)
@@ -292,6 +294,7 @@ const Generate = (function () {
       cap.textContent = (idx + 1) + ' / ' + items.length + ' · ' + items[idx].label;
       slideWrap.innerHTML = '';
       slideWrap.appendChild(renderSlide(items[idx].slide));
+      requestAnimationFrame(() => fitDarkSlides(slideWrap));
     }
     function destroy() { ov.remove(); document.removeEventListener('keydown', onKey); }
     function onKey(e) {
@@ -357,7 +360,9 @@ const Generate = (function () {
             body.push({ text: v.text + (i < sl.verses.length - 1 ? '   ' : ''), options: { color: C.warm } });
           });
         } else body = [{ text: sl.body || '', options: { color: C.warm } }];
-        s.addText(body, { x: 0.8, y: 1.3, w: 11.73, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5 });
+        const dopts = { x: 0.8, y: 1.3, w: 11.73, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5 };
+        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; } // 사도신경 등 한 페이지 자동 축소
+        s.addText(body, dopts);
         break;
       }
       case 'score': {

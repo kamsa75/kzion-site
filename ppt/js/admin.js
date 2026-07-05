@@ -136,7 +136,9 @@ const Admin = (function () {
   function drawCreedPv() {
     const box = $('#set-creed-pv'); box.innerHTML = '';
     const t = $('#set-creed').value.trim();
-    if (t) box.appendChild(renderSlide({ layout: 'dark', caption: '사도신경', body: t.replace(/\s+/g, ' ') }));
+    if (!t) return;
+    box.appendChild(renderSlide({ layout: 'dark', caption: '사도신경', body: t, fit: true })); // 줄바꿈 유지 + 한 페이지 맞춤
+    requestAnimationFrame(() => fitDarkSlides(box));
   }
   function drawPraisePv() {
     const box = $('#set-praise-pv'); box.innerHTML = '';
@@ -328,6 +330,22 @@ const Admin = (function () {
     $('#btn-adm-ending').addEventListener('click', () => pick({ mode: 'single', key: 'ending' }));
     $('#set-creed').addEventListener('input', () => saveSettingDebounced('creed_text', $('#set-creed').value, drawCreedPv));
     $('#set-praise').addEventListener('input', () => saveSettingDebounced('praise_all_sub', $('#set-praise').value, drawPraisePv));
+    $('#btn-set-save').addEventListener('click', saveSettingsNow);
+  }
+
+  // 저장 버튼 — 디바운스 기다리지 않고 즉시 저장 + 확실한 확인 표시
+  async function saveSettingsNow() {
+    Object.keys(setTimers).forEach(k => clearTimeout(setTimers[k]));
+    const btn = $('#btn-set-save'); const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = '저장 중…';
+    try {
+      await SettingsStore.set('creed_text', $('#set-creed').value);
+      await SettingsStore.set('praise_all_sub', $('#set-praise').value);
+      btn.textContent = '✓ 저장됨';
+    } catch (e) {
+      btn.textContent = '⚠ 저장 실패';
+    }
+    setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1500);
   }
 
   return { init, open };
