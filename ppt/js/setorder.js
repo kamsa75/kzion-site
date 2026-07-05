@@ -233,38 +233,83 @@ const SetOrder = (function () {
         chips.appendChild(e);
       }
 
+      const removeItem = (ii) => {
+        pass.items.splice(ii, 1);
+        if (!pass.items.length && arr.length > 1) {
+          arr.splice(pi, 1);
+          if (activePass[song.id] >= arr.length) activePass[song.id] = arr.length - 1;
+        }
+        syncStatus(song);
+        SongStore.save();
+        render();
+      };
+
       (pass.items || []).forEach((it, ii) => {
+        // 간주 마커 (D30) — 가사 없는 넘김/홀드, PPT엔 슬라이드 없음
+        if (it.gap) {
+          const chip = document.createElement('div');
+          chip.className = 'so-chip gap';
+          const g = document.createElement('div');
+          g.className = 'so-gap';
+          g.textContent = '🎵 간주';
+          chip.appendChild(g);
+          const x = document.createElement('button');
+          x.className = 'so-chip-x'; x.type = 'button'; x.textContent = '✕'; x.title = '간주 빼기';
+          x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(ii); });
+          chip.appendChild(x);
+          chips.appendChild(chip);
+          return;
+        }
+
         const b = m[it.block];
         if (!b) return;
+        const times = it.times || 1;
+        const pages = blockPages(b);
+        const multi = pages.length > 1;
+
         const chip = document.createElement('div');
         chip.className = 'so-chip';
 
         const thumbs = document.createElement('div');
         thumbs.className = 'so-thumbs';
-        blockPages(b).forEach(g => thumbs.appendChild(miniThumb(g)));
+        // ×N 렌더 규칙(D29): 여러 페이지 → 실제 복제해 나열 / 1페이지 → 한 장(홀드)
+        const reps = multi ? times : 1;
+        for (let r = 0; r < reps; r++) pages.forEach(gp => thumbs.appendChild(miniThumb(gp)));
         chip.appendChild(thumbs);
 
         const cap = document.createElement('div');
         cap.className = 'so-chip-cap';
-        cap.textContent = b.label + ((it.times || 1) > 1 ? ' ×' + it.times : '');
+        cap.textContent = b.label + (times > 1 ? ' ×' + times : '');
         chip.appendChild(cap);
+
+        // ×N 스테퍼 (−/+)
+        const step = document.createElement('div');
+        step.className = 'so-step';
+        const minus = document.createElement('button');
+        minus.type = 'button'; minus.className = 'so-step-btn'; minus.textContent = '−';
+        minus.disabled = times <= 1;
+        minus.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          if ((it.times || 1) > 1) { it.times = (it.times || 1) - 1; SongStore.save(); render(); }
+        });
+        const num = document.createElement('span');
+        num.className = 'so-step-n';
+        num.textContent = '×' + times;
+        const plus = document.createElement('button');
+        plus.type = 'button'; plus.className = 'so-step-btn'; plus.textContent = '+';
+        plus.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          it.times = (it.times || 1) + 1; SongStore.save(); render();
+        });
+        step.append(minus, num, plus);
+        chip.appendChild(step);
 
         const x = document.createElement('button');
         x.className = 'so-chip-x';
         x.type = 'button';
         x.textContent = '✕';
         x.title = b.label + ' 빼기';
-        x.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          pass.items.splice(ii, 1);
-          if (!pass.items.length && arr.length > 1) {
-            arr.splice(pi, 1);
-            if (activePass[song.id] >= arr.length) activePass[song.id] = arr.length - 1;
-          }
-          syncStatus(song);
-          SongStore.save();
-          render();
-        });
+        x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(ii); });
         chip.appendChild(x);
 
         chips.appendChild(chip);
@@ -297,6 +342,20 @@ const SetOrder = (function () {
       });
       pal.appendChild(add);
     });
+
+    // 간주 (D30) — 가사 없는 마커, 활성 회차에 담김
+    const addGap = document.createElement('button');
+    addGap.type = 'button';
+    addGap.className = 'so-add gap';
+    addGap.textContent = '+ 간주';
+    addGap.title = '가사 없이 넘기는 자리 (PPT 슬라이드 없음)';
+    addGap.addEventListener('click', () => {
+      if (!arr.length) { arr.push({ items: [] }); activePass[song.id] = 0; }
+      arr[activeIndex(song)].items.push({ gap: true });
+      SongStore.save();
+      render();
+    });
+    pal.appendChild(addGap);
 
     const addPass = document.createElement('button');
     addPass.type = 'button';
