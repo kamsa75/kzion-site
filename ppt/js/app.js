@@ -118,17 +118,21 @@
       name.className = 'sec-name';
       name.textContent = sec.name + (mine ? ' — 내 담당' : '');
       left.appendChild(name);
-      const owner = document.createElement('div');
-      owner.className = 'sec-owner';
-      owner.textContent = '담당: ' + MOCK.roles[sec.owner].label;
-      left.appendChild(owner);
+      // 위임 관리자(admin)는 이름·상태만 — '담당:'·상세 항목은 owner/본인만
+      const showDetail = mine || role === 'owner';
+      if (showDetail) {
+        const owner = document.createElement('div');
+        owner.className = 'sec-owner';
+        owner.textContent = '담당: ' + MOCK.roles[sec.owner].label;
+        left.appendChild(owner);
+      }
       const st = document.createElement('span');
       st.className = 'status status-' + sec.status;
       st.textContent = MOCK.statusLabel[sec.status];
       head.append(left, st);
       card.appendChild(head);
 
-      if (mine || role === 'admin') {
+      if (showDetail) {
         const ul = document.createElement('ul');
         ul.className = 'sec-items';
         sectionItems(sec).forEach(it => {
@@ -161,14 +165,15 @@
       list.appendChild(card);
     });
 
-    // 관리자 전용 블록
+    // 관리자 블록 — owner(본부장)=전부 / 위임 관리자(admin)=PPT 생성만
     const extra = $('#home-admin-extra');
     extra.innerHTML = '';
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'owner') {
+      const isOwner = (role === 'owner');
       const block = document.createElement('div');
       block.className = 'admin-block';
       const h = document.createElement('h2');
-      h.textContent = '관리자';
+      h.textContent = isOwner ? '관리자 (본부장)' : '관리자';
       block.appendChild(h);
 
       const card = document.createElement('div');
@@ -176,17 +181,19 @@
       const actions = document.createElement('div');
       actions.className = 'sec-actions';
 
-      const btnAssets = document.createElement('button');
-      btnAssets.className = 'btn btn-outline';
-      btnAssets.textContent = '이미지 · 문구 관리';
-      btnAssets.addEventListener('click', () => Admin.open());
-      actions.appendChild(btnAssets);
+      if (isOwner) {
+        const btnAssets = document.createElement('button');
+        btnAssets.className = 'btn btn-outline';
+        btnAssets.textContent = '이미지 · 문구 관리';
+        btnAssets.addEventListener('click', () => Admin.open());
+        actions.appendChild(btnAssets);
 
-      const btnPreview = document.createElement('button');
-      btnPreview.className = 'btn btn-outline';
-      btnPreview.textContent = '슬라이드 디자인 미리보기';
-      btnPreview.addEventListener('click', () => { renderPreview(); show('preview'); });
-      actions.appendChild(btnPreview);
+        const btnPreview = document.createElement('button');
+        btnPreview.className = 'btn btn-outline';
+        btnPreview.textContent = '슬라이드 디자인 미리보기';
+        btnPreview.addEventListener('click', () => { renderPreview(); show('preview'); });
+        actions.appendChild(btnPreview);
+      }
 
       const btnGen = document.createElement('button');
       btnGen.className = 'btn btn-primary';

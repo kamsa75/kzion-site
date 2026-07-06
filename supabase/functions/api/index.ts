@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
     case "getWeek": {
       await ensureWeek(weekId);
       const out: Record<string, unknown> = { weekId, role };
-      if (role === "pastor" || role === "admin") {
+      if (role === "pastor" || role === "admin" || role === "owner") {
         const { data } = await db
           .from("pastor_inputs")
           .select("data, hymn_images, updated_at")
@@ -219,7 +219,7 @@ Deno.serve(async (req) => {
           .order("position");
         out.songs = data || [];
       }
-      if (role === "admin") {
+      if (role === "admin" || role === "owner") {   // 관리자·본부장 = 전체 곡 열람(PPT 생성)
         const { data } = await db
           .from("songs")
           .select("*")
@@ -302,7 +302,7 @@ Deno.serve(async (req) => {
     // ── 관리자 자산: 날짜 썸네일·봉헌송·폐회송·마침 이미지 (④-a, D21·D22) ──
     // 교회 공용·매주 재사용. assets 테이블(key→paths jsonb)에 저장, 파일은 scores 버킷 assets/ 경로
     case "assetUploadUrl": {
-      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      if (role !== "owner") return json({ error: "권한 없음" }, 403);   // 관리(저장)는 본부장만
       const kind = String(body.kind || "misc").replace(/[^a-z0-9_-]/gi, "").slice(0, 32) || "misc";
       const path = `assets/${kind}/${crypto.randomUUID()}.jpg`;
       const { data, error } = await db.storage.from("scores").createSignedUploadUrl(path);
@@ -311,7 +311,7 @@ Deno.serve(async (req) => {
     }
 
     case "getAssets": {
-      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      if (role !== "admin" && role !== "owner") return json({ error: "권한 없음" }, 403);   // 읽기(PPT 생성)는 관리자·본부장
       const { data: rows } = await db.from("assets").select("key, paths");
       const all = (rows || []).flatMap((r) => (r.paths as string[]) || []);
       const urls: Record<string, string> = {};
@@ -323,7 +323,7 @@ Deno.serve(async (req) => {
     }
 
     case "saveAsset": {
-      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      if (role !== "owner") return json({ error: "권한 없음" }, 403);   // 관리(저장)는 본부장만
       const key = String(body.key || "").slice(0, 64);
       if (!key) return json({ error: "key 필요" }, 400);
       const paths = (body.paths as string[]) || [];
@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
 
     // ── 관리자 고정 문구 (사도신경 본문·다함께 찬양 곡명 등, B) — settings 테이블 ──
     case "getSettings": {
-      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      if (role !== "admin" && role !== "owner") return json({ error: "권한 없음" }, 403);   // 읽기(PPT 생성)는 관리자·본부장
       const { data } = await db.from("settings").select("key, value");
       const map: Record<string, string> = {};
       (data || []).forEach((r) => { map[r.key] = r.value; });
@@ -344,7 +344,7 @@ Deno.serve(async (req) => {
     }
 
     case "saveSetting": {
-      if (role !== "admin") return json({ error: "권한 없음" }, 403);
+      if (role !== "owner") return json({ error: "권한 없음" }, 403);   // 관리(저장)는 본부장만
       const key = String(body.key || "").slice(0, 64);
       if (!key) return json({ error: "key 필요" }, 400);
       const value = String(body.value ?? "");

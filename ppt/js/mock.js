@@ -8,13 +8,14 @@
 const MOCK = {
 
   // 개발용 가짜 PIN → 역할
-  pins: { '1111': 'pastor', '2222': 'praise', '3333': 'choir', '9999': 'admin' },
+  pins: { '1111': 'pastor', '2222': 'praise', '3333': 'choir', '9999': 'admin', '0000': 'owner' },
 
   roles: {
     pastor: { label: '목사님' },
     praise: { label: '찬양팀' },
     choir:  { label: '성가대' },
-    admin:  { label: '관리자' }
+    admin:  { label: '관리자' },       // 위임 관리자
+    owner:  { label: '관리자 (본부장)' } // 진짜 관리자 = 본부장 전용
   },
 
   // 이번 주 문서의 3섹션 상태 (예시)
