@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=19">
+<link rel="stylesheet" href="css/ppt.css?v=20">
 </head>
 <body>
 
@@ -203,6 +203,17 @@
         <div id="preview-body" class="preview-body"></div>
       </div>
     </div>
+
+    <!-- 원본 악보 확대 (핀치 줌) -->
+    <div id="score-modal" class="preview-modal" hidden>
+      <div class="preview-sheet score-sheet">
+        <div class="preview-head">
+          <span class="preview-title">원본 악보</span>
+          <button id="btn-score-close" class="btn btn-ghost">닫기</button>
+        </div>
+        <div id="score-modal-body" class="score-modal-body"></div>
+      </div>
+    </div>
   </section>
 
   <!-- 관리자 이미지·썸네일 관리 (④-a) -->
@@ -307,7 +318,7 @@
 <script src="js/pastor.js?v=4"></script>
 <script src="js/admin.js?v=4"></script>
 <script src="js/generate.js?v=10"></script>
-<script src="js/setorder.js?v=7"></script>
+<script src="js/setorder.js?v=8"></script>
 <script src="js/choir.js?v=3"></script>
 <script src="js/app.js?v=12"></script>
 </body>

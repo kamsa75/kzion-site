@@ -431,7 +431,180 @@ const SetOrder = (function () {
     card.appendChild(info);
 
     renderArrange(song, card);   // 편곡 (담기·파트·×N)
-    // Step 2·3(다음 단계): 필름스트립 미리보기 · 가사 편집 · 원본 악보
+    // Step 3(다음): 필름스트립 미리보기
+    renderGasaZone(song, card);  // 가사 확인·편집 + 원본 악보
+  }
+
+  /* ---------- 가사 확인·편집 + 원본 악보 (검수 기능 흡수, 2026-07-05) ---------- */
+
+  function fitLines(root) {
+    root.querySelectorAll('.line-text').forEach(t => {
+      if (!t.clientWidth) return;
+      let size = 16; t.style.fontSize = size + 'px';
+      while (t.scrollWidth > t.clientWidth && size > 11.5) { size -= 0.5; t.style.fontSize = size + 'px'; }
+    });
+  }
+
+  function overflowWarn(block) {
+    const groups = [[0]];
+    for (let i = 1; i < block.lines.length; i++) {
+      if (block.breaks[i - 1]) groups.push([i]); else groups[groups.length - 1].push(i);
+    }
+    return groups.some(g => g.length > 2);
+  }
+
+  function lineNode(song, block, li) {
+    const line = block.lines[li];
+    const row = document.createElement('div'); row.className = 'line-row';
+    const textEl = document.createElement('div'); textEl.className = 'line-text';
+    line.text.split(' ').forEach((w, wi) => {              // 저신뢰 단어 노란 하이라이트(원본 대조)
+      if (wi > 0) textEl.appendChild(document.createTextNode(' '));
+      if ((line.low || []).includes(wi)) { const mk = document.createElement('mark'); mk.textContent = w; textEl.appendChild(mk); }
+      else textEl.appendChild(document.createTextNode(w));
+    });
+    row.appendChild(textEl);
+    textEl.addEventListener('click', () => {
+      const input = document.createElement('input'); input.type = 'text'; input.className = 'line-input'; input.value = line.text;
+      row.replaceChild(input, textEl); input.focus();
+      const commit = () => { line.text = input.value.trim(); line.low = []; SongStore.save(); render(); };
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const pos = input.selectionStart;
+          const before = input.value.slice(0, pos).trim(), after = input.value.slice(pos).trim();
+          if (before && after) {
+            block.lines.splice(li, 1, { text: before, low: [] }, { text: after, low: [] });
+            block.breaks.splice(li, 0, false);
+            input.removeEventListener('blur', commit); SongStore.save(); render();
+          } else input.blur();
+        }
+        if (e.key === 'Backspace' && input.selectionStart === 0 && input.selectionEnd === 0 && li > 0) {
+          e.preventDefault();
+          const prev = block.lines[li - 1];
+          prev.text = (prev.text + ' ' + input.value.trim()).trim(); prev.low = [];
+          block.lines.splice(li, 1); block.breaks.splice(li - 1, 1);
+          input.removeEventListener('blur', commit); SongStore.save(); render();
+        }
+      });
+    });
+    return row;
+  }
+
+  function dividerNode(song, block, gi) {
+    const cut = !!block.breaks[gi];
+    const div = document.createElement('button'); div.type = 'button'; div.className = 'divider' + (cut ? ' cut' : '');
+    div.setAttribute('aria-label', cut ? '눌러서 한 슬라이드로 합치기' : '눌러서 여기서 나누기');
+    div.innerHTML = '<span class="div-mark">' + (cut ? '✂' : '') + '</span>';
+    div.addEventListener('click', () => { block.breaks[gi] = !block.breaks[gi]; SongStore.save(); render(); });
+    return div;
+  }
+
+  function editBlockLabel(song, block, labelEl) {
+    const input = document.createElement('input'); input.type = 'text'; input.className = 'block-label-input'; input.value = block.label || '';
+    labelEl.replaceWith(input); input.focus(); input.select();
+    const commit = () => {
+      const v = input.value.trim();
+      if (v) { block.label = v; block.type = /후렴|렴|chorus/i.test(v) ? 'chorus' : /브릿지|bridge/i.test(v) ? 'bridge' : 'verse'; }
+      SongStore.save(); render();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+  }
+
+  // 원본 악보 (탭하면 확대·핀치 줌) — 서명 URL, 캐시. 붙여넣기 곡은 이미지 없음
+  async function renderScore(song, zone) {
+    let imgs = SongStore.getImages(song.id);
+    if (!imgs.length && CONFIG.USE_SERVER && (song.images || []).length) {
+      const loading = document.createElement('div'); loading.className = 'so-score-loading'; loading.textContent = '원본 악보 불러오는 중…';
+      zone.appendChild(loading);
+      try { const r = await API.call('imageUrls', { paths: song.images }); imgs = r.urls || []; SongStore.setImages(song.id, imgs); }
+      catch (e) { imgs = []; }
+      loading.remove();
+    }
+    if (!imgs.length) return;
+    const wrap = document.createElement('div'); wrap.className = 'so-score';
+    const cap = document.createElement('div'); cap.className = 'so-score-cap'; cap.textContent = '🎼 원본 악보 — 탭하면 크게 · 핀치 줌';
+    wrap.appendChild(cap);
+    imgs.forEach(src => {
+      const img = document.createElement('img'); img.className = 'so-score-img'; img.src = src; img.alt = '원본 악보';
+      img.addEventListener('click', () => openScoreZoom(src));
+      wrap.appendChild(img);
+    });
+    // 악보를 가사 블록 '위'에 오도록 zone 맨 앞(제목 다음)에 삽입
+    const anchor = zone.querySelector('.block-card') || null;
+    zone.insertBefore(wrap, anchor);
+  }
+
+  function openScoreZoom(src) {
+    const modal = $('#score-modal'); if (!modal) return;
+    const body = $('#score-modal-body'); body.innerHTML = '';
+    const wrap = document.createElement('div'); wrap.className = 'zoom-wrap';
+    const img = document.createElement('img'); img.src = src; img.alt = '원본 악보';
+    wrap.appendChild(img); body.appendChild(wrap);
+    modal.hidden = false;
+    attachPinchZoom(wrap, img);
+  }
+
+  // 핀치 줌 + 팬 + 더블탭 리셋 (review.js와 동일)
+  function attachPinchZoom(wrap, img) {
+    let scale = 1, tx = 0, ty = 0, start = null, lastTap = 0;
+    const pointers = new Map();
+    const apply = () => { img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`; };
+    wrap.addEventListener('pointerdown', (e) => {
+      wrap.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1) {
+        const now = Date.now();
+        if (now - lastTap < 300) { scale = 1; tx = 0; ty = 0; apply(); }
+        lastTap = now; start = { x: e.clientX, y: e.clientY, tx, ty };
+      } else if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()]; start = { dist: Math.hypot(a.x - b.x, a.y - b.y), scale };
+      }
+    });
+    wrap.addEventListener('pointermove', (e) => {
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size === 1 && start && scale > 1) { tx = start.tx + (e.clientX - start.x); ty = start.ty + (e.clientY - start.y); apply(); }
+      else if (pointers.size === 2 && start && start.dist) {
+        const [a, b] = [...pointers.values()];
+        scale = Math.min(6, Math.max(1, start.scale * Math.hypot(a.x - b.x, a.y - b.y) / start.dist));
+        if (scale === 1) { tx = 0; ty = 0; } apply();
+      }
+    });
+    const up = (e) => { pointers.delete(e.pointerId); if (pointers.size < 2) start = null; };
+    wrap.addEventListener('pointerup', up);
+    wrap.addEventListener('pointercancel', up);
+  }
+
+  function renderGasaZone(song, card) {
+    const zone = document.createElement('div'); zone.className = 'so-zone';
+    const zt = document.createElement('div'); zt.className = 'so-zt';
+    zt.innerHTML = '<span class="so-zk"></span>가사 확인·편집 <small><mark>노란 단어</mark>를 악보와 대조 · 줄 눌러 수정</small>';
+    zone.appendChild(zt);
+
+    if (!(song.blocks || []).length) {
+      const empty = document.createElement('p'); empty.className = 'review-tip';
+      empty.textContent = '가사가 없습니다 — "곡 목록"에서 먼저 추출/붙여넣기 하세요.';
+      zone.appendChild(empty); card.appendChild(zone); return;
+    }
+    song.blocks.forEach(block => {
+      const bc = document.createElement('div'); bc.className = 'block-card';
+      const label = document.createElement('button'); label.type = 'button'; label.className = 'block-label';
+      label.textContent = block.label; label.title = '눌러서 이름 바꾸기 (1절·후렴 등)';
+      label.addEventListener('click', () => editBlockLabel(song, block, label));
+      bc.appendChild(label);
+      if (overflowWarn(block)) {
+        const w = document.createElement('div'); w.className = 'block-warn';
+        w.textContent = '한 슬라이드에 3줄 이상 — 줄 사이를 눌러 나눠주세요.'; bc.appendChild(w);
+      }
+      block.lines.forEach((_, li) => {
+        bc.appendChild(lineNode(song, block, li));
+        if (li < block.lines.length - 1) bc.appendChild(dividerNode(song, block, li));
+      });
+      zone.appendChild(bc);
+    });
+    card.appendChild(zone);
+    renderScore(song, zone);   // 원본 악보를 블록 위에 삽입(async)
   }
 
   /* ---------- 렌더 ---------- */
@@ -500,6 +673,7 @@ const SetOrder = (function () {
     });
 
     fitThumbs(list);
+    fitLines(list);   // 펼친 곡의 가사 줄 폭 맞춤(잘림 방지)
   }
 
   /* ---------- 진입/이벤트 ---------- */
@@ -542,6 +716,12 @@ const SetOrder = (function () {
     if (pvClose) pvClose.addEventListener('click', () => { $('#preview-modal').hidden = true; });
     const pvModal = $('#preview-modal');
     if (pvModal) pvModal.addEventListener('click', (e) => { if (e.target === pvModal) pvModal.hidden = true; });
+
+    // 원본 악보 확대 모달 닫기
+    const scClose = $('#btn-score-close');
+    if (scClose) scClose.addEventListener('click', () => { $('#score-modal').hidden = true; });
+    const scModal = $('#score-modal');
+    if (scModal) scModal.addEventListener('click', (e) => { if (e.target === scModal) scModal.hidden = true; });
     const kcopy = $('#btn-kakao-copy');
     if (kcopy) kcopy.addEventListener('click', async () => {
       const ta = $('#kakao-text');
