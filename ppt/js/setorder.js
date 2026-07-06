@@ -648,17 +648,30 @@ const SetOrder = (function () {
       zone.appendChild(tip);
       const ta = document.createElement('textarea'); ta.className = 'choir-ta'; ta.rows = 6;
       ta.placeholder = '여기에 가사를 붙여넣으세요…';
+      ta.value = song.raw || '';                                   // 입력 보존(재렌더에도 유지)
+      ta.addEventListener('input', () => { song.raw = ta.value; });
       zone.appendChild(ta);
       const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-wide'; btn.style.marginTop = '10px';
       btn.textContent = '정리하기';
       btn.addEventListener('click', async () => {
         const text = ta.value.trim(); if (!text) return;
+        song.raw = text;
         btn.disabled = true; btn.textContent = '정리 중…';
         try {
           const r = CONFIG.USE_SERVER ? await API.call('extractText', { text })
             : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
-          Songs.applyExtract(song, r); song.arrange = null; SongStore.save(); SongStore.pushNow(song); render();
-        } catch (e) { btn.disabled = false; btn.textContent = '정리하기'; alert('정리에 실패했습니다: ' + (e.message || '')); }
+          Songs.applyExtract(song, r);
+          if (!(song.blocks || []).length) {                       // 결과가 비면 입력 보존 + 안내(사라짐 방지)
+            btn.disabled = false; btn.textContent = '정리하기';
+            alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 시도해 주세요.');
+            return;
+          }
+          song.arrange = null; song.raw = '';
+          SongStore.save(); SongStore.pushNow(song); render();
+        } catch (e) {
+          btn.disabled = false; btn.textContent = '정리하기';
+          alert('정리에 실패했습니다: ' + (e.message || '') + '\n입력한 가사는 그대로 남아 있습니다.');
+        }
       });
       zone.appendChild(btn);
       card.appendChild(zone); return;
@@ -686,6 +699,7 @@ const SetOrder = (function () {
   /* ---------- 렌더 ---------- */
 
   function render() {
+    const scrollY = window.scrollY;   // 편집(담기·×N·토글) 시 화면이 위로 튀지 않게 위치 보존
     const list = $('#setorder-list');
     list.innerHTML = '';
     const songs = SongStore.all();
@@ -751,6 +765,7 @@ const SetOrder = (function () {
     fitThumbs(list);
     fitLines(list);   // 펼친 곡의 가사 줄 폭 맞춤(잘림 방지)
     fitFilm(list);    // 필름스트립 가사 폭 맞춤
+    window.scrollTo(0, scrollY);   // 스크롤 위치 복원(담기 등 편집 후 튐 방지)
   }
 
   /* ---------- 진입/이벤트 ---------- */
