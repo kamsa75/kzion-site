@@ -560,12 +560,26 @@ const SetOrder = (function () {
     return row;
   }
 
+  // 밴드=2줄이라 3줄째로 합치기는 막음. gi 양쪽 그룹 크기 합이 2 이하일 때만 합치기 허용
+  function groupSizeLeft(block, gi) { let n = 1; for (let i = gi - 1; i >= 0; i--) { if (block.breaks[i]) break; n++; } return n; }
+  function groupSizeRight(block, gi) { let n = 1; for (let i = gi + 1; i < block.lines.length - 1; i++) { if (block.breaks[i]) break; n++; } return n; }
+
   function dividerNode(song, block, gi) {
     const cut = !!block.breaks[gi];
     const div = document.createElement('button'); div.type = 'button'; div.className = 'divider' + (cut ? ' cut' : '');
-    div.setAttribute('aria-label', cut ? '눌러서 한 슬라이드로 합치기' : '눌러서 여기서 나누기');
-    div.innerHTML = '<span class="div-mark">' + (cut ? '✂' : '') + '</span>';
-    div.addEventListener('click', () => { block.breaks[gi] = !block.breaks[gi]; SongStore.save(); render(); });
+    div.setAttribute('aria-label', cut ? '여기서 나뉨 — 눌러서 합치기' : '눌러서 여기서 나누기');
+    div.innerHTML = '<span class="div-mark">✂</span>';   // 항상 가위(회색=나누기 가능 / 골드=나뉨)
+    div.addEventListener('click', () => {
+      if (cut) {
+        if (groupSizeLeft(block, gi) + groupSizeRight(block, gi) > 2) {
+          alert('크로마 밴드는 한 슬라이드에 2줄까지예요 — 더 합칠 수 없습니다.'); return;
+        }
+        block.breaks[gi] = false;
+      } else {
+        block.breaks[gi] = true;
+      }
+      SongStore.save(); render();
+    });
     return div;
   }
 
@@ -649,7 +663,7 @@ const SetOrder = (function () {
   function renderGasaZone(song, card) {
     const zone = document.createElement('div'); zone.className = 'so-zone';
     const zt = document.createElement('div'); zt.className = 'so-zt';
-    zt.innerHTML = '<span class="so-zk"></span>가사 확인·편집 <small><mark>노란 단어</mark>를 악보와 대조 · 줄 눌러 수정</small>';
+    zt.innerHTML = '<span class="so-zk"></span>가사 확인·편집 <small><mark>노란 단어</mark>는 악보와 대조 · 줄 눌러 수정 · 줄 사이 <b class="cut-hint">✂</b> 눌러 나눔/합침(밴드 2줄)</small>';
     zone.appendChild(zt);
 
     if (!(song.blocks || []).length) {
@@ -687,16 +701,17 @@ const SetOrder = (function () {
       zone.appendChild(btn);
       card.appendChild(zone); return;
     }
+    // 기존/추출 데이터도 항상 2줄 이하로 정리(가위 자동 삽입) → 편집화면=PPT 1:1
+    let normed = false;
+    song.blocks.forEach(b => { if (Songs.normalizeBreaks(b)) normed = true; });
+    if (normed) SongStore.save();
+
     song.blocks.forEach(block => {
       const bc = document.createElement('div'); bc.className = 'block-card';
       const label = document.createElement('button'); label.type = 'button'; label.className = 'block-label';
       label.textContent = block.label; label.title = '눌러서 이름 바꾸기 (1절·후렴 등)';
       label.addEventListener('click', () => editBlockLabel(song, block, label));
       bc.appendChild(label);
-      if (overflowWarn(block)) {
-        const w = document.createElement('div'); w.className = 'block-warn';
-        w.textContent = '3줄 이상 묶였습니다 — 밴드는 2줄이라 자동으로 2줄씩 나눠 슬라이드가 만들어집니다(가사 안 잃음).'; bc.appendChild(w);
-      }
       block.lines.forEach((_, li) => {
         bc.appendChild(lineNode(song, block, li));
         if (li < block.lines.length - 1) bc.appendChild(dividerNode(song, block, li));

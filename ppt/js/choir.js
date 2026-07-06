@@ -111,14 +111,28 @@ const Choir = (function () {
     return row;
   }
 
+  // 밴드=2줄이라 3줄째 합치기는 막음(setorder와 동일 규칙 — 함께 유지)
+  function groupSizeLeft(block, gi) { let n = 1; for (let i = gi - 1; i >= 0; i--) { if (block.breaks[i]) break; n++; } return n; }
+  function groupSizeRight(block, gi) { let n = 1; for (let i = gi + 1; i < block.lines.length - 1; i++) { if (block.breaks[i]) break; n++; } return n; }
+
   function dividerNode(song, block, gi, editorEl) {
     const cut = !!block.breaks[gi];
     const div = document.createElement('button');
     div.type = 'button';
     div.className = 'divider' + (cut ? ' cut' : '');
-    div.setAttribute('aria-label', cut ? '눌러서 한 슬라이드로 합치기' : '눌러서 여기서 나누기');
-    div.innerHTML = '<span class="div-mark">' + (cut ? '✂' : '') + '</span>';
-    div.addEventListener('click', () => { block.breaks[gi] = !block.breaks[gi]; SongStore.save(); renderEditor(song, editorEl); });
+    div.setAttribute('aria-label', cut ? '여기서 나뉨 — 눌러서 합치기' : '눌러서 여기서 나누기');
+    div.innerHTML = '<span class="div-mark">✂</span>';   // 항상 가위(회색=나누기 / 골드=나뉨)
+    div.addEventListener('click', () => {
+      if (cut) {
+        if (groupSizeLeft(block, gi) + groupSizeRight(block, gi) > 2) {
+          alert('크로마 밴드는 한 슬라이드에 2줄까지예요 — 더 합칠 수 없습니다.'); return;
+        }
+        block.breaks[gi] = false;
+      } else {
+        block.breaks[gi] = true;
+      }
+      SongStore.save(); renderEditor(song, editorEl);
+    });
     return div;
   }
 
@@ -139,9 +153,14 @@ const Choir = (function () {
     el.innerHTML = '';
     if (!song.blocks || !song.blocks.length) return;
 
+    // 항상 2줄 이하로 정리(가위 자동 삽입) → 편집화면=PPT 1:1
+    let normed = false;
+    song.blocks.forEach(b => { if (Songs.normalizeBreaks(b)) normed = true; });
+    if (normed) SongStore.save();
+
     const hint = document.createElement('p');
     hint.className = 'review-tip';
-    hint.innerHTML = '<span class="tip-line tip-sub">줄 사이 선을 누르면 슬라이드 나눔/합침 · 줄을 눌러 수정</span>';
+    hint.innerHTML = '<span class="tip-line tip-sub">줄 사이 ✂ 눌러 나눔/합침(밴드 2줄) · 줄을 눌러 수정</span>';
     el.appendChild(hint);
 
     // 곡명 그린 자막 미리보기 (한 줄)
@@ -159,14 +178,6 @@ const Choir = (function () {
       label.title = '눌러서 이름 바꾸기';
       label.addEventListener('click', () => editLabel(song, block, label, el));
       bcard.appendChild(label);
-
-      const over = blockSlides(block).some(g => g.length > 2);
-      if (over) {
-        const warn = document.createElement('div');
-        warn.className = 'block-warn';
-        warn.textContent = '3줄 이상 묶였습니다 — 자동으로 2줄씩 나눠 슬라이드가 만들어집니다(가사 안 잃음).';
-        bcard.appendChild(warn);
-      }
 
       block.lines.forEach((_, li) => {
         bcard.appendChild(lineRow(song, block, li, el));

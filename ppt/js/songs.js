@@ -701,6 +701,26 @@ const Songs = (function () {
   }
 
   // 추출 결과(JSON) → 곡에 반영. crop 배지 정보 포함 (지침 12-5)
+  // 크로마 밴드는 한 슬라이드 2줄 — 3줄 이상 묶이면 2줄마다 나눔(가위 삽입).
+  // 추출·붙여넣기·기존 데이터 모두 이 함수로 항상 2줄 이하 유지 → 편집화면=PPT 1:1 (2026-07-06)
+  function normalizeBreaks(block) {
+    const lines = block.lines || [];
+    if (!Array.isArray(block.breaks)) block.breaks = [];
+    const breaks = block.breaks;
+    let changed = false, groupSize = 0;
+    for (let i = 0; i < lines.length; i++) {
+      groupSize++;
+      if (i < lines.length - 1) {
+        if (groupSize >= 2) { if (!breaks[i]) { breaks[i] = true; changed = true; } groupSize = 0; }
+        else if (breaks[i]) groupSize = 0;
+      }
+    }
+    const want = Math.max(0, lines.length - 1);
+    if (breaks.length !== want) { breaks.length = want; changed = true; }
+    for (let i = 0; i < want; i++) if (breaks[i] == null) breaks[i] = false;   // 빈 슬롯 → false(깔끔)
+    return changed;
+  }
+
   function applyExtract(song, r) {
     song.blocks = (r.blocks || []).map((b, i) => ({
       id: b.id || ('b' + (i + 1)),
@@ -709,6 +729,7 @@ const Songs = (function () {
       lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
       breaks: b.breaks || []
     }));
+    song.blocks.forEach(normalizeBreaks);   // 붙여넣기·추출 시 항상 2줄씩
     song.crop = !!r.crop;
     song.cropReason = r.crop_reason || '';
     // 악보에 적힌 곡 제목 자동 입력 (사용자가 이미 입력했으면 유지)
@@ -752,5 +773,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages, applyExtract, renderPdf, isPdf };
+  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, renderPdf, isPdf };
 })();

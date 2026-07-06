@@ -421,10 +421,12 @@ input{font-family:inherit;}
 .divider{
   display:flex; align-items:center; width:100%; padding:5px 0; background:none; border:none; cursor:pointer;
 }
-.divider::before, .divider::after{content:''; flex:1; border-top:1px dotted #D3CFC4;}
-.divider .div-mark{width:22px; text-align:center; font-size:11px; line-height:1; color:transparent;}
+/* 나눌 수 있는 곳 = 회색 가위(고스트) + 점선 / 나뉜 곳 = 골드 가위 + 실선 */
+.divider::before, .divider::after{content:''; flex:1; border-top:1.5px dashed #C7C1B1;}
+.divider .div-mark{width:26px; text-align:center; font-size:13px; line-height:1; color:#B4AC98;}
 .divider.cut::before, .divider.cut::after{border-top:2px solid var(--ui-gold);}
 .divider.cut .div-mark{color:var(--ui-gold);}
+.cut-hint{color:var(--ui-gold); font-style:normal;}
 @media(hover:hover){
   .divider:not(.cut):hover::before, .divider:not(.cut):hover::after{border-top-color:var(--ui-gold);}
 }
