@@ -692,6 +692,8 @@ input{font-family:inherit;}
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 1px rgba(0,0,0,.3);}
 .choir-title-slide.empty{opacity:.7; font-weight:700;}
 .choir-add{margin-top:14px;}
+.choir-del-bottom{display:block; margin:14px auto 0; font-size:13px; color:var(--ui-sub);
+  border:1px solid var(--ui-line); border-radius:10px; padding:8px 16px;}
 
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){

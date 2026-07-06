@@ -204,12 +204,13 @@ const Choir = (function () {
       head.appendChild(mv);
     }
 
-    const del = document.createElement('button');
-    del.className = 'choir-song-x'; del.type = 'button'; del.textContent = '✕'; del.title = '곡 삭제';
-    del.addEventListener('click', () => {
+    const removeSong = () => {
       if (!confirm('이 곡을 삭제할까요?')) return;
       SongStore.remove(song.id); render();
-    });
+    };
+    const del = document.createElement('button');
+    del.className = 'choir-song-x'; del.type = 'button'; del.textContent = '✕'; del.title = '곡 삭제';
+    del.addEventListener('click', removeSong);
     head.appendChild(del);
     card.appendChild(head);
 
@@ -238,6 +239,14 @@ const Choir = (function () {
     const editor = document.createElement('div');
     editor.className = 'choir-editor';
     card.appendChild(editor);
+
+    // 카드 하단 삭제(긴 곡에서 상단 ✕가 안 보일 때)
+    const delBottom = document.createElement('button');
+    delBottom.className = 'btn btn-ghost choir-del-bottom';
+    delBottom.type = 'button';
+    delBottom.textContent = '🗑 이 곡 삭제';
+    delBottom.addEventListener('click', removeSong);
+    card.appendChild(delBottom);
 
     // 제목 입력 → 저장 + 곡명 자막 미리보기 갱신
     ti.addEventListener('input', () => {
