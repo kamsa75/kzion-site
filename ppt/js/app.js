@@ -72,10 +72,15 @@
     try { await SongStore.load(role); } catch (e) {}
   }
 
+  // 내용이 있는 곡만 '등록된 곡'으로 셈 — 악보·가사·곡명 다 없는 빈 껍데기는 제외 (2026-07-05)
+  function hasSongContent(s) {
+    return (s.blocks && s.blocks.length) || (s.images && s.images.length) || (s.name && s.name.trim());
+  }
+
   // 찬양팀·성가대 섹션 항목 = 실제 등록 곡 수 기반(가짜 문구 제거, 2026-07-05)
   function sectionItems(sec) {
     if (sec.owner === 'praise' || sec.owner === 'choir') {
-      const list = SongStore.all().filter(s => (s.role || sec.owner) === sec.owner);
+      const list = SongStore.all().filter(s => (s.role || sec.owner) === sec.owner && hasSongContent(s));
       const n = list.length;
       if (!n) return ['아직 등록된 곡이 없습니다'];
       const ordered = list.filter(s => s.status === 'ordered').length;
