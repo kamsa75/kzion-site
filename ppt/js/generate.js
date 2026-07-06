@@ -146,10 +146,10 @@ const Generate = (function () {
       case 'choir_name': {
         // 곡명 + 가사를 곡마다 함께 처리(특송 등 다곡 대응). choir_songs 슬롯은 건너뜀
         const songs = ctx.songs.filter(s => getRole(s) === 'choir');
-        if (!songs.length) return [{ label: '성가대 곡명', slide: { layout: 'green', text: '(성가대 곡 없음)', sub: '시온 성가대' }, missing: true }];
+        if (!songs.length) return [{ label: '성가대 곡명', slide: { layout: 'green', text: '(성가대 곡 없음)' }, missing: true }];
         const out = [];
         songs.forEach(s => {
-          out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)', sub: '시온 성가대' }, missing: !s.name });
+          out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)' }, missing: !s.name });
           bandFromBlocks(getBlocks(s), getOrder(s)).forEach(sl => out.push({ label: (s.name || '성가대 곡') + ' 가사', slide: sl }));
         });
         return out;

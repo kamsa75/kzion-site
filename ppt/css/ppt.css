@@ -669,6 +669,30 @@ input{font-family:inherit;}
 .so-add-pass{font-size:12px; font-weight:800; color:var(--ui-gold); background:transparent;
   border:1.5px dashed var(--ui-gold); border-radius:999px; padding:6px 12px;}
 
+/* ---------- 성가대 곡 입력 ---------- */
+.choir-list{display:flex; flex-direction:column; gap:14px;}
+.choir-song{position:relative; background:var(--ui-card); border:1px solid var(--ui-line); border-radius:16px; padding:14px 14px 16px;}
+.choir-song-head{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.choir-song-n{font-size:12px; font-weight:800; color:var(--ui-gold); flex:1;}
+.choir-song-x{width:26px; height:26px; border-radius:50%; border:1px solid var(--ui-line); background:#fff;
+  color:var(--ui-sub); font-size:12px; -webkit-tap-highlight-color:transparent;}
+.choir-lbl{font-size:12px; font-weight:800; color:var(--ui-sub); margin:0 0 5px;}
+.choir-title-input{width:100%; box-sizing:border-box; font-size:16px; font-weight:800; color:var(--ui-ink);
+  padding:11px 13px; border:1.5px solid var(--ui-line); border-radius:11px; background:#F6F4EF; margin-bottom:13px;}
+.choir-title-input:focus{outline:none; border-color:var(--ui-gold); background:#fff;}
+.choir-ta{width:100%; box-sizing:border-box; min-height:96px; font-size:14px; font-weight:600; line-height:1.7;
+  color:var(--ui-ink); padding:11px 13px; border:1.5px solid var(--ui-line); border-radius:11px; background:#fff;
+  resize:vertical; font-family:inherit;}
+.choir-ta:focus{outline:none; border-color:var(--ui-gold);}
+.choir-tidy{margin-top:11px;}
+.choir-editor{margin-top:4px;}
+.choir-editor:empty{margin-top:0;}
+.choir-title-slide{background:var(--sl-chroma); color:var(--sl-white); text-align:center; font-weight:800;
+  font-size:15px; padding:13px 12px; border-radius:9px; margin:12px 0 12px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 1px rgba(0,0,0,.3);}
+.choir-title-slide.empty{opacity:.7; font-weight:700;}
+.choir-add{margin-top:14px;}
+
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){
   .pin-title{font-size:32px;}

@@ -16,6 +16,7 @@
     home: $('#screen-home'),
     pastor: $('#screen-pastor'),
     songs: $('#screen-songs'),
+    choir: $('#screen-choir'),
     review: $('#screen-review'),
     setorder: $('#screen-setorder'),
     admin: $('#screen-admin'),
@@ -143,9 +144,12 @@
         actions.className = 'sec-actions';
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
-        if (role === 'praise' || role === 'choir') {
+        if (role === 'praise') {
           btn.textContent = '곡 준비 시작';
           btn.addEventListener('click', () => Songs.open());
+        } else if (role === 'choir') {
+          btn.textContent = '곡 입력 시작';
+          btn.addEventListener('click', () => Choir.open());
         } else if (role === 'pastor') {
           btn.textContent = '입력 시작';
           btn.addEventListener('click', () => Pastor.open());
@@ -272,6 +276,7 @@
 
   window.KZ = { show, role: () => currentRole };
   Songs.init();
+  Choir.init();
   Review.init();
   SetOrder.init();
   Admin.init();
