@@ -53,6 +53,34 @@ const Generate = (function () {
     return out;
   }
 
+  // 세트/콘티 편곡(arrange) → 밴드 슬라이드 (D28: 세트 화면이 PPT 순서의 원천)
+  // ×N 규칙(D29): 1페이지 블록=1장(자막에 "(×N)" 표기·홀드) / 여러 페이지 블록=페이지 복제
+  function bandFromArrange(song) {
+    const blocks = getBlocks(song);
+    const byId = {}; blocks.forEach(b => { byId[b.id] = b; });
+    const out = [];
+    (song.arrange || []).forEach(pass => (pass.items || []).forEach(it => {
+      if (it.gap || it.memo != null) return;         // 간주·메모는 PPT 슬라이드 없음
+      const b = byId[it.block]; if (!b) return;
+      const times = it.times || 1;
+      const pages = blockSlides(b).map(g => g.map(i => (b.lines[i] || {}).text || ''));
+      if (pages.length <= 1) {
+        const lyr = (pages[0] || []).slice();
+        if (times > 1 && lyr.length) lyr[lyr.length - 1] = lyr[lyr.length - 1] + ' (×' + times + ')';
+        out.push({ layout: 'band', lyrics: lyr });
+      } else {
+        for (let r = 0; r < times; r++) pages.forEach(p => out.push({ layout: 'band', lyrics: p }));
+      }
+    }));
+    return out;
+  }
+
+  function songBandSlides(s) {
+    return (Array.isArray(s.arrange) && s.arrange.length)
+      ? bandFromArrange(s)                                  // 세트 화면 편곡 우선 (D28)
+      : bandFromBlocks(getBlocks(s), getOrder(s));          // 폴백: 옛 부르는 순서/블록
+  }
+
   /* ---------- 성경 긴 본문 자동 분할 (절 번호 경계 + 글자수) ---------- */
   const PASSAGE_CHARS = 200;  // 다크 슬라이드 1장 목표 글자수(프로젝터 실측 후 조정 — 체크리스트)
   const PASSAGE_MAXV = 5;     // 슬라이드당 최대 절 수
@@ -139,7 +167,7 @@ const Generate = (function () {
       case 'praise_songs': {
         const songs = ctx.songs.filter(s => getRole(s) === 'praise');
         const out = [];
-        songs.forEach(s => bandFromBlocks(getBlocks(s), getOrder(s)).forEach(sl => out.push({ label: s.name || '찬양팀 곡', slide: sl })));
+        songs.forEach(s => songBandSlides(s).forEach(sl => out.push({ label: s.name || '찬양팀 곡', slide: sl })));
         if (!out.length) return [{ label: '찬양팀 곡 가사', slide: { layout: 'band', lyrics: ['(찬양팀 곡 없음)'] }, missing: true }];
         return out;
       }
