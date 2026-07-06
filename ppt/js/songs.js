@@ -450,12 +450,12 @@ const Songs = (function () {
       if (song.extractError) {
         const err = document.createElement('p');
         err.className = 'song-warn';
-        err.textContent = '⚠️ 가사를 자동으로 읽지 못했어요 — "검수하기"에서 가사를 직접 붙여넣을 수 있습니다.';
+        err.textContent = '⚠️ 가사를 자동으로 읽지 못했어요 — "가사·편곡 열기"에서 가사를 직접 붙여넣을 수 있습니다.';
         card.appendChild(err);
       } else if (song.status === 'review' && (song.blocks || []).length) {
         const ok = document.createElement('p');
         ok.className = 'song-ok';
-        ok.textContent = '✓ 가사 추출 완료 — "검수하기"를 눌러 확인·수정하세요. ('
+        ok.textContent = '✓ 가사 추출 완료 — "가사·편곡 열기"로 확인·수정하세요. ('
           + song.blocks.map(b => b.label).join(' · ') + ')';
         card.appendChild(ok);
       }
@@ -476,8 +476,8 @@ const Songs = (function () {
       } else {
         const btnReview = document.createElement('button');
         btnReview.className = 'btn btn-primary';
-        btnReview.textContent = song.status === 'ordered' ? '검수 다시 열기' : '검수하기';
-        btnReview.addEventListener('click', () => Review.open(song.id));
+        btnReview.textContent = '가사·편곡 열기';
+        btnReview.addEventListener('click', () => SetOrder.openSong(song.id));
         actions.appendChild(btnReview);
 
         // 재추출 — 결과가 엉키면 삭제·재업로드 없이 그 자리에서 다시 읽기
@@ -580,7 +580,7 @@ const Songs = (function () {
     document.body.appendChild(ov);
   }
 
-  // 가사 붙여넣기용 빈 곡 → 곧바로 검수 화면의 붙여넣기 입력으로 이동
+  // 가사 붙여넣기용 빈 곡 → 곧바로 통합 화면(그 곡 펼침)의 붙여넣기 입력으로 이동
   async function createPasteSong() {
     const song = {
       id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
@@ -588,9 +588,9 @@ const Songs = (function () {
       blocks: [], order: [], images: [], warnDark: false, extractError: null
     };
     SongStore.add(song);
-    await SongStore.pushNow(song); // 서버 id 확정 후에 화면 이동 (id가 중간에 바뀌면 검수 화면이 곡을 놓침)
+    await SongStore.pushNow(song); // 서버 id 확정 후에 화면 이동 (id가 중간에 바뀌면 곡을 놓침)
     render();
-    Review.open(song.id);
+    SetOrder.openSong(song.id);
   }
 
   // 파일 N장 → 곡 1개 (전 과정: 리사이즈→업로드→추출→저장)

@@ -430,9 +430,68 @@ const SetOrder = (function () {
     info.append(kl, key);
     card.appendChild(info);
 
-    renderArrange(song, card);   // 편곡 (담기·파트·×N)
-    // Step 3(다음): 필름스트립 미리보기
-    renderGasaZone(song, card);  // 가사 확인·편집 + 원본 악보
+    renderArrange(song, card);     // 편곡 (담기·파트·×N)
+    renderFilmstrip(song, card);   // 이대로 PPT 미리보기 (필름스트립)
+    renderGasaZone(song, card);    // 가사 확인·편집 + 원본 악보
+  }
+
+  /* ---------- 이대로 PPT 미리보기 (필름스트립) ---------- */
+
+  // arrange → 슬라이드 시퀀스 (generate.bandFromArrange와 동일 규칙, D29)
+  function songSlides(song) {
+    const m = byId(song);
+    const out = [];
+    ensureArrange(song).forEach(pass => (pass.items || []).forEach(it => {
+      if (it.gap || it.memo != null) return;
+      const b = m[it.block]; if (!b) return;
+      const times = it.times || 1;
+      const pages = blockPages(b);
+      if (pages.length <= 1) {
+        const lyr = (pages[0] || []).slice();
+        if (times > 1 && lyr.length) lyr[lyr.length - 1] = lyr[lyr.length - 1] + ' (×' + times + ')';
+        out.push({ lyrics: lyr, cap: b.label + (times > 1 ? ' ×' + times : '') });
+      } else {
+        for (let r = 0; r < times; r++) pages.forEach(p => out.push({ lyrics: p, cap: b.label + (times > 1 ? ' ×' + (r + 1) : '') }));
+      }
+    }));
+    return out;
+  }
+
+  function filmThumb(lines) {
+    const t = document.createElement('div'); t.className = 'film-thumb';
+    const g = document.createElement('div'); g.className = 'film-green';
+    const band = document.createElement('div'); band.className = 'film-band';
+    (lines || []).slice(0, 2).forEach(tx => { const d = document.createElement('div'); d.className = 'film-line'; d.textContent = tx; band.appendChild(d); });
+    t.append(g, band); return t;
+  }
+
+  function fitFilm(root) {
+    root.querySelectorAll('.film-line').forEach(l => {
+      if (!l.clientWidth) return;
+      let s = 11; l.style.fontSize = s + 'px';
+      while (l.scrollWidth > l.clientWidth && s > 6) { s -= 0.5; l.style.fontSize = s + 'px'; }
+    });
+  }
+
+  function renderFilmstrip(song, card) {
+    const slides = songSlides(song);
+    if (!slides.length) return;
+    const zone = document.createElement('div'); zone.className = 'so-zone';
+    const zt = document.createElement('div'); zt.className = 'so-zt';
+    zt.innerHTML = '<span class="so-zk"></span>이대로 PPT 미리보기 <small>' + slides.length + '장 · 편곡·×N 반영</small>';
+    zone.appendChild(zt);
+    const strip = document.createElement('div'); strip.className = 'ofilm';
+    slides.forEach((sl, i) => {
+      const group = document.createElement('div'); group.className = 'ofilm-group';
+      const thumbs = document.createElement('div'); thumbs.className = 'ofilm-thumbs';
+      thumbs.appendChild(filmThumb(sl.lyrics));
+      group.appendChild(thumbs);
+      const cap = document.createElement('div'); cap.className = 'ofilm-cap'; cap.textContent = (i + 1) + '. ' + sl.cap;
+      group.appendChild(cap);
+      strip.appendChild(group);
+    });
+    zone.appendChild(strip);
+    card.appendChild(zone);
   }
 
   /* ---------- 가사 확인·편집 + 원본 악보 (검수 기능 흡수, 2026-07-05) ---------- */
@@ -583,9 +642,26 @@ const SetOrder = (function () {
     zone.appendChild(zt);
 
     if (!(song.blocks || []).length) {
-      const empty = document.createElement('p'); empty.className = 'review-tip';
-      empty.textContent = '가사가 없습니다 — "곡 목록"에서 먼저 추출/붙여넣기 하세요.';
-      zone.appendChild(empty); card.appendChild(zone); return;
+      // 붙여넣기 우회로 (검수 화면 흡수) — 가사 붙여넣고 정리하면 절/후렴 분할
+      const tip = document.createElement('p'); tip.className = 'review-tip';
+      tip.innerHTML = '가사를 붙여넣고 “정리하기”를 누르면 절/후렴으로 나눠 드립니다. <b>절 사이를 빈 줄로 띄우면 더 정확</b>.';
+      zone.appendChild(tip);
+      const ta = document.createElement('textarea'); ta.className = 'choir-ta'; ta.rows = 6;
+      ta.placeholder = '여기에 가사를 붙여넣으세요…';
+      zone.appendChild(ta);
+      const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-wide'; btn.style.marginTop = '10px';
+      btn.textContent = '정리하기';
+      btn.addEventListener('click', async () => {
+        const text = ta.value.trim(); if (!text) return;
+        btn.disabled = true; btn.textContent = '정리 중…';
+        try {
+          const r = CONFIG.USE_SERVER ? await API.call('extractText', { text })
+            : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
+          Songs.applyExtract(song, r); song.arrange = null; SongStore.save(); SongStore.pushNow(song); render();
+        } catch (e) { btn.disabled = false; btn.textContent = '정리하기'; alert('정리에 실패했습니다: ' + (e.message || '')); }
+      });
+      zone.appendChild(btn);
+      card.appendChild(zone); return;
     }
     song.blocks.forEach(block => {
       const bc = document.createElement('div'); bc.className = 'block-card';
@@ -674,6 +750,7 @@ const SetOrder = (function () {
 
     fitThumbs(list);
     fitLines(list);   // 펼친 곡의 가사 줄 폭 맞춤(잘림 방지)
+    fitFilm(list);    // 필름스트립 가사 폭 맞춤
   }
 
   /* ---------- 진입/이벤트 ---------- */
@@ -684,6 +761,15 @@ const SetOrder = (function () {
     if (!expandedIds.size && songs.length) expandedIds.add(songs[0].id);
     render();
     KZ.show('setorder');
+  }
+
+  // 특정 곡을 펼친 채로 진입 (곡 목록 "검수하기" 드릴인) — 검수 화면 흡수
+  function openSong(id) {
+    expandedIds.add(id);
+    render();
+    KZ.show('setorder');
+    const card = document.querySelector('#setorder-list .so-card[data-id="' + id + '"]');
+    if (card) card.scrollIntoView({ block: 'start' });
   }
 
   function init() {
@@ -737,5 +823,5 @@ const SetOrder = (function () {
     });
   }
 
-  return { init, open, render };
+  return { init, open, openSong, render };
 })();
