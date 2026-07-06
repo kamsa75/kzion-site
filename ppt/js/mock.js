@@ -14,21 +14,21 @@ const MOCK = {
     pastor: { label: '목사님' },
     praise: { label: '찬양팀' },
     choir:  { label: '성가대' },
-    admin:  { label: '관리자(본부장)' }
+    admin:  { label: '관리자' }
   },
 
   // 이번 주 문서의 3섹션 상태 (예시)
   sections: [
     {
-      id: 'pastor', name: '목사님 섹션', owner: 'pastor', status: 'progress',
+      id: 'pastor', name: '목사님', owner: 'pastor', status: 'progress',
       items: ['설교 제목·본문 구절', '성경 본문 붙여넣기', '함께 읽는 구절', '기도 담당자명', '예배 중 찬송가 가사 입력']
     },
     {
-      id: 'praise', name: '찬양팀 섹션', owner: 'praise', status: 'done',
+      id: 'praise', name: '찬양팀', owner: 'praise', status: 'done',
       items: ['악보 업로드 2곡', '가사 검수 완료', '부르는 순서 지정 완료']
     },
     {
-      id: 'choir', name: '성가대 섹션', owner: 'choir', status: 'empty',
+      id: 'choir', name: '성가대', owner: 'choir', status: 'empty',
       items: ['곡명 입력', '악보 업로드', '가사 검수', '부르는 순서 지정']
     }
   ],
