@@ -33,13 +33,19 @@ const Generate = (function () {
   function getOrder(s) { return s.order || s.ord || []; }
 
   // breaks 기준 2줄 슬라이드 묶기 (review.js blockSlides와 동일)
+  // breaks로 1차 묶고, 밴드=2줄이라 3줄+는 2줄씩 자동 분할 (가사 유실·밴드 넘침 방지, 2026-07-06)
   function blockSlides(block) {
-    const groups = [[0]];
-    for (let i = 1; i < (block.lines || []).length; i++) {
-      if (block.breaks && block.breaks[i - 1]) groups.push([i]);
-      else groups[groups.length - 1].push(i);
+    const n = (block.lines || []).length;
+    if (!n) return [];
+    const breaks = block.breaks || [];
+    const raw = [[0]];
+    for (let i = 1; i < n; i++) {
+      if (breaks[i - 1]) raw.push([i]);
+      else raw[raw.length - 1].push(i);
     }
-    return groups;
+    const out = [];
+    raw.forEach(g => { for (let i = 0; i < g.length; i += 2) out.push(g.slice(i, i + 2)); });
+    return out;
   }
 
   // 곡/찬송가 블록 → 밴드 슬라이드. order(부르는 순서) 있으면 그대로, 없으면 블록 순서

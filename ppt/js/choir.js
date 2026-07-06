@@ -164,7 +164,7 @@ const Choir = (function () {
       if (over) {
         const warn = document.createElement('div');
         warn.className = 'block-warn';
-        warn.textContent = '한 슬라이드에 3줄 이상 — 줄 사이를 눌러 나눠주세요.';
+        warn.textContent = '3줄 이상 묶였습니다 — 자동으로 2줄씩 나눠 슬라이드가 만들어집니다(가사 안 잃음).';
         bcard.appendChild(warn);
       }
 

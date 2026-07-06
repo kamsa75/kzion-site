@@ -26,26 +26,28 @@ const SetOrder = (function () {
     return m;
   }
 
-  // 블록의 슬라이드(페이지) 그룹 수 — review.blockSlides와 동일 규칙(breaks 기준 2줄 묶음)
-  function blockSlideCount(block) {
+  // 블록 → 슬라이드 그룹(줄 인덱스 배열들). breaks로 1차 묶고, 밴드=2줄이라 3줄+는 2줄씩 자동 분할
+  // (사용자가 여러 줄을 한 슬라이드로 묶어도 가사를 잃지 않도록 — 2026-07-06 버그픽스)
+  function blockSlideGroups(block) {
     const lines = block.lines || [];
-    if (!lines.length) return 0;
     const breaks = block.breaks || [];
-    let groups = 1;
-    for (let i = 1; i < lines.length; i++) if (breaks[i - 1]) groups++;
-    return groups;
+    const raw = [[]];
+    lines.forEach((_, i) => {
+      if (i > 0 && breaks[i - 1]) raw.push([]);
+      raw[raw.length - 1].push(i);
+    });
+    const out = [];
+    raw.forEach(g => { for (let i = 0; i < g.length; i += 2) out.push(g.slice(i, i + 2)); });
+    return out.filter(g => g.length);
   }
 
-  // 블록을 페이지 그룹(각 그룹 = 줄 텍스트 배열)으로 — 썸네일용
+  function blockSlideCount(block) {
+    return (block.lines || []).length ? blockSlideGroups(block).length : 0;
+  }
+
+  // 블록을 페이지 그룹(각 그룹 = 줄 텍스트 배열, 각 ≤2줄)으로 — 썸네일·미리보기용
   function blockPages(block) {
-    const lines = block.lines || [];
-    const breaks = block.breaks || [];
-    const groups = [[]];
-    lines.forEach((ln, i) => {
-      if (i > 0 && breaks[i - 1]) groups.push([]);
-      groups[groups.length - 1].push(ln.text);
-    });
-    return groups.filter(g => g.length);
+    return blockSlideGroups(block).map(g => g.map(i => (block.lines[i] || {}).text || ''));
   }
 
   // ×N 페이지 규칙(D29): 1페이지 블록 → 1장(한 장 띄워두고 반복) / 여러 페이지 → 실제 복제(pages×N)
@@ -701,7 +703,7 @@ const SetOrder = (function () {
       bc.appendChild(label);
       if (overflowWarn(block)) {
         const w = document.createElement('div'); w.className = 'block-warn';
-        w.textContent = '한 슬라이드에 3줄 이상 — 줄 사이를 눌러 나눠주세요.'; bc.appendChild(w);
+        w.textContent = '3줄 이상 묶였습니다 — 밴드는 2줄이라 자동으로 2줄씩 나눠 슬라이드가 만들어집니다(가사 안 잃음).'; bc.appendChild(w);
       }
       block.lines.forEach((_, li) => {
         bc.appendChild(lineNode(song, block, li));
