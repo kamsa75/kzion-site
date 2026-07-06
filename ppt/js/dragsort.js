@@ -26,6 +26,7 @@ const DragSort = (function () {
     else { scope.classList.remove('ds-editing'); hideDone(opts.group); }
 
     let dragEl = null, pid = null, sx = 0, sy = 0, pressTimer = null, mode = null;
+    let offX = 0, offY = 0, ph = null;   // 손가락-박스 간격, 빈 자리(플레이스홀더)
 
     const nearestContainer = (x, y) => {
       let best = null, bd = Infinity;
@@ -39,26 +40,39 @@ const DragSort = (function () {
       return best;
     };
 
+    // 드래그 중인 박스를 손가락 위치로 이동 + 빈 자리(플레이스홀더)를 드롭 위치로
     const reposition = (x, y) => {
-      let cont = (document.elementFromPoint(x, y) || {}).closest
-        ? document.elementFromPoint(x, y).closest(opts.container) : null;
+      dragEl.style.left = (x - offX) + 'px';
+      dragEl.style.top = (y - offY) + 'px';
+      const under = document.elementFromPoint(x, y);   // dragEl은 pointer-events:none → 아래 요소 잡힘
+      let cont = under && under.closest ? under.closest(opts.container) : null;
       if (!cont || !scope.contains(cont)) cont = nearestContainer(x, y);
       if (!cont) return;
       const items = list(opts.item, cont).filter(el => el !== dragEl);
       let ref = null;
       for (const el of items) {
+        if (el === ph) continue;
         const r = el.getBoundingClientRect();
         if (y < r.top - 2) { ref = el; break; }                                   // 위쪽 행
         if (y <= r.bottom + 2 && x < r.left + r.width / 2) { ref = el; break; }    // 같은 행 왼쪽
       }
-      if (ref !== dragEl) cont.insertBefore(dragEl, ref);
+      cont.insertBefore(ph, ref);   // 빈 자리만 이동(박스는 손가락 따라 떠 있음)
     };
 
-    const beginDrag = (item) => {
+    // 박스를 '들어서' 손가락을 따라오게 하고, 원래 자리에 빈 자리(placeholder)를 둠
+    const beginDrag = (item, gx, gy) => {
       dragEl = item;
+      const r = item.getBoundingClientRect();
+      offX = gx - r.left; offY = gy - r.top;
+      ph = document.createElement('div');
+      ph.className = 'ds-ph';
+      ph.style.width = r.width + 'px'; ph.style.height = r.height + 'px';
+      item.parentNode.insertBefore(ph, item.nextSibling);   // 원래 자리에 빈 칸
       item.classList.add('ds-dragging');
+      item.style.width = r.width + 'px'; item.style.height = r.height + 'px';
+      item.style.left = r.left + 'px'; item.style.top = r.top + 'px';
       document.body.classList.add('ds-nosel');
-      try { item.setPointerCapture(pid); } catch (e) {}
+      try { scope.setPointerCapture(pid); } catch (e) {}
       if (navigator.vibrate) navigator.vibrate(8);
     };
 
@@ -68,7 +82,7 @@ const DragSort = (function () {
       scope.classList.add('ds-editing');
       showDone(opts);
       if (navigator.vibrate) navigator.vibrate(12);
-      beginDrag(item);
+      beginDrag(item, sx, sy);
     };
 
     scope.addEventListener('pointerdown', (e) => {
@@ -79,7 +93,7 @@ const DragSort = (function () {
       if (e.pointerType === 'mouse') { mode = 'mouse'; }           // 데스크탑: 이동하면 바로 드래그
       else {
         mode = 'touch';
-        if (isEditing(opts.group)) beginDrag(item);                // 이미 편집모드 → 바로 잡힘
+        if (isEditing(opts.group)) beginDrag(item, sx, sy);        // 이미 편집모드 → 바로 잡힘
         else pressTimer = setTimeout(() => { pressTimer = null; enterEditAndDrag(item); }, LP);  // 꾹 눌러 편집모드
       }
     });
@@ -91,7 +105,7 @@ const DragSort = (function () {
         if (mode === 'mouse' && far > 6) {
           const item = e.target.closest(opts.item) || document.elementFromPoint(sx, sy);
           const it = item && item.closest ? item.closest(opts.item) : null;
-          if (it) beginDrag(it);
+          if (it) beginDrag(it, e.clientX, e.clientY);
         } else if (mode === 'touch' && pressTimer && far > 10) {   // 꾹 누르기 전에 움직이면 = 스크롤
           clearTimeout(pressTimer); pressTimer = null;
         }
@@ -104,9 +118,12 @@ const DragSort = (function () {
     const finish = () => {
       if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
       if (dragEl) {
+        if (ph && ph.parentNode) { ph.parentNode.insertBefore(dragEl, ph); ph.parentNode.removeChild(ph); }
+        ph = null;
         dragEl.classList.remove('ds-dragging');
+        dragEl.style.width = dragEl.style.height = dragEl.style.left = dragEl.style.top = '';
         document.body.classList.remove('ds-nosel');
-        try { dragEl.releasePointerCapture(pid); } catch (e) {}
+        try { scope.releasePointerCapture(pid); } catch (e) {}
         dragEl = null; justDragged = Date.now();
         opts.commit();     // DOM 순서 → 데이터 반영 + 저장 + 렌더
       }
