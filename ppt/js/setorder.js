@@ -249,6 +249,7 @@ const SetOrder = (function () {
 
       const chips = document.createElement('div');
       chips.className = 'so-chips';
+      chips.dataset.part = pi;                 // 드래그 정렬: 이 컨테이너 = 몇 번째 파트
 
       if (!(pass.items || []).length) {
         const e = document.createElement('span');
@@ -280,8 +281,9 @@ const SetOrder = (function () {
         // A안: 컴팩트 칩(라벨·쪽수·×N·스테퍼). 탭 = 실제 페이지 미리보기
         const chip = document.createElement('div');
         chip.className = 'so-chip' + (b.type === 'chorus' ? ' chorus' : '');
-        chip.title = '탭하면 실제 페이지 미리보기';
-        chip.addEventListener('click', () => openPreview(b));
+        chip.title = '탭하면 미리보기 · 꾹 눌러 순서 이동';
+        chip._item = it;                         // 드래그 정렬: 이 칩의 데이터
+        chip.addEventListener('click', () => { if (DragSort.suppressClick()) return; openPreview(b); });
 
         const lab = document.createElement('div');
         lab.className = 'so-chip-lab';
@@ -377,6 +379,25 @@ const SetOrder = (function () {
 
     body.appendChild(pal);
     card.appendChild(body);
+
+    // 드래그로 칩 순서 정렬(파트 넘나들기) — 데스크탑 바로끌기 / 모바일 꾹눌러-흔들-완료
+    DragSort.bind(body, {
+      container: '.so-chips', item: '.so-chip', ignore: 'button', group: 'arr-' + song.id,
+      commit: () => commitArrange(song, body),
+      rerender: render
+    });
+  }
+
+  // 드래그 후 DOM 순서 → arrange 데이터로 반영(파트별 재구성)
+  function commitArrange(song, body) {
+    const arr = song.arrange || [];
+    body.querySelectorAll('.so-chips').forEach(cont => {
+      const pi = parseInt(cont.dataset.part, 10);
+      if (!arr[pi]) return;
+      arr[pi].items = Array.from(cont.querySelectorAll('.so-chip')).map(ch => ch._item).filter(Boolean);
+    });
+    for (let i = arr.length - 1; i >= 0; i--) if (!(arr[i].items || []).length && arr.length > 1) arr.splice(i, 1);
+    syncStatus(song); SongStore.save(); render();
   }
 
   /* ---------- 접힘 요약 / 펼침 ---------- */

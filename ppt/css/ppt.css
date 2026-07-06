@@ -427,6 +427,18 @@ input{font-family:inherit;}
 .divider.cut::before, .divider.cut::after{border-top:2px solid var(--ui-gold);}
 .divider.cut .div-mark{color:var(--ui-gold);}
 .cut-hint{color:var(--ui-gold); font-style:normal;}
+
+/* 공용 드래그 정렬 — 흔들 편집(모바일)·드래그·완료 버튼 */
+@keyframes ds-jiggle{0%{transform:rotate(-1.1deg);}50%{transform:rotate(1.1deg);}100%{transform:rotate(-1.1deg);}}
+.ds-editing .so-chip{animation:ds-jiggle .26s ease-in-out infinite;}
+.ds-editing .so-chip:nth-child(even){animation-delay:-.13s;}
+.so-chip.ds-dragging{animation:none !important; opacity:.92; transform:scale(1.05);
+  box-shadow:0 8px 22px rgba(20,24,31,.22); z-index:5; cursor:grabbing;}
+body.ds-nosel, body.ds-nosel *{user-select:none; -webkit-user-select:none;}
+.ds-done{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom));
+  z-index:80; background:var(--ui-gold); color:#2b1f0e; font-size:15px; font-weight:800; border:none;
+  border-radius:999px; padding:12px 30px; box-shadow:0 6px 20px rgba(0,0,0,.28); -webkit-tap-highlight-color:transparent;}
+.ds-editing{border-radius:12px;}
 @media(hover:hover){
   .divider:not(.cut):hover::before, .divider:not(.cut):hover::after{border-top-color:var(--ui-gold);}
 }
