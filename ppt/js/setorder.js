@@ -193,26 +193,14 @@ const SetOrder = (function () {
     blockPages(block).forEach((lines, i) => {
       const item = document.createElement('div');
       item.className = 'pv-item';
-      const slide = document.createElement('div');
-      slide.className = 'pv-slide';
-      const green = document.createElement('div');
-      green.className = 'pv-green';
-      const band = document.createElement('div');
-      band.className = 'pv-band';
-      lines.forEach(tx => {
-        const d = document.createElement('div');
-        d.className = 'pv-line';
-        d.textContent = tx;   // 실제 가사 전체 (자르지 않음)
-        band.appendChild(d);
-      });
-      slide.append(green, band);
+      item.appendChild(bandSlideNode(lines, 'full'));   // 필름스트립과 동일 렌더(공용)
       const cap = document.createElement('div');
       cap.className = 'pv-cap';
       cap.textContent = (i + 1) + '쪽';
-      item.append(slide, cap);
       body.appendChild(item);
     });
     modal.hidden = false;
+    fitBand(body);   // 모달도 한 줄로 폭 맞춤(필름스트립과 동일)
   }
 
   /* ---------- 곡 순서 변경 = PPT 순서 (D28) — ▲▼ 버튼 (모바일 확실) ---------- */
@@ -476,21 +464,25 @@ const SetOrder = (function () {
     return out;
   }
 
-  function filmThumb(lines) {
-    const t = document.createElement('div'); t.className = 'film-thumb';
-    const g = document.createElement('div'); g.className = 'film-green';
-    const band = document.createElement('div'); band.className = 'film-band';
-    (lines || []).slice(0, 2).forEach(tx => { const d = document.createElement('div'); d.className = 'film-line'; d.textContent = tx; band.appendChild(d); });
+  // ★ 크로마 밴드 슬라이드 미리보기 — 필름스트립·탭 모달 공용(항상 일치). 여기 하나만 고치면 둘 다 반영.
+  //   각 가사줄 = 한 줄(프로젝터는 넓어 안 넘침) → 폭을 넘으면 글자만 줄여 한 줄로.
+  function bandSlideNode(lines, variant) {
+    const t = document.createElement('div'); t.className = 'bandslide ' + (variant || 'thumb');
+    const g = document.createElement('div'); g.className = 'bandslide-green';
+    const band = document.createElement('div'); band.className = 'bandslide-band';
+    (lines || []).forEach(tx => { const d = document.createElement('div'); d.className = 'bandslide-line'; d.textContent = tx; band.appendChild(d); });
     t.append(g, band); return t;
   }
-
-  function fitFilm(root) {
-    root.querySelectorAll('.film-line').forEach(l => {
+  function fitBand(root) {
+    root.querySelectorAll('.bandslide-line').forEach(l => {
       if (!l.clientWidth) return;
-      let s = 11; l.style.fontSize = s + 'px';
-      while (l.scrollWidth > l.clientWidth && s > 6) { s -= 0.5; l.style.fontSize = s + 'px'; }
+      let s = parseFloat(getComputedStyle(l).fontSize) || 11;
+      const min = s * 0.5;
+      l.style.fontSize = s + 'px';
+      while (l.scrollWidth > l.clientWidth && s > min) { s -= 0.5; l.style.fontSize = s + 'px'; }
     });
   }
+  function filmThumb(lines) { return bandSlideNode(lines, 'thumb'); }   // 필름스트립용(공용 렌더 재사용)
 
   function renderFilmstrip(song, card) {
     const slides = songSlides(song);
@@ -781,10 +773,15 @@ const SetOrder = (function () {
       list.appendChild(card);
     });
 
-    fitThumbs(list);
-    fitLines(list);   // 펼친 곡의 가사 줄 폭 맞춤(잘림 방지)
-    fitFilm(list);    // 필름스트립 가사 폭 맞춤
+    fitVisible();     // 화면이 보일 때만 유효(폭 측정). open/openSong에선 show 후 재호출
     window.scrollTo(0, scrollY);   // 스크롤 위치 복원(담기 등 편집 후 튐 방지)
+  }
+
+  // 가사·필름스트립 폭 맞춤(잘림 방지) — 화면이 표시된 뒤라야 폭을 잼
+  function fitVisible() {
+    const list = $('#setorder-list');
+    if (!list) return;
+    fitThumbs(list); fitLines(list); fitBand(list);
   }
 
   /* ---------- 진입/이벤트 ---------- */
@@ -795,13 +792,15 @@ const SetOrder = (function () {
     if (!expandedIds.size && songs.length) expandedIds.add(songs[0].id);
     render();
     KZ.show('setorder');
+    fitVisible();   // 화면 표시 후 폭 맞춤(숨김 상태 render에선 못 잼)
   }
 
-  // 특정 곡을 펼친 채로 진입 (곡 목록 "검수하기" 드릴인) — 검수 화면 흡수
+  // 특정 곡을 펼친 채로 진입 (곡 목록 "가사·편곡 열기" 드릴인) — 검수 화면 흡수
   function openSong(id) {
     expandedIds.add(id);
     render();
     KZ.show('setorder');
+    fitVisible();
     const card = document.querySelector('#setorder-list .so-card[data-id="' + id + '"]');
     if (card) card.scrollIntoView({ block: 'start' });
   }
