@@ -403,8 +403,8 @@ input{font-family:inherit;}
 .block-label{font-size:13px; font-weight:800; color:var(--ui-gold); margin-bottom:6px; letter-spacing:.04em;
   background:none; border:none; padding:2px 0; cursor:pointer; text-align:left; display:inline-block;}
 @media(hover:hover){ .block-label:hover{text-decoration:underline;} }
-.block-label-input{font-size:13px; font-weight:800; color:var(--ui-gold); letter-spacing:.04em; margin-bottom:6px;
-  border:1.5px solid var(--ui-gold); border-radius:6px; padding:3px 8px; width:96px; outline:none;}
+.block-label-input{font-size:16px; font-weight:800; color:var(--ui-gold); letter-spacing:.04em; margin-bottom:6px;
+  border:1.5px solid var(--ui-gold); border-radius:6px; padding:3px 8px; width:110px; outline:none;}
 .block-warn{font-size:12px; color:#8A6D1F; background:var(--ui-warn-bg); padding:7px 10px; border-radius:8px; margin-bottom:8px;}
 .line-row{padding:1px 0;}
 .line-text{
@@ -575,7 +575,7 @@ input{font-family:inherit;}
 .so-info-lbl{font-size:12px; font-weight:800; color:var(--ui-sub);}
 .so-field{display:flex; align-items:center; gap:8px;}
 .so-field-lbl{flex:0 0 auto; width:34px; font-size:12px; font-weight:800; color:var(--ui-sub);}
-.so-title-input{flex:1; min-width:0; font-size:15px; font-weight:800; color:var(--ui-ink);
+.so-title-input{flex:1; min-width:0; font-size:16px; font-weight:800; color:var(--ui-ink);
   padding:9px 12px; border:1.5px solid var(--ui-line); border-radius:9px; background:#F6F4EF;}
 .so-title-input:focus{outline:none; border-color:var(--ui-gold); background:#fff;}
 /* 이대로 PPT 미리보기 필름스트립 = 줄바꿈(가로 스크롤 없이 한 페이지에 다) */
@@ -604,14 +604,17 @@ input{font-family:inherit;}
 .so-head{display:flex; align-items:center; gap:8px;}
 .so-grip{cursor:grab; color:var(--ui-sub); font-size:16px; padding:2px 4px; touch-action:none; -webkit-tap-highlight-color:transparent;}
 .so-move{display:flex; flex-direction:column; gap:3px; flex:0 0 auto;}
-.so-move-btn{width:32px; height:22px; border:1px solid var(--ui-line); border-radius:6px;
+.so-move-btn{width:34px; height:26px; border:1px solid var(--ui-line); border-radius:6px;
   background:var(--ui-card); color:var(--ui-ink); font-size:11px; font-weight:800; line-height:1;
   display:flex; align-items:center; justify-content:center; -webkit-tap-highlight-color:transparent;}
+/* iOS 탭 회색 깜빡임 억제 (클릭 가능한 div/버튼) */
+.so-pass, .divider, .line-text, .block-label, .so-toggle, .so-chip-x, .so-step-btn, .so-add, .so-add-pass{
+  -webkit-tap-highlight-color:transparent;}
 .so-move-btn:disabled{opacity:.28;}
 .so-move-btn:active:not(:disabled){transform:scale(.9); background:var(--ui-gold-soft); border-color:var(--ui-gold);}
 .so-num{font-weight:800; color:var(--ui-sub); font-size:14px;}
 .so-title{font-weight:800; font-size:15px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.so-key{width:56px; flex:0 0 auto; font-size:13px; font-weight:700; text-align:center; padding:6px 6px;
+.so-key{width:64px; flex:0 0 auto; font-size:16px; font-weight:700; text-align:center; padding:6px 6px;
   border:1px solid var(--ui-line); border-radius:8px; background:#F6F4EF; color:var(--ui-ink);}
 .so-key:focus{border-color:var(--ui-gold); background:#fff; outline:none;}
 .so-count{flex:0 0 auto; font-size:12px; font-weight:800; color:var(--ui-gold);}
@@ -671,7 +674,7 @@ input{font-family:inherit;}
 .kakao-sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;}
 .kakao-sheet-title{font-size:17px; font-weight:800;}
 .kakao-sheet-tip{font-size:12px; color:var(--ui-sub); margin:0 0 10px; line-height:1.5;}
-.kakao-text{width:100%; box-sizing:border-box; font-size:14px; font-weight:600; line-height:1.7;
+.kakao-text{width:100%; box-sizing:border-box; font-size:16px; font-weight:600; line-height:1.7;
   color:var(--ui-ink); background:var(--ui-card); border:1px solid var(--ui-line); border-radius:12px;
   padding:12px 14px; resize:vertical; margin-bottom:12px; font-family:inherit;}
 .kakao-text:focus{outline:none; border-color:var(--ui-gold);}
@@ -720,7 +723,7 @@ input{font-family:inherit;}
 .choir-title-input{width:100%; box-sizing:border-box; font-size:16px; font-weight:800; color:var(--ui-ink);
   padding:11px 13px; border:1.5px solid var(--ui-line); border-radius:11px; background:#F6F4EF; margin-bottom:13px;}
 .choir-title-input:focus{outline:none; border-color:var(--ui-gold); background:#fff;}
-.choir-ta{width:100%; box-sizing:border-box; min-height:96px; font-size:14px; font-weight:600; line-height:1.7;
+.choir-ta{width:100%; box-sizing:border-box; min-height:96px; font-size:16px; font-weight:600; line-height:1.7;
   color:var(--ui-ink); padding:11px 13px; border:1.5px solid var(--ui-line); border-radius:11px; background:#fff;
   resize:vertical; font-family:inherit;}
 .choir-ta:focus{outline:none; border-color:var(--ui-gold);}
