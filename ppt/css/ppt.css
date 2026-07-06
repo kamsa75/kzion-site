@@ -560,6 +560,19 @@ input{font-family:inherit;}
 .setorder-total{font-size:12px; font-weight:800; color:#4a2e0c; background:#EFE3CC; padding:5px 12px; border-radius:999px;}
 .setorder-list{display:flex; flex-direction:column; gap:12px;}
 .so-card{background:var(--ui-card); border:1px solid var(--ui-line); border-radius:14px; padding:12px 14px;}
+.so-card.open{border-color:var(--ui-gold); box-shadow:0 3px 14px rgba(201,166,107,.14);}
+.so-head{cursor:pointer; -webkit-tap-highlight-color:transparent;}
+.so-toggle{flex:0 0 auto; font-size:12px; font-weight:800; color:var(--ui-sub);
+  border:1px solid var(--ui-line); border-radius:8px; padding:5px 10px; background:#fff;}
+.so-card.open .so-toggle{color:var(--ui-gold); border-color:var(--ui-gold); background:var(--ui-gold-soft);}
+/* 접힘 요약 칩 */
+.so-sum{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+.so-sum-chip{border:1.5px solid var(--ui-line); background:#fff; border-radius:9px; padding:4px 10px; font-size:12px; font-weight:800; color:var(--ui-ink);}
+.so-sum-chip.c{border-color:var(--ui-gold); background:#FFF8EC;}
+.so-sum-chip small{font-weight:700; color:var(--ui-sub);}
+/* 펼침 곡 정보(키) */
+.so-info{display:flex; align-items:center; gap:8px; margin-top:12px;}
+.so-info-lbl{font-size:12px; font-weight:800; color:var(--ui-sub);}
 .so-card.so-dragging{opacity:.85; border-color:var(--ui-gold); box-shadow:0 6px 18px rgba(20,24,31,.12);}
 .so-head{display:flex; align-items:center; gap:8px;}
 .so-grip{cursor:grab; color:var(--ui-sub); font-size:16px; padding:2px 4px; touch-action:none; -webkit-tap-highlight-color:transparent;}

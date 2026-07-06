@@ -11,8 +11,10 @@
 const SetOrder = (function () {
   const $ = (sel) => document.querySelector(sel);
 
-  // 곡별 '지금 담는 회차' 인덱스 (렌더 사이 유지, 저장 안 함)
+  // 곡별 '지금 담는 파트' 인덱스 (렌더 사이 유지, 저장 안 함)
   const activePass = {};
+  // 펼친 곡 id (아코디언 — 펼치면 편곡·필름스트립·가사·원본이 한 카드에)
+  const expandedIds = new Set();
   // 편집한 콘티 텍스트 저장(기기 로컬 — 다시 열어도 유지). 큐를 여기서만 관리(D30 갱신)
   const CONTI_KEY = 'kzppt_conti_text';
 
@@ -252,7 +254,7 @@ const SetOrder = (function () {
 
       const n = document.createElement('span');
       n.className = 'so-pass-n';
-      n.textContent = (pi + 1) + '회차';
+      n.textContent = (pi + 1) + '파트';
       row.appendChild(n);
 
       const chips = document.createElement('div');
@@ -349,7 +351,7 @@ const SetOrder = (function () {
     pal.className = 'so-palette';
     const plabel = document.createElement('span');
     plabel.className = 'so-palette-label';
-    plabel.textContent = (active + 1) + '회차에 담기';
+    plabel.textContent = (active + 1) + '파트에 담기';
     pal.appendChild(plabel);
 
     (song.blocks || []).forEach(b => {
@@ -373,8 +375,8 @@ const SetOrder = (function () {
     const addPass = document.createElement('button');
     addPass.type = 'button';
     addPass.className = 'so-add-pass';
-    addPass.textContent = '+ 회차';
-    addPass.title = '새 회차(줄) 추가';
+    addPass.textContent = '+ 파트';
+    addPass.title = '새 파트 추가';
     addPass.addEventListener('click', () => {
       arr.push({ items: [] });
       activePass[song.id] = arr.length - 1;
@@ -385,6 +387,51 @@ const SetOrder = (function () {
 
     body.appendChild(pal);
     card.appendChild(body);
+  }
+
+  /* ---------- 접힘 요약 / 펼침 ---------- */
+
+  function renderSummary(song, card) {
+    const arr = ensureArrange(song);
+    const m = byId(song);
+    const sum = document.createElement('div');
+    sum.className = 'so-sum';
+    let any = false;
+    arr.forEach(pass => (pass.items || []).forEach(it => {
+      if (it.gap || it.memo != null) return;
+      const b = m[it.block]; if (!b) return;
+      any = true;
+      const chip = document.createElement('span');
+      chip.className = 'so-sum-chip' + (b.type === 'chorus' ? ' c' : '');
+      const t = document.createElement('b'); t.textContent = b.label;
+      const s = document.createElement('small');
+      s.textContent = ' ' + blockSlideCount(b) + '쪽' + ((it.times || 1) > 1 ? ' ×' + it.times : '');
+      chip.append(t, s);
+      sum.appendChild(chip);
+    }));
+    if (!any) {
+      sum.className = 'so-summary so-summary-empty';
+      sum.textContent = (song.blocks && song.blocks.length)
+        ? '편곡 미정 — 펼쳐서 담기'
+        : '가사 없음 — "곡 목록"에서 먼저 추출/붙여넣기';
+    }
+    card.appendChild(sum);
+  }
+
+  function renderExpanded(song, card) {
+    // 키 입력 (펼침에만 — B안). 콘티 텍스트의 "(G)" 표기는 유지
+    const info = document.createElement('div');
+    info.className = 'so-info';
+    const kl = document.createElement('span'); kl.className = 'so-info-lbl'; kl.textContent = '키';
+    const key = document.createElement('input');
+    key.className = 'so-key'; key.type = 'text'; key.placeholder = '예: G';
+    key.value = song.key || '';
+    key.addEventListener('input', () => { song.key = key.value.trim(); SongStore.save(); });
+    info.append(kl, key);
+    card.appendChild(info);
+
+    renderArrange(song, card);   // 편곡 (담기·파트·×N)
+    // Step 2·3(다음 단계): 필름스트립 미리보기 · 가사 편집 · 원본 악보
   }
 
   /* ---------- 렌더 ---------- */
@@ -404,8 +451,9 @@ const SetOrder = (function () {
     }
 
     songs.forEach((song, i) => {
+      const expanded = expandedIds.has(song.id);
       const card = document.createElement('div');
-      card.className = 'so-card';
+      card.className = 'so-card' + (expanded ? ' open' : '');
       card.dataset.id = song.id;
 
       const head = document.createElement('div');
@@ -416,11 +464,11 @@ const SetOrder = (function () {
       const up = document.createElement('button');
       up.type = 'button'; up.className = 'so-move-btn'; up.textContent = '▲'; up.title = '위로';
       up.disabled = (i === 0);
-      up.addEventListener('click', () => moveSong(i, -1));
+      up.addEventListener('click', (e) => { e.stopPropagation(); moveSong(i, -1); });
       const down = document.createElement('button');
       down.type = 'button'; down.className = 'so-move-btn'; down.textContent = '▼'; down.title = '아래로';
       down.disabled = (i === songs.length - 1);
-      down.addEventListener('click', () => moveSong(i, +1));
+      down.addEventListener('click', (e) => { e.stopPropagation(); moveSong(i, +1); });
       mv.append(up, down);
       const num = document.createElement('span');
       num.className = 'so-num';
@@ -428,19 +476,25 @@ const SetOrder = (function () {
       const title = document.createElement('span');
       title.className = 'so-title';
       title.textContent = song.name || '제목 미정';
-      const key = document.createElement('input');
-      key.className = 'so-key';
-      key.type = 'text';
-      key.placeholder = '키';
-      key.value = song.key || '';
-      key.addEventListener('input', () => { song.key = key.value.trim(); SongStore.save(); });
       const cnt = document.createElement('span');
       cnt.className = 'so-count';
       cnt.textContent = songSlideCount(song) + '장';
-      head.append(mv, num, title, key, cnt);
+      const tog = document.createElement('span');
+      tog.className = 'so-toggle';
+      tog.textContent = expanded ? '접기 ▴' : '펼치기 ▾';
+      head.append(mv, num, title, cnt, tog);
+      // 헤더(▲▼ 제외) 클릭 = 펼침/접힘
+      head.addEventListener('click', () => {
+        if (expanded) expandedIds.delete(song.id); else expandedIds.add(song.id);
+        render();
+      });
       card.appendChild(head);
 
-      renderArrange(song, card);
+      if (expanded) {
+        renderExpanded(song, card);   // 키·편곡·(다음 단계: 필름스트립·가사·원본)
+      } else {
+        renderSummary(song, card);    // 접힘 = 편곡 요약 칩
+      }
 
       list.appendChild(card);
     });
@@ -451,6 +505,9 @@ const SetOrder = (function () {
   /* ---------- 진입/이벤트 ---------- */
 
   function open() {
+    // 처음 들어오면 첫 곡을 펼쳐서 보여줌(빈 화면 방지)
+    const songs = SongStore.all();
+    if (!expandedIds.size && songs.length) expandedIds.add(songs[0].id);
     render();
     KZ.show('setorder');
   }
