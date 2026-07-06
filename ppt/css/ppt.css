@@ -570,9 +570,19 @@ input{font-family:inherit;}
 .so-sum-chip{border:1.5px solid var(--ui-line); background:#fff; border-radius:9px; padding:4px 10px; font-size:12px; font-weight:800; color:var(--ui-ink);}
 .so-sum-chip.c{border-color:var(--ui-gold); background:#FFF8EC;}
 .so-sum-chip small{font-weight:700; color:var(--ui-sub);}
-/* 펼침 곡 정보(키) */
-.so-info{display:flex; align-items:center; gap:8px; margin-top:12px;}
+/* 펼침 곡 정보(제목·키) */
+.so-info{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
 .so-info-lbl{font-size:12px; font-weight:800; color:var(--ui-sub);}
+.so-field{display:flex; align-items:center; gap:8px;}
+.so-field-lbl{flex:0 0 auto; width:34px; font-size:12px; font-weight:800; color:var(--ui-sub);}
+.so-title-input{flex:1; min-width:0; font-size:15px; font-weight:800; color:var(--ui-ink);
+  padding:9px 12px; border:1.5px solid var(--ui-line); border-radius:9px; background:#F6F4EF;}
+.so-title-input:focus{outline:none; border-color:var(--ui-gold); background:#fff;}
+/* 이대로 PPT 미리보기 필름스트립 = 줄바꿈(가로 스크롤 없이 한 페이지에 다) */
+.so-film{flex-wrap:wrap; overflow:visible;}
+.so-film .ofilm-group{flex:1 1 calc(50% - 6px); min-width:0;}
+.so-film .ofilm-thumbs{justify-content:center;}
+.so-film .film-thumb{width:100%; max-width:200px;}
 /* 펼침 존(가사·미리보기 섹션 제목) */
 .so-zone{margin-top:16px;}
 .so-zt{display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--ui-ink); margin:0 0 9px;}

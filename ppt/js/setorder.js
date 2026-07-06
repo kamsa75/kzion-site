@@ -419,20 +419,37 @@ const SetOrder = (function () {
   }
 
   function renderExpanded(song, card) {
-    // 키 입력 (펼침에만 — B안). 콘티 텍스트의 "(G)" 표기는 유지
+    // 곡 정보: 제목 + 키 (펼침에 항상 — 빈 곡도 여기서 제목 입력·수정)
     const info = document.createElement('div');
     info.className = 'so-info';
-    const kl = document.createElement('span'); kl.className = 'so-info-lbl'; kl.textContent = '키';
+
+    const f1 = document.createElement('div'); f1.className = 'so-field';
+    const tl = document.createElement('span'); tl.className = 'so-field-lbl'; tl.textContent = '제목';
+    const ti = document.createElement('input');
+    ti.className = 'so-title-input'; ti.type = 'text'; ti.placeholder = '곡 제목';
+    ti.value = song.name || '';
+    ti.addEventListener('input', () => {
+      song.name = ti.value.trim(); SongStore.save();
+      const h = card.querySelector('.so-title'); if (h) h.textContent = song.name || '제목 미정';
+    });
+    f1.append(tl, ti);
+
+    const f2 = document.createElement('div'); f2.className = 'so-field';
+    const kl = document.createElement('span'); kl.className = 'so-field-lbl'; kl.textContent = '키';
     const key = document.createElement('input');
     key.className = 'so-key'; key.type = 'text'; key.placeholder = '예: G';
     key.value = song.key || '';
     key.addEventListener('input', () => { song.key = key.value.trim(); SongStore.save(); });
-    info.append(kl, key);
+    f2.append(kl, key);
+
+    info.append(f1, f2);
     card.appendChild(info);
 
-    renderArrange(song, card);     // 편곡 (담기·파트·×N)
-    renderFilmstrip(song, card);   // 이대로 PPT 미리보기 (필름스트립)
-    renderGasaZone(song, card);    // 가사 확인·편집 + 원본 악보
+    if ((song.blocks || []).length) {
+      renderArrange(song, card);     // 편곡 (담기·파트·×N)
+      renderFilmstrip(song, card);   // 이대로 PPT 미리보기 (필름스트립)
+    }
+    renderGasaZone(song, card);      // 가사 확인·편집 + 원본 악보 (블록 없으면 붙여넣기 박스)
   }
 
   /* ---------- 이대로 PPT 미리보기 (필름스트립) ---------- */
@@ -480,7 +497,7 @@ const SetOrder = (function () {
     const zt = document.createElement('div'); zt.className = 'so-zt';
     zt.innerHTML = '<span class="so-zk"></span>이대로 PPT 미리보기 <small>' + slides.length + '장 · 편곡·×N 반영</small>';
     zone.appendChild(zt);
-    const strip = document.createElement('div'); strip.className = 'ofilm';
+    const strip = document.createElement('div'); strip.className = 'ofilm so-film';
     slides.forEach((sl, i) => {
       const group = document.createElement('div'); group.className = 'ofilm-group';
       const thumbs = document.createElement('div'); thumbs.className = 'ofilm-thumbs';
