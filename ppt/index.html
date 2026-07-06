@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=15">
+<link rel="stylesheet" href="css/ppt.css?v=16">
 </head>
 <body>
 
@@ -159,19 +159,33 @@
       </div>
       <button id="btn-kakao" class="btn btn-primary btn-wide kakao-btn">📋 콘티 순서 텍스트</button>
       <div id="setorder-list" class="setorder-list"></div>
-      <p class="dev-note">곡 왼쪽 ▲▼ 로 곡 순서(=PPT 순서)를 바꿉니다. 회차 줄을 눌러 담을 곳을 고르고, 블록 칩의 −/+ 로 반복(×N)을 정합니다. ✎메모·간주는 콘티에만 나오고 PPT엔 안 뜹니다.</p>
+      <p class="dev-note">곡 왼쪽 ▲▼ 로 곡 순서(=PPT 순서)를 바꿉니다. 회차 줄을 눌러 담을 곳을 고르고, 블록 칩의 −/+ 로 반복(×N)을 정합니다. 칩을 탭하면 실제 페이지 미리보기. 간주·멘트 같은 지시는 “콘티 순서 텍스트”에 직접 적으세요.</p>
     </main>
 
-    <!-- 카톡 순서 미리보기 (편집 가능) + 전체 복사 (D31) -->
+    <!-- 콘티 순서 미리보기 (편집 가능·저장) + 전체 복사 (D31) -->
     <div id="kakao-panel" class="kakao-panel" hidden>
       <div class="kakao-sheet">
         <div class="kakao-sheet-head">
           <span class="kakao-sheet-title">콘티 순서</span>
           <button id="btn-kakao-close" class="btn btn-ghost">닫기</button>
         </div>
-        <p class="kakao-sheet-tip">아래 내용을 고쳐도 됩니다. “전체 복사”를 눌러 단톡방에 붙여넣으세요.</p>
+        <p class="kakao-sheet-tip">여기에 <b>간주·멘트·키·크로스곡</b> 같은 지시를 자유롭게 적으세요. 적은 내용은 저장돼 다시 열어도 남습니다. “전체 복사”로 단톡방에 붙여넣기.</p>
         <textarea id="kakao-text" class="kakao-text" rows="12"></textarea>
-        <button id="btn-kakao-copy" class="btn btn-primary btn-wide">전체 복사</button>
+        <div class="kakao-actions">
+          <button id="btn-kakao-regen" class="btn btn-ghost">↻ 블록에서 다시 생성</button>
+          <button id="btn-kakao-copy" class="btn btn-primary">전체 복사</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 블록 페이지 미리보기 (칩 탭) — 실제 슬라이드처럼 전체 가사 -->
+    <div id="preview-modal" class="preview-modal" hidden>
+      <div class="preview-sheet">
+        <div class="preview-head">
+          <span id="preview-title" class="preview-title">미리보기</span>
+          <button id="btn-preview-close" class="btn btn-ghost">닫기</button>
+        </div>
+        <div id="preview-body" class="preview-body"></div>
       </div>
     </div>
   </section>
@@ -273,12 +287,12 @@
 <script src="js/template.js?v=1"></script>
 <script src="js/mock.js?v=4"></script>
 <script src="js/preview.js?v=6"></script>
-<script src="js/songs.js?v=14"></script>
+<script src="js/songs.js?v=15"></script>
 <script src="js/review.js?v=8"></script>
 <script src="js/pastor.js?v=4"></script>
 <script src="js/admin.js?v=4"></script>
 <script src="js/generate.js?v=8"></script>
-<script src="js/setorder.js?v=5"></script>
-<script src="js/app.js?v=9"></script>
+<script src="js/setorder.js?v=6"></script>
+<script src="js/app.js?v=10"></script>
 </body>
 </html>

@@ -25,6 +25,7 @@ const SongStore = (function () {
         .map(row => ({
           id: row.id,
           name: row.name,
+          role: row.role,          // 관리자 홈에서 역할별 곡 수 집계용
           status: row.status,
           blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks, crop}
           crop: row.blocks ? !!row.blocks.crop : false,

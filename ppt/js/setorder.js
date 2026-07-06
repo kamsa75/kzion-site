@@ -13,6 +13,8 @@ const SetOrder = (function () {
 
   // 곡별 '지금 담는 회차' 인덱스 (렌더 사이 유지, 저장 안 함)
   const activePass = {};
+  // 편집한 콘티 텍스트 저장(기기 로컬 — 다시 열어도 유지). 큐를 여기서만 관리(D30 갱신)
+  const CONTI_KEY = 'kzppt_conti_text';
 
   /* ---------- 블록/슬라이드 계산 ---------- */
 
@@ -129,16 +131,15 @@ const SetOrder = (function () {
       lines.push('');
       lines.push((i + 1) + '. ' + (s.name || '제목 미정') + (s.key ? ' (' + s.key + ')' : ''));
       const arr = ensureArrange(s);
+      // 블록만 자동 생성 — 간주·멘트 등 다이내믹 큐는 리더가 이 텍스트에 직접 타이핑(D30 갱신)
       const passStrs = arr.map(p => {
-        const toks = [], memos = [];
+        const toks = [];
         (p.items || []).forEach(it => {
-          if (it.memo != null) { if (it.memo) memos.push(it.memo); }
-          else if (it.gap) toks.push('(간주)');
-          else { const t = tm[it.block]; if (t) toks.push(t + ((it.times || 1) > 1 ? '×' + it.times : '')); }
+          if (it.gap || it.memo != null) return;
+          const t = tm[it.block];
+          if (t) toks.push(t + ((it.times || 1) > 1 ? '×' + it.times : ''));
         });
-        let str = toks.join('+');
-        if (memos.length) str += (str ? ' ' : '') + memos.join(' ');
-        return str;
+        return toks.join('+');
       }).filter(Boolean);
       if (passStrs.length) lines.push(passStrs.join(' / '));
     });
@@ -175,6 +176,39 @@ const SetOrder = (function () {
         l.style.fontSize = size + 'px';
       }
     });
+  }
+
+  /* ---------- 블록 페이지 미리보기 (칩 탭) — 실제 슬라이드처럼 전체 가사 ---------- */
+
+  function openPreview(block) {
+    const modal = $('#preview-modal');
+    const body = $('#preview-body');
+    if (!modal || !body) return;
+    $('#preview-title').textContent = (block.label || '블록') + ' · ' + blockSlideCount(block) + '쪽';
+    body.innerHTML = '';
+    blockPages(block).forEach((lines, i) => {
+      const item = document.createElement('div');
+      item.className = 'pv-item';
+      const slide = document.createElement('div');
+      slide.className = 'pv-slide';
+      const green = document.createElement('div');
+      green.className = 'pv-green';
+      const band = document.createElement('div');
+      band.className = 'pv-band';
+      lines.forEach(tx => {
+        const d = document.createElement('div');
+        d.className = 'pv-line';
+        d.textContent = tx;   // 실제 가사 전체 (자르지 않음)
+        band.appendChild(d);
+      });
+      slide.append(green, band);
+      const cap = document.createElement('div');
+      cap.className = 'pv-cap';
+      cap.textContent = (i + 1) + '쪽';
+      item.append(slide, cap);
+      body.appendChild(item);
+    });
+    modal.hidden = false;
   }
 
   /* ---------- 곡 순서 변경 = PPT 순서 (D28) — ▲▼ 버튼 (모바일 확실) ---------- */
@@ -243,68 +277,35 @@ const SetOrder = (function () {
       };
 
       (pass.items || []).forEach((it, ii) => {
-        // 간주 마커 (D30) — 가사 없는 넘김/홀드, PPT엔 슬라이드 없음
-        if (it.gap) {
-          const chip = document.createElement('div');
-          chip.className = 'so-chip gap';
-          const g = document.createElement('div');
-          g.className = 'so-gap';
-          g.textContent = '🎵 간주';
-          chip.appendChild(g);
-          const x = document.createElement('button');
-          x.className = 'so-chip-x'; x.type = 'button'; x.textContent = '✕'; x.title = '간주 빼기';
-          x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(ii); });
-          chip.appendChild(x);
-          chips.appendChild(chip);
-          return;
-        }
-
-        // ✎메모 (D30) — 팀 지시(3번째 목소리만·즉흥멘트·키 등). PPT엔 안 뜨고 카톡에만.
-        if (it.memo != null) {
-          const chip = document.createElement('div');
-          chip.className = 'so-chip memo';
-          const inp = document.createElement('input');
-          inp.type = 'text';
-          inp.className = 'so-memo-input';
-          inp.value = it.memo;
-          inp.placeholder = '팀 지시 (카톡에만)';
-          if (it.memo === '') setTimeout(() => inp.focus(), 0);
-          inp.addEventListener('click', (ev) => ev.stopPropagation());
-          inp.addEventListener('input', () => { it.memo = inp.value; });
-          inp.addEventListener('blur', () => {
-            it.memo = inp.value.trim();
-            if (it.memo === '') { removeItem(ii); return; }
-            SongStore.save();
-          });
-          chip.appendChild(inp);
-          const x = document.createElement('button');
-          x.className = 'so-chip-x'; x.type = 'button'; x.textContent = '✕'; x.title = '메모 빼기';
-          x.addEventListener('click', (ev) => { ev.stopPropagation(); removeItem(ii); });
-          chip.appendChild(x);
-          chips.appendChild(chip);
-          return;
-        }
+        // 간주·메모는 세트 화면에서 제거(콘티 텍스트창에서 입력) — 옛 데이터 있으면 무시
+        if (it.gap || it.memo != null) return;
 
         const b = m[it.block];
         if (!b) return;
         const times = it.times || 1;
-        const pages = blockPages(b);
-        const multi = pages.length > 1;
+        const pageN = blockSlideCount(b);
 
+        // A안: 컴팩트 칩(라벨·쪽수·×N·스테퍼). 탭 = 실제 페이지 미리보기
         const chip = document.createElement('div');
-        chip.className = 'so-chip';
+        chip.className = 'so-chip' + (b.type === 'chorus' ? ' chorus' : '');
+        chip.title = '탭하면 실제 페이지 미리보기';
+        chip.addEventListener('click', () => openPreview(b));
 
-        const thumbs = document.createElement('div');
-        thumbs.className = 'so-thumbs';
-        // ×N 렌더 규칙(D29): 여러 페이지 → 실제 복제해 나열 / 1페이지 → 한 장(홀드)
-        const reps = multi ? times : 1;
-        for (let r = 0; r < reps; r++) pages.forEach(gp => thumbs.appendChild(miniThumb(gp)));
-        chip.appendChild(thumbs);
+        const lab = document.createElement('div');
+        lab.className = 'so-chip-lab';
+        lab.textContent = b.label;
+        chip.appendChild(lab);
 
-        const cap = document.createElement('div');
-        cap.className = 'so-chip-cap';
-        cap.textContent = b.label + (times > 1 ? ' ×' + times : '');
-        chip.appendChild(cap);
+        const pg = document.createElement('div');
+        pg.className = 'so-chip-pg';
+        pg.textContent = pageN + '쪽';
+        if (times > 1) {
+          const xn = document.createElement('span');
+          xn.className = 'so-xn';
+          xn.textContent = ' ×' + times;
+          pg.appendChild(xn);
+        }
+        chip.appendChild(pg);
 
         // ×N 스테퍼 (−/+)
         const step = document.createElement('div');
@@ -367,33 +368,7 @@ const SetOrder = (function () {
       pal.appendChild(add);
     });
 
-    // 간주 (D30) — 가사 없는 마커, 활성 회차에 담김
-    const addGap = document.createElement('button');
-    addGap.type = 'button';
-    addGap.className = 'so-add gap';
-    addGap.textContent = '+ 간주';
-    addGap.title = '가사 없이 넘기는 자리 (PPT 슬라이드 없음)';
-    addGap.addEventListener('click', () => {
-      if (!arr.length) { arr.push({ items: [] }); activePass[song.id] = 0; }
-      arr[activeIndex(song)].items.push({ gap: true });
-      SongStore.save();
-      render();
-    });
-    pal.appendChild(addGap);
-
-    // ✎메모 (D30) — 카톡에만 나오는 팀 지시
-    const addMemo = document.createElement('button');
-    addMemo.type = 'button';
-    addMemo.className = 'so-add memo';
-    addMemo.textContent = '+ ✎메모';
-    addMemo.title = '팀 지시 (PPT엔 안 뜨고 카톡에만)';
-    addMemo.addEventListener('click', () => {
-      if (!arr.length) { arr.push({ items: [] }); activePass[song.id] = 0; }
-      arr[activeIndex(song)].items.push({ memo: '' });
-      SongStore.save();
-      render();
-    });
-    pal.appendChild(addMemo);
+    // 간주·메모는 세트 화면에서 제거 — 다이내믹 큐는 콘티 텍스트창에서 직접 입력 (2026-07-05)
 
     const addPass = document.createElement('button');
     addPass.type = 'button';
@@ -486,14 +461,30 @@ const SetOrder = (function () {
     const entry = $('#btn-open-setorder');
     if (entry) entry.addEventListener('click', () => open());
 
-    // 카톡 순서 패널 (D31)
+    // 콘티 순서 텍스트 패널 (D31) — 편집분 저장(다시 열어도 유지) + 블록에서 다시 생성
     const kbtn = $('#btn-kakao');
     if (kbtn) kbtn.addEventListener('click', () => {
-      $('#kakao-text').value = buildKakao();
+      const saved = localStorage.getItem(CONTI_KEY);
+      $('#kakao-text').value = (saved != null) ? saved : buildKakao();
       $('#kakao-panel').hidden = false;
+    });
+    const kta = $('#kakao-text');
+    if (kta) kta.addEventListener('input', () => { localStorage.setItem(CONTI_KEY, kta.value); });
+    const kregen = $('#btn-kakao-regen');
+    if (kregen) kregen.addEventListener('click', () => {
+      if (!confirm('곡 순서·반복에서 콘티를 다시 만들까요? 직접 적어둔 간주·멘트는 지워집니다.')) return;
+      const text = buildKakao();
+      $('#kakao-text').value = text;
+      localStorage.setItem(CONTI_KEY, text);
     });
     const kclose = $('#btn-kakao-close');
     if (kclose) kclose.addEventListener('click', () => { $('#kakao-panel').hidden = true; });
+
+    // 페이지 미리보기 모달 닫기 (배경/닫기 버튼)
+    const pvClose = $('#btn-preview-close');
+    if (pvClose) pvClose.addEventListener('click', () => { $('#preview-modal').hidden = true; });
+    const pvModal = $('#preview-modal');
+    if (pvModal) pvModal.addEventListener('click', (e) => { if (e.target === pvModal) pvModal.hidden = true; });
     const kcopy = $('#btn-kakao-copy');
     if (kcopy) kcopy.addEventListener('click', async () => {
       const ta = $('#kakao-text');

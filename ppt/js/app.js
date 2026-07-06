@@ -67,6 +67,24 @@
 
   /* ---------- 홈 렌더 ---------- */
 
+  // 곡 데이터 미리 로드(홈의 실제 곡 수 표시용) — 실패해도 홈은 그려짐
+  async function loadSongsSafe(role) {
+    try { await SongStore.load(role); } catch (e) {}
+  }
+
+  // 찬양팀·성가대 섹션 항목 = 실제 등록 곡 수 기반(가짜 문구 제거, 2026-07-05)
+  function sectionItems(sec) {
+    if (sec.owner === 'praise' || sec.owner === 'choir') {
+      const list = SongStore.all().filter(s => (s.role || sec.owner) === sec.owner);
+      const n = list.length;
+      if (!n) return ['아직 등록된 곡이 없습니다'];
+      const ordered = list.filter(s => s.status === 'ordered').length;
+      return ['등록된 곡 ' + n + '곡',
+        ordered === n ? '순서까지 모두 완료' : '순서 지정 ' + ordered + '/' + n + '곡'];
+    }
+    return sec.items;
+  }
+
   function renderHome(role) {
     currentRole = role;
     $('#home-role').textContent = MOCK.roles[role].label;
@@ -107,7 +125,7 @@
       if (mine || role === 'admin') {
         const ul = document.createElement('ul');
         ul.className = 'sec-items';
-        sec.items.forEach(it => {
+        sectionItems(sec).forEach(it => {
           const li = document.createElement('li');
           li.textContent = '· ' + it;
           ul.appendChild(li);
@@ -231,6 +249,7 @@
     $('#pin-error').hidden = true;
     $('#pin-input').value = '';
     setSession(role);
+    await loadSongsSafe(role);   // 실제 곡 수 반영
     renderHome(role);
     show('home');
   });
@@ -254,10 +273,11 @@
   Generate.init();
 
   const session = getSession();
-  if (session) currentRole = session.role;
   if (session) {
-    renderHome(session.role);
+    currentRole = session.role;
+    renderHome(session.role);                 // 즉시 표시(곡 수는 로드 후 갱신)
     show('home');
+    loadSongsSafe(session.role).then(() => renderHome(session.role));
   } else {
     show('pin');
   }
