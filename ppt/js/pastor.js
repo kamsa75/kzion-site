@@ -87,7 +87,7 @@ const Pastor = (function () {
       ta.rows = 6;
       ta.value = text;
       ta.placeholder = i === 0
-        ? '성경 앱·사이트에서 본문을 복사해 붙여넣으세요. 길면 아래 “페이지 추가”로 나누면 됩니다.'
+        ? '예: [삼상 1:1-3] 1 에브라임 산지 라마다임소빔에… — 맨 앞 [ ] 안은 구절 칩, 나머지는 카드 본문으로 들어갑니다.'
         : '이어지는 본문…';
       ta.addEventListener('input', () => {
         data.passages[i] = ta.value;
@@ -114,7 +114,7 @@ const Pastor = (function () {
     const t = (text || '').trim();
     if (!t) return;
     // 실제 PPT와 동일하게 자동 분할(잘림 방지) — 각 페이지는 가운데 정렬
-    const pages = passagePages(t, data.ref);
+    const pages = passagePages(t); // 구절칩은 본문 선두 [삼상 1:1-3]에서 (pf-ref는 설교 슬라이드 전용)
     pages.forEach((sl) => {
       const wrap = document.createElement('div');
       wrap.className = 'pv-page';

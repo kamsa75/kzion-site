@@ -243,6 +243,11 @@ var PASSAGE_MAXV = 12;     // 1장 최대 절 수
 function passagePages(text, ref) {
   text = (text || '').trim();
   if (!text) return [];
+  // 선두 [삼상 1:1-3] 형태(숫자 아닌 = 구절 표기) → 구절칩, 본문에서 대괄호째 제거 (#2, 짧은 구절과 동일)
+  var cap = (ref || '').trim();
+  var mref = text.match(/^\s*\[([^\]]+)\]\s*/);
+  if (mref && /\D/.test(mref[1])) { cap = mref[1].trim(); text = text.slice(mref[0].length).trim(); }
+  if (!text) return [];
   // 절 번호 파싱: [17] / 17  (숫자 뒤 공백 있는 것만 — "1)" 각주 마커는 제외)
   var s = text.replace(/\[(\d+)\]/g, ' $1 ').replace(/\s+/g, ' ').trim();
   var verses = [], re = /(\d{1,3})\s+(.*?)(?=(?:\s\d{1,3}\s)|$)/g, m;
@@ -255,7 +260,7 @@ function passagePages(text, ref) {
       cur.push(v); len += vlen;
     }
     if (cur.length) pages.push(cur);
-    return pages.map(function (vs) { return { layout: 'dark', caption: ref, verses: vs, fit: true }; });
+    return pages.map(function (vs) { return { layout: 'dark', caption: cap, verses: vs, fit: true }; });
   }
   // 절 번호 없으면 글자수(단어 경계)로 페이지 분할
   var plain = text.replace(/\s+/g, ' ').trim(), words = plain.split(' '), chunks = [], c = '';
@@ -265,7 +270,7 @@ function passagePages(text, ref) {
     c += (c ? ' ' : '') + w;
   }
   if (c) chunks.push(c);
-  return chunks.map(function (b) { return { layout: 'dark', caption: ref, body: b, fit: true }; });
+  return chunks.map(function (b) { return { layout: 'dark', caption: cap, body: b, fit: true }; });
 }
 
 /* ============================================================

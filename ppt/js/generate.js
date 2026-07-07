@@ -139,8 +139,8 @@ const Generate = (function () {
       }
       case 'passage_long': {
         const out = [];
-        (p.passages || []).forEach(pg => splitPassage(pg, p.ref).forEach(sl => out.push({ label: '성경 본문', slide: sl })));
-        if (!out.length) return [{ label: '성경 본문', slide: { layout: 'dark', caption: p.ref || '', body: '(성경 본문 미입력)' }, missing: true }];
+        (p.passages || []).forEach(pg => splitPassage(pg).forEach(sl => out.push({ label: '성경 본문', slide: sl }))); // 칩=본문 선두 [ ]에서
+        if (!out.length) return [{ label: '성경 본문', slide: { layout: 'dark', caption: '', body: '(성경 본문 미입력)' }, missing: true }];
         return out;
       }
       case 'reading_short': {
