@@ -88,7 +88,8 @@ input{font-family:inherit;}
   padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top));
   background:var(--ui-card); border-bottom:1px solid var(--ui-line);
 }
-.topbar-left{display:flex; align-items:center; gap:10px; min-width:0;}
+.topbar-left{display:flex; align-items:center; gap:10px; min-width:0; margin-right:auto;}
+#btn-logout{flex:none;}
 .topbar-title{font-weight:800; font-size:16px; white-space:nowrap;}
 .role-chip{
   font-size:12px; font-weight:700; color:var(--ui-gold);

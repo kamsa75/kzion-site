@@ -53,6 +53,12 @@
 
   function show(name) {
     Object.entries(screens).forEach(([k, el]) => { el.hidden = (k !== name); });
+    // 로그아웃 버튼을 현재 화면 상단바로 이동 → 어느 화면에서든 우측 상단에 노출 (버튼은 하나만 유지)
+    const lo = $('#btn-logout'), cur = screens[name];
+    if (lo && cur && name !== 'pin') {
+      const bar = cur.querySelector('.topbar');
+      if (bar && lo.parentElement !== bar) bar.appendChild(lo);
+    }
     window.scrollTo(0, 0);
   }
 
