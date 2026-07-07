@@ -90,7 +90,15 @@ input{font-family:inherit;}
 }
 .topbar-left{display:flex; align-items:center; gap:10px; min-width:0; margin-right:auto;}
 #btn-logout{flex:none;}
-.topbar-title{font-weight:800; font-size:16px; white-space:nowrap;}
+.topbar .btn{flex:none;} /* 상단바 버튼은 안 줄어들게(제목만 말줄임) */
+.topbar-title{font-weight:800; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;}
+/* 모바일 좁은 폭: 버튼·제목 컴팩트해서 겹침 방지 */
+@media (max-width:480px){
+  .topbar{gap:6px; padding-left:10px; padding-right:10px;}
+  .topbar-title{font-size:15px;}
+  .topbar .btn{padding:8px 10px; font-size:13px;}
+  .topbar-left{gap:6px;}
+}
 .role-chip{
   font-size:12px; font-weight:700; color:var(--ui-gold);
   background:var(--ui-gold-soft); padding:4px 10px; border-radius:999px; white-space:nowrap;

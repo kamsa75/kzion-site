@@ -282,7 +282,7 @@ function bandPages(text, ref) {
   var mref = t.match(/^\s*\[([^\]]+)\]\s*/);
   if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
-  var TARGET = 24;              // 밴드 한 줄이 축소 없이 큰 글씨로 들어가는 길이
+  var TARGET = 32;              // 넓은 카드 한 줄을 꽉 채우는 길이(오른쪽 여백 최소화)
   var segments = t.split('\n'); // 사용자가 넣은 줄바꿈은 우선 끊는 지점으로 존중
   var lines = [];
   segments.forEach(function (seg) {
