@@ -228,25 +228,27 @@ function passagePages(text, ref) {
 
 /* ============================================================
    함께 읽는 구절 → 크로마 밴드 슬라이드 페이지 배열 (미리보기·PPT 공용).
-   줄바꿈이 있으면 그 줄 단위, 없으면 자동 줄나눔 → 2줄씩 한 페이지.
+   찬양팀 가사처럼 '읽기 좋은 크기'로 항상 일정하게 — 긴 줄은 밴드 한 줄에
+   들어갈 길이(~24자)로 자동 재줄바꿈한 뒤 2줄씩 한 페이지. (D11)
    ============================================================ */
 function bandPages(text) {
   var t = (text || '').trim();
   if (!t) return [];
-  var lines;
-  if (/\n/.test(t)) {
-    lines = t.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
-  } else {
-    // 한 줄 목표 글자수(D11: 짧은 소절 2개 병합 ~ 24자)로 단어 경계 줄나눔
-    var TARGET = 24, words = t.replace(/\s+/g, ' ').split(' ');
-    lines = []; var cur = '';
+  var TARGET = 24;              // 밴드 한 줄이 축소 없이 큰 글씨로 들어가는 길이
+  var segments = t.split('\n'); // 사용자가 넣은 줄바꿈은 우선 끊는 지점으로 존중
+  var lines = [];
+  segments.forEach(function (seg) {
+    seg = seg.replace(/\s+/g, ' ').trim();
+    if (!seg) return;
+    if (seg.length <= TARGET) { lines.push(seg); return; } // 이미 짧으면 그대로
+    var words = seg.split(' '), cur = '';                  // 길면 단어 경계로 재줄바꿈
     for (var i = 0; i < words.length; i++) {
       var w = words[i];
       if (cur && (cur.length + 1 + w.length) > TARGET) { lines.push(cur); cur = ''; }
       cur += (cur ? ' ' : '') + w;
     }
     if (cur) lines.push(cur);
-  }
+  });
   var pages = [];
   for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', lyrics: lines.slice(j, j + 2) });
   return pages;
