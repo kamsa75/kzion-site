@@ -33,27 +33,53 @@ function renderSlide(slide) {
       break;
     }
 
-    case 'band': { // 크로마 밴드형
-      el.className = 'slide slide--band' + (slide.scripture ? ' is-scripture' : '');
+    case 'band': { // 크로마 밴드형 / 성경 구절 카드
+      el.className = 'slide slide--band'; // 배경 그린 = 라이브 영상(키잉)
+      if (slide.scripture) { // 함께 읽는 구절 = 하단 플로팅 흰 카드 + 블루 구절칩 + 골드 절번호
+        const card = document.createElement('div'); card.className = 'vcard';
+        if (slide.ref) { const chip = document.createElement('div'); chip.className = 'vcard-chip'; chip.textContent = slide.ref; card.appendChild(chip); }
+        const box = document.createElement('div'); box.className = 'vcard-box';
+        (slide.lyrics || []).slice(0, 2).forEach(line => {
+          const ln = document.createElement('div'); ln.className = 'vcard-line';
+          scriptureRuns(line).forEach(r => {
+            if (r.gold) { const sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; ln.appendChild(sp); }
+            else ln.appendChild(document.createTextNode(r.t));
+          });
+          box.appendChild(ln);
+        });
+        card.appendChild(box);
+        el.appendChild(card);
+        break;
+      }
       const band = document.createElement('div');
       band.className = 'sl-band';
       const ly = document.createElement('div');
       ly.className = 'sl-lyrics';
       (slide.lyrics || []).slice(0, 2).forEach((line, i) => { // 2줄 고정 (지침 18번)
         if (i > 0) ly.appendChild(document.createElement('br'));
-        if (slide.scripture) { // 성경 구절 = 절번호 골드(긴 본문과 통일)
-          scriptureRuns(line).forEach(r => {
-            if (r.gold) { const sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; ly.appendChild(sp); }
-            else ly.appendChild(document.createTextNode(r.t));
-          });
-        } else ly.appendChild(document.createTextNode(line));
+        ly.appendChild(document.createTextNode(line));
       });
       band.appendChild(ly); // 곡명·절 캡션 없음 — 밴드에는 가사만 (D9)
       el.appendChild(band);
       break;
     }
 
-    case 'dark': { // 다크 전체화면형 — 프리미엄 배경(성전광) + 골드 캡션/아멘
+    case 'dark': { // 다크 전체화면형(사도신경) / 성경 긴 본문 = 큰 흰 카드
+      if (slide.fit && !slide.dash) { // 성경 긴 본문 = 짧은 구절과 통일된 카드(크게)
+        el.className = 'slide slide--band'; // 그린 배경(라이브)
+        const card = document.createElement('div'); card.className = 'vcard is-full';
+        if (slide.caption) { const chip = document.createElement('div'); chip.className = 'vcard-chip'; chip.textContent = slide.caption; card.appendChild(chip); }
+        const box = document.createElement('div'); box.className = 'vcard-box';
+        const vb = document.createElement('div'); vb.className = 'vcard-body';
+        if (slide.verses) {
+          slide.verses.forEach(v => {
+            const num = document.createElement('span'); num.className = 'sl-vnum'; num.textContent = v.num;
+            vb.appendChild(num); vb.appendChild(document.createTextNode(v.text + ' '));
+          });
+        } else if (slide.body) { vb.textContent = slide.body; }
+        box.appendChild(vb); card.appendChild(box); el.appendChild(card);
+        break;
+      }
       el.className = 'slide slide--dark' + (slide.fit ? ' is-fit' : '') + (slide.dash ? ' is-dash' : '');
       const bg = darkSlideBg();
       if (bg) { el.style.backgroundImage = 'url(' + bg + ')'; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
@@ -184,7 +210,7 @@ function fitDarkSlides(root) {
   (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
     if (!b.clientHeight) return;
     var slide = b.closest('.slide--dark');
-    // 사도신경(is-dash)=크게 채움. 성경 본문=글자 6cqh(상한) 위쪽 정렬, 상·하 여백 7cqh(≈50px)
+    // 사도신경(is-dash)=크게 채움
     var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 6;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
@@ -193,6 +219,18 @@ function fitDarkSlides(root) {
       b.style.fontSize = size + 'cqh';
       guard++;
     }
+  });
+  // 성경 구절 카드(짧은/긴)도 함께 맞춤 — 기존 fitDarkSlides 호출부에서 자동 처리
+  fitVCard(root); fitVCardFull(root);
+}
+
+// 긴 성경 본문 카드(is-full): 본문이 카드 박스를 넘으면 글자를 줄여 한 장에 맞춤.
+function fitVCardFull(root) {
+  (root || document).querySelectorAll('.vcard.is-full .vcard-body').forEach(function (b) {
+    var box = b.parentElement; if (!box || !box.clientHeight) return;
+    var s = parseFloat(getComputedStyle(b).fontSize) || 24, min = s * 0.5, guard = 0;
+    b.style.fontSize = s + 'px';
+    while (b.scrollHeight > box.clientHeight + 1 && s > min && guard < 100) { s -= 0.5; b.style.fontSize = s + 'px'; guard++; }
   });
 }
 
@@ -236,8 +274,13 @@ function passagePages(text, ref) {
    찬양팀 가사처럼 '읽기 좋은 크기'로 항상 일정하게 — 긴 줄은 밴드 한 줄에
    들어갈 길이(~24자)로 자동 재줄바꿈한 뒤 2줄씩 한 페이지. (D11)
    ============================================================ */
-function bandPages(text) {
+function bandPages(text, ref) {
   var t = (text || '').trim();
+  if (!t) return [];
+  // 선두 [느헤미야 1:3] 형태 → 구절칩 참조로, 본문에서 대괄호째 제거 (#2)
+  var chipRef = (ref || '').trim();
+  var mref = t.match(/^\s*\[([^\]]+)\]\s*/);
+  if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
   var TARGET = 24;              // 밴드 한 줄이 축소 없이 큰 글씨로 들어가는 길이
   var segments = t.split('\n'); // 사용자가 넣은 줄바꿈은 우선 끊는 지점으로 존중
@@ -255,8 +298,8 @@ function bandPages(text) {
     if (cur) lines.push(cur);
   });
   var pages = [];
-  // scripture:true → 긴 성경 본문과 통일(다크 네이비 밴드 · 골드 절번호 · 웜화이트 본문)
-  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', scripture: true, lyrics: lines.slice(j, j + 2) });
+  // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. ref = 구절칩 표기
+  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', scripture: true, ref: chipRef, lyrics: lines.slice(j, j + 2) });
   return pages;
 }
 
@@ -271,6 +314,18 @@ function scriptureRuns(line) {
   }
   if (last < line.length) out.push({ t: line.slice(last), gold: false });
   return out.length ? out : [{ t: line, gold: false }];
+}
+
+// 성경 구절 카드(짧은 구절)의 2줄이 카드 폭을 넘으면 두 줄을 '같은 크기'로 축소.
+function fitVCard(root) {
+  (root || document).querySelectorAll('.slide--band .vcard-box').forEach(function (box) {
+    var lines = box.querySelectorAll('.vcard-line');
+    if (!lines.length || !box.clientWidth) return;
+    var s = parseFloat(getComputedStyle(lines[0]).fontSize) || 20, min = s * 0.55, guard = 0;
+    function overflow() { for (var i = 0; i < lines.length; i++) if (lines[i].scrollWidth > lines[i].clientWidth + 1) return true; return false; }
+    lines.forEach(function (l) { l.style.fontSize = s + 'px'; });
+    while (overflow() && s > min && guard < 80) { s -= 0.5; lines.forEach(function (l) { l.style.fontSize = s + 'px'; }); guard++; }
+  });
 }
 
 // 크로마 밴드 가사가 밴드(검정 띠) 높이를 넘으면 글자를 줄여 2줄이 안 잘리게 함.

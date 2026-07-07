@@ -174,7 +174,7 @@ const Pastor = (function () {
       wrap.appendChild(renderSlide(sl));
       el.appendChild(wrap);
     });
-    requestAnimationFrame(() => fitBandLyrics(el));
+    requestAnimationFrame(() => fitVCard(el));
     if (pages.length > 1) {
       const n = document.createElement('div');
       n.className = 'pv-note';

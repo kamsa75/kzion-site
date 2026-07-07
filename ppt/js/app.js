@@ -234,6 +234,8 @@
       }
       list.appendChild(item);
     });
+    // 카드·다크 슬라이드 글자 크기 자동 맞춤(요소가 화면에 붙은 뒤)
+    requestAnimationFrame(() => { fitDarkSlides(list); fitBandLyrics(list); });
   }
 
   /* ---------- 이벤트 ---------- */

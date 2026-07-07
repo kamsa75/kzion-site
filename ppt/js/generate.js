@@ -331,6 +331,31 @@ const Generate = (function () {
        preview.js의 darkSlideBg()와 '동일 이미지'를 공유 → 미리보기 = PPT 보장 ---------- */
   function darkBg() { return (typeof darkSlideBg === 'function') ? darkSlideBg() : ''; }
 
+  /* ---------- 성경 구절 카드 (미리보기 .vcard와 동일 디자인) ----------
+     흰 라운드 카드 + 블루 구절칩(짧은 알약, 절반 걸침) + 골드 절번호 + 진한 글씨.
+     배경 그린 = 라이브 영상(키잉). full=true면 화면 거의 가득(긴 본문), false면 하단 카드(짧은 구절). */
+  const CARD = { ink: '17233F', num: 'B0801F', chip: '1E3A6B' };
+  function emWidth(str) { // 대략 글자 폭(em) — 칩 알약 폭 추정용(한글=1.0, 공백=0.35, 그 외≈0.55)
+    var w = 0; for (var i = 0; i < str.length; i++) { var c = str.charCodeAt(i); w += (c >= 0xAC00 && c <= 0xD7A3) ? 1.0 : (c === 0x20 ? 0.35 : 0.55); } return w;
+  }
+  function addVerseCard(pptx, s, ref, runs, full) {
+    s.background = { color: C.green };
+    const X = 0.53, W = 12.27;
+    const cardY = full ? 0.72 : 5.0, cardH = full ? 6.33 : 2.05;
+    // 흰 카드 + 그림자
+    s.addShape(pptx.ShapeType.roundRect, { x: X, y: cardY, w: W, h: cardH, rectRadius: 0.16, fill: { color: 'FFFFFF' }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.30, blur: 9, offset: 5, angle: 90 } });
+    // 본문(칩 아래 여백 확보)
+    const padTop = full ? 0.62 : 0.5, padX = 0.42, padBot = full ? 0.5 : 0.3;
+    s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, fit: 'shrink' });
+    // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
+    if (ref) {
+      const chipFs = 22, chipH = 0.52, chipW = emWidth(ref) * chipFs / 72 + 0.42;
+      const chipX = X + 0.32, chipY = cardY - 0.26;
+      s.addShape(pptx.ShapeType.roundRect, { x: chipX, y: chipY, w: chipW, h: chipH, rectRadius: 0.26, fill: { color: CARD.chip }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.25, blur: 4, offset: 2, angle: 90 } });
+      s.addText(ref, { x: chipX, y: chipY, w: chipW, h: chipH, align: 'center', valign: 'middle', fontFace: FONT, fontSize: chipFs, bold: true, color: 'FFFFFF' });
+    }
+  }
+
   /* ---------- PPTX 생성 (PptxGenJS) ---------- */
   function addSlide(pptx, sl) {
     const s = pptx.addSlide();
@@ -345,24 +370,35 @@ const Generate = (function () {
         s.background = { color: C.green }; // 순수 그린 — 라이브/전환 (D20)
         break;
       case 'band': {
-        s.background = { color: C.green };
-        // 성경 구절(scripture)은 긴 본문과 통일: 다크 네이비 밴드 + 골드 절번호 + 웜화이트
-        s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: sl.scripture ? C.dark : C.band } });
-        const bopt = { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' };
-        if (sl.scripture) {
+        if (sl.scripture) { // 함께 읽는 구절 = 하단 흰 카드(긴 본문과 통일)
           const runs = [];
           (sl.lyrics || []).slice(0, 2).forEach((line, i) => {
             if (i > 0) runs.push({ text: '\n', options: {} });
             (typeof scriptureRuns === 'function' ? scriptureRuns(line) : [{ t: line, gold: false }])
-              .forEach(r => runs.push({ text: r.t, options: { color: r.gold ? C.gold : C.warm } }));
+              .forEach(r => runs.push({ text: r.t, options: { color: r.gold ? CARD.num : CARD.ink } }));
           });
-          s.addText(runs, bopt);
-        } else {
-          s.addText((sl.lyrics || []).join('\n'), bopt);
+          addVerseCard(pptx, s, sl.ref, runs, false);
+          break;
         }
+        // 찬송가 등 = 기존 크로마 밴드(초록 + 검정 밴드 + 흰 가사)
+        s.background = { color: C.green };
+        s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band } });
+        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
         break;
       }
       case 'dark': {
+        if (sl.fit && !sl.dash) { // 성경 긴 본문 = 큰 흰 카드(짧은 구절과 통일)
+          let runs;
+          if (sl.verses) {
+            runs = [];
+            sl.verses.forEach((v, i) => {
+              runs.push({ text: v.num + ' ', options: { color: CARD.num } });
+              runs.push({ text: v.text + (i < sl.verses.length - 1 ? '  ' : ''), options: { color: CARD.ink } });
+            });
+          } else runs = [{ text: sl.body || '', options: { color: CARD.ink } }];
+          addVerseCard(pptx, s, sl.caption, runs, true);
+          break;
+        }
         const bg = darkBg();
         s.background = bg ? { data: bg } : { color: C.dark };
         if (sl.caption) {
