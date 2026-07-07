@@ -386,18 +386,25 @@ const Pastor = (function () {
     const box = $('#pastor-thumbs');
     box.innerHTML = '';
     thumbUrls.forEach((src, i) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'thumb';
-      const img = document.createElement('img');
-      img.src = src; img.alt = '찬송가 악보 ' + (i + 1);
+      const item = document.createElement('div');
+      item.className = 'pscore-item';
+      const cap = document.createElement('div');
+      cap.className = 'pscore-cap';
+      cap.textContent = '악보 ' + (i + 1) + ' — 슬라이드 미리보기';
+      const frame = document.createElement('div');
+      frame.className = 'pscore-frame';
+      // 실제 PPT와 동일한 악보 통짜 슬라이드(흰 배경·비율유지 contain — 잘리지 않음, 지침 14번)
+      const sl = renderSlide({ layout: 'score', src });
+      const img = sl.querySelector('img'); if (img) img.style.objectFit = 'contain';
       const del = document.createElement('button');
       del.className = 'thumb-del';
       del.textContent = '✕';
       del.addEventListener('click', () => {
         thumbUrls.splice(i, 1); hymnPaths.splice(i, 1); renderThumbs(); saveImages();
       });
-      wrap.append(img, del);
-      box.appendChild(wrap);
+      frame.append(sl, del);
+      item.append(cap, frame);
+      box.appendChild(item);
     });
   }
 

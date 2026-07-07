@@ -326,6 +326,12 @@ input{font-family:inherit;}
   background:rgba(0,0,0,.6); color:#fff; font-size:12px; line-height:1;
   display:flex; align-items:center; justify-content:center;
 }
+/* 목사님 악보 업로드 — 실제 PPT 악보 슬라이드 미리보기 */
+.pscore-item{width:100%; max-width:360px; margin-top:12px;}
+.pscore-cap{font-size:12px; font-weight:700; color:var(--ui-sub); margin-bottom:5px;}
+.pscore-frame{position:relative;}
+.pscore-frame .thumb-del{top:-8px; right:-8px; width:24px; height:24px; border:1.5px solid #fff;}
+
 .btn-move{padding:10px 13px;}
 
 /* ---------- 악보 페이지 관리 (D15) — 줄바꿈 그리드(한 화면에 전부) ---------- */
