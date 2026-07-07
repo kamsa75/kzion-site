@@ -67,7 +67,7 @@ const Choir = (function () {
       alert('만들지 못했습니다: ' + (e.message || '네트워크를 확인해 주세요.'));
     } finally {
       btn.disabled = false;
-      btn.textContent = (song.blocks && song.blocks.length) ? '✨ 다시 ppt로 만들기' : '✨ ppt로 만들기';
+      btn.textContent = (song.blocks && song.blocks.length) ? '✨ 다시 슬라이드로 만들기' : '✨ 슬라이드로 만들기';
     }
   }
 
@@ -264,7 +264,7 @@ const Choir = (function () {
 
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary btn-wide choir-tidy';
-    btn.textContent = song.blocks && song.blocks.length ? '✨ 다시 ppt로 만들기' : '✨ ppt로 만들기';
+    btn.textContent = song.blocks && song.blocks.length ? '✨ 다시 슬라이드로 만들기' : '✨ 슬라이드로 만들기';
     card.appendChild(btn);
 
     const editor = document.createElement('div');
