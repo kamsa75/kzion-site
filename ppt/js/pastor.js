@@ -251,18 +251,10 @@ const Pastor = (function () {
     el.innerHTML = '';
     const title = (data.hymn.title || '').trim();
     const blocks = data.hymn.blocks || [];
-    if (title) { // 제목 슬라이드(그린 자막형) — 예: 438장 내 영혼이 은총 입어
-      const tcard = document.createElement('div');
-      tcard.className = 'hymn-block';
-      const tlab = document.createElement('div'); tlab.className = 'hymn-block-label'; tlab.textContent = '제목 슬라이드';
-      const tstrip = document.createElement('div'); tstrip.className = 'ofilm-thumbs choir-thumbs';
-      tstrip.appendChild(greenThumb(title));
-      tcard.append(tlab, tstrip);
-      el.appendChild(tcard);
-    }
-    if (!blocks.length) return;
-
     const byId = {}; blocks.forEach(b => { byId[b.id] = b; });
+    if (!title && !blocks.length) return;
+
+    if (blocks.length) {
     // order 정리: 존재하는 블록만, 비면 기본순서(후렴 반복)
     data.hymn.order = (data.hymn.order || []).filter(id => byId[id]);
     if (!data.hymn.order.length) data.hymn.order = hymnDefaultOrder(blocks);
@@ -305,34 +297,39 @@ const Pastor = (function () {
         rerender: renderHymnPreview
       });
     }
+    } // if (blocks.length)
 
-    // ── 부르는 순서대로 슬라이드 미리보기 (후렴이 절마다 반복돼 보임) ──
+    // ── 제목 + 부르는 순서대로 슬라이드를 하나의 연속 필름스트립으로 (setorder 화면과 동일한 2열 wrapping) ──
+    const strip = document.createElement('div'); strip.className = 'ofilm so-film';
     let count = 0;
-    data.hymn.order.forEach(id => {
+    const addGroup = (node, capText, block) => {
+      const group = document.createElement('div'); group.className = 'ofilm-group';
+      const thumbs = document.createElement('div'); thumbs.className = 'ofilm-thumbs';
+      thumbs.appendChild(node); group.appendChild(thumbs);
+      const cap = document.createElement(block ? 'button' : 'div');
+      cap.className = 'ofilm-cap' + (block ? ' ofilm-cap-btn' : '');
+      cap.textContent = capText;
+      if (block) { cap.type = 'button'; cap.title = '눌러서 라벨(절/후렴) 바꾸기'; cap.addEventListener('click', () => editHymnLabel(block, cap)); }
+      group.appendChild(cap);
+      strip.appendChild(group);
+    };
+    if (title) addGroup(greenThumb(title), '제목', null);
+    (blocks.length ? data.hymn.order : []).forEach(id => {
       const block = byId[id]; if (!block) return;
-      const card = document.createElement('div');
-      card.className = 'hymn-block';
-      const lab = document.createElement('button');
-      lab.type = 'button'; lab.className = 'block-label'; lab.textContent = block.label;
-      lab.title = '눌러서 라벨(절/후렴) 바꾸기';
-      lab.addEventListener('click', () => editHymnLabel(block, lab));
-      card.appendChild(lab);
-      const strip = document.createElement('div');
-      strip.className = 'ofilm-thumbs choir-thumbs';
-      blockSlides(block).forEach(g => {
-        strip.appendChild(filmThumb(g.map(i => block.lines[i].text)));
+      const gs = blockSlides(block);
+      gs.forEach((g, gi) => {
+        addGroup(filmThumb(g.map(i => block.lines[i].text)), block.label + (gs.length > 1 ? ' (' + (gi + 1) + ')' : ''), block);
         count++;
       });
-      card.appendChild(strip);
-      el.appendChild(card);
     });
-    requestAnimationFrame(() => fitFilm(el));
+    el.appendChild(strip);
 
-    const sum = document.createElement('div');
-    sum.className = 'pv-note';
-    sum.textContent = '= 찬송가 슬라이드 ' + count + '장 (라벨을 눌러 절/후렴 수정)';
-    el.appendChild(sum);
-    requestAnimationFrame(() => fitBandLyrics(el));
+    if (count) {
+      const sum = document.createElement('div'); sum.className = 'pv-note';
+      sum.textContent = '= 찬송가 슬라이드 ' + count + '장 (라벨을 눌러 절/후렴 수정)';
+      el.appendChild(sum);
+    }
+    requestAnimationFrame(() => fitFilm(el));
   }
 
   // 추출 결과(JSON) → data.hymn.blocks (songs.applyExtract와 동일 스키마)
