@@ -381,7 +381,8 @@ const Generate = (function () {
         if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { dopts.align = 'center'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6; dopts.fontSize = 56; }
-          else { dopts.align = 'left'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.95; dopts.h = 6.2; dopts.fontSize = 54; }
+          // 성경 본문: 상자 대칭(y=1.0, h=5.5 → 상·하 여백 1.0 동일) + 세로중앙 + 글자 2/3(≈30pt)
+          else { dopts.align = 'left'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.0; dopts.h = 5.5; dopts.fontSize = 30; }
         }
         s.addText(body, dopts);
         break;
