@@ -346,7 +346,7 @@ const Generate = (function () {
     s.addShape(pptx.ShapeType.roundRect, { x: X, y: cardY, w: W, h: cardH, rectRadius: 0.16, fill: { color: 'FFFFFF' }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.30, blur: 9, offset: 5, angle: 90 } });
     // 본문(칩 아래 여백 확보)
     const padTop = full ? 0.62 : 0.5, padX = 0.42, padBot = full ? 0.5 : 0.3;
-    s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, fit: 'shrink' });
+    s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: full ? 30 : 27, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, fit: 'shrink' });
     // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
     if (ref) {
       const chipFs = 22, chipH = 0.52, chipW = emWidth(ref) * chipFs / 72 + 0.42;

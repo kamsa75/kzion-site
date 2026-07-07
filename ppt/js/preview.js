@@ -273,7 +273,8 @@ function passagePages(text, ref) {
    글자 크기는 고정, 카드 폭에 맞춰 '자연 줄바꿈'으로 채움(좌우 여백 대칭).
    한 페이지 = 카드 2줄 분량(~52자)씩 묶음. (#2 선두 [참조] 자동 제거)
    ============================================================ */
-var BAND_CHARS = 52;   // 카드 2줄에 해당하는 글자수(고정 글자 크기로 폭을 채우는 자연 줄바꿈)
+var BAND_EM = 64;   // 카드 2줄에 해당하는 '실제 폭'(em) — 한글 폭 기준(한 줄 ~32자 × 2)
+function bandEm(s) { var w = 0; for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += (c >= 0xAC00 && c <= 0xD7A3) ? 1 : (c === 0x20 ? 0.35 : 0.55); } return w; }
 function bandPages(text, ref) {
   var t = (text || '').trim();
   if (!t) return [];
@@ -283,11 +284,12 @@ function bandPages(text, ref) {
   if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
   t = t.replace(/\s+/g, ' ');
-  var words = t.split(' '), pages = [], cur = '';
+  // 실제 폭(em) 기준 2줄 분량으로 묶음 → 앞 페이지들은 두 줄 모두 꽉 참
+  var words = t.split(' '), pages = [], cur = '', em = 0;
   for (var i = 0; i < words.length; i++) {
-    var w = words[i];
-    if (cur && (cur.length + 1 + w.length) > BAND_CHARS) { pages.push(cur); cur = ''; }
-    cur += (cur ? ' ' : '') + w;
+    var w = words[i], we = bandEm(w) + (cur ? 0.35 : 0);
+    if (cur && em + we > BAND_EM) { pages.push(cur); cur = ''; em = 0; we = bandEm(w); }
+    cur += (cur ? ' ' : '') + w; em += we;
   }
   if (cur) pages.push(cur);
   // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. text = 자연 줄바꿈으로 채울 본문
