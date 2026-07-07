@@ -690,7 +690,7 @@ const SetOrder = (function () {
     if (!(song.blocks || []).length) {
       // 붙여넣기 우회로 (검수 화면 흡수) — 가사 붙여넣고 정리하면 절/후렴 분할
       const tip = document.createElement('p'); tip.className = 'review-tip';
-      tip.innerHTML = '가사를 붙여넣고 “정리하기”를 누르면 절/후렴으로 나눠 드립니다. <b>절 사이를 빈 줄로 띄우면 더 정확</b>.';
+      tip.innerHTML = '가사를 붙여넣고 “슬라이드 생성하기”를 누르면 절/후렴으로 나눠 드립니다. <b>절 사이를 빈 줄로 띄우면 더 정확</b>.';
       zone.appendChild(tip);
       const ta = document.createElement('textarea'); ta.className = 'choir-ta'; ta.rows = 6;
       ta.placeholder = '여기에 가사를 붙여넣으세요…';
@@ -698,7 +698,7 @@ const SetOrder = (function () {
       ta.addEventListener('input', () => { song.raw = ta.value; });
       zone.appendChild(ta);
       const btn = document.createElement('button'); btn.className = 'btn btn-primary btn-wide'; btn.style.marginTop = '10px';
-      btn.textContent = '정리하기';
+      btn.textContent = '슬라이드 생성하기';
       btn.addEventListener('click', async () => {
         const text = ta.value.trim(); if (!text) return;
         song.raw = text;
@@ -708,14 +708,14 @@ const SetOrder = (function () {
             : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
           Songs.applyExtract(song, r);
           if (!(song.blocks || []).length) {                       // 결과가 비면 입력 보존 + 안내(사라짐 방지)
-            btn.disabled = false; btn.textContent = '정리하기';
+            btn.disabled = false; btn.textContent = '슬라이드 생성하기';
             alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 시도해 주세요.');
             return;
           }
           song.arrange = null; song.raw = '';
           SongStore.save(); SongStore.pushNow(song); render();
         } catch (e) {
-          btn.disabled = false; btn.textContent = '정리하기';
+          btn.disabled = false; btn.textContent = '슬라이드 생성하기';
           alert('정리에 실패했습니다: ' + (e.message || '') + '\n입력한 가사는 그대로 남아 있습니다.');
         }
       });

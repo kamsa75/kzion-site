@@ -450,12 +450,12 @@ const Songs = (function () {
       if (song.extractError) {
         const err = document.createElement('p');
         err.className = 'song-warn';
-        err.textContent = '⚠️ 가사를 자동으로 읽지 못했어요 — "가사·편곡 열기"에서 가사를 직접 붙여넣을 수 있습니다.';
+        err.textContent = '⚠️ 가사를 자동으로 읽지 못했어요 — "편집하기"에서 가사를 직접 붙여넣을 수 있습니다.';
         card.appendChild(err);
       } else if (song.status === 'review' && (song.blocks || []).length) {
         const ok = document.createElement('p');
         ok.className = 'song-ok';
-        ok.textContent = '✓ 가사 추출 완료 — "가사·편곡 열기"로 확인·수정하세요. ('
+        ok.textContent = '✓ 가사 추출 완료 — "편집하기"로 확인·수정하세요. ('
           + song.blocks.map(b => b.label).join(' · ') + ')';
         card.appendChild(ok);
       }
@@ -476,7 +476,7 @@ const Songs = (function () {
       } else {
         const btnReview = document.createElement('button');
         btnReview.className = 'btn btn-primary';
-        btnReview.textContent = '가사·편곡 열기';
+        btnReview.textContent = '편집하기';
         btnReview.addEventListener('click', () => SetOrder.openSong(song.id));
         actions.appendChild(btnReview);
 
@@ -526,7 +526,7 @@ const Songs = (function () {
       hint.className = 'song-hint';
       hint.innerHTML =
         '<span class="song-hint-num">곡 ' + (i + 1) + '</span>' +
-        '<span class="song-hint-main"><span class="song-hint-plus">+</span> 악보 사진 올리기</span>' +
+        '<span class="song-hint-main"><span class="song-hint-plus">+</span> 곡 추가</span>' +
         '<span class="song-hint-sub">탭해서 곡 추가 · 비워둬도 됩니다</span>';
       hint.addEventListener('click', addSong);
       list.appendChild(hint);
