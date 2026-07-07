@@ -195,6 +195,34 @@ const Pastor = (function () {
     return groups;
   }
 
+  // 찬양팀/성가대와 동일한 밴드 필름 썸네일(그린 + 검정 밴드 2줄) — 가로 스트립
+  function filmThumb(lines) {
+    const t = document.createElement('div'); t.className = 'film-thumb';
+    const green = document.createElement('div'); green.className = 'film-green';
+    const band = document.createElement('div'); band.className = 'film-band';
+    (lines || []).slice(0, 2).forEach(tx => {
+      const d = document.createElement('div'); d.className = 'film-line'; d.textContent = tx;
+      band.appendChild(d);
+    });
+    t.append(green, band);
+    return t;
+  }
+  // 제목(그린 자막형) 썸네일 — 그린 전면에 흰 글씨
+  function greenThumb(text) {
+    const t = document.createElement('div'); t.className = 'film-thumb film-thumb-green';
+    const green = document.createElement('div'); green.className = 'film-green film-green-full';
+    const d = document.createElement('div'); d.className = 'film-line'; d.textContent = text || '';
+    green.appendChild(d); t.appendChild(green);
+    return t;
+  }
+  function fitFilm(root) {
+    root.querySelectorAll('.film-line').forEach(l => {
+      if (!l.clientWidth) return;
+      let size = 11; l.style.fontSize = size + 'px';
+      while (l.scrollWidth > l.clientWidth && size > 6) { size -= 0.5; l.style.fontSize = size + 'px'; }
+    });
+  }
+
   // 기본 부르는 순서 — 후렴이 정확히 1개면 각 절 뒤에(마지막 절 뒤에도) 후렴 반복. 아니면 블록 순서 그대로 (#1·#2·#4)
   function hymnDefaultOrder(blocks) {
     const choruses = blocks.filter(b => b.type === 'chorus');
@@ -227,8 +255,8 @@ const Pastor = (function () {
       const tcard = document.createElement('div');
       tcard.className = 'hymn-block';
       const tlab = document.createElement('div'); tlab.className = 'hymn-block-label'; tlab.textContent = '제목 슬라이드';
-      const tstrip = document.createElement('div'); tstrip.className = 'block-slides';
-      tstrip.appendChild(renderSlide({ layout: 'green', text: title }));
+      const tstrip = document.createElement('div'); tstrip.className = 'ofilm-thumbs choir-thumbs';
+      tstrip.appendChild(greenThumb(title));
       tcard.append(tlab, tstrip);
       el.appendChild(tcard);
     }
@@ -290,14 +318,15 @@ const Pastor = (function () {
       lab.addEventListener('click', () => editHymnLabel(block, lab));
       card.appendChild(lab);
       const strip = document.createElement('div');
-      strip.className = 'block-slides';
+      strip.className = 'ofilm-thumbs choir-thumbs';
       blockSlides(block).forEach(g => {
-        strip.appendChild(renderSlide({ layout: 'band', lyrics: g.map(i => block.lines[i].text) }));
+        strip.appendChild(filmThumb(g.map(i => block.lines[i].text)));
         count++;
       });
       card.appendChild(strip);
       el.appendChild(card);
     });
+    requestAnimationFrame(() => fitFilm(el));
 
     const sum = document.createElement('div');
     sum.className = 'pv-note';
