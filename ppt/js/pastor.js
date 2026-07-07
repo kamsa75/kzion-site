@@ -26,7 +26,7 @@ const Pastor = (function () {
       title: d.title || '', ref: d.ref || '', prayer: d.prayer || '',
       passages: Array.isArray(d.passages) ? d.passages : (d.passage ? [d.passage] : ['']),
       readings: Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : ['']),
-      hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [] }
+      hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [], order: Array.isArray(h.order) ? h.order : [] }
     };
     if (!out.passages.length) out.passages = [''];
     if (!out.readings.length) out.readings = [''];
@@ -195,6 +195,29 @@ const Pastor = (function () {
     return groups;
   }
 
+  // 기본 부르는 순서 — 후렴이 정확히 1개면 각 절 뒤에(마지막 절 뒤에도) 후렴 반복. 아니면 블록 순서 그대로 (#1·#2·#4)
+  function hymnDefaultOrder(blocks) {
+    const choruses = blocks.filter(b => b.type === 'chorus');
+    if (choruses.length !== 1) return blocks.map(b => b.id);
+    const c = choruses[0], order = [];
+    blocks.forEach(b => { if (b.type === 'chorus') return; order.push(b.id); order.push(c.id); });
+    return order.length ? order : blocks.map(b => b.id);
+  }
+
+  // 라벨을 눌러 편집(후렴/절) — 라벨에 '후렴/렴/chorus'면 chorus로 (#4)
+  function editHymnLabel(block, labelEl) {
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'block-label-input'; input.value = block.label || '';
+    labelEl.replaceWith(input); input.focus(); input.select();
+    const commit = () => {
+      const v = input.value.trim();
+      if (v) { block.label = v; block.type = /후렴|렴|chorus/i.test(v) ? 'chorus' : /브릿지|bridge/i.test(v) ? 'bridge' : 'verse'; }
+      save(); renderHymnPreview();
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
+  }
+
   function renderHymnPreview() {
     const el = $('#hymn-preview');
     el.innerHTML = '';
@@ -211,18 +234,60 @@ const Pastor = (function () {
     }
     if (!blocks.length) return;
 
-    const tip = document.createElement('p');
-    tip.className = 'pv-note';
-    tip.textContent = '절 순서대로 자동 배치됩니다. 가사를 고치려면 위 칸에서 수정하고 “가사 정리하기”를 다시 누르세요.';
-    el.appendChild(tip);
+    const byId = {}; blocks.forEach(b => { byId[b.id] = b; });
+    // order 정리: 존재하는 블록만, 비면 기본순서(후렴 반복)
+    data.hymn.order = (data.hymn.order || []).filter(id => byId[id]);
+    if (!data.hymn.order.length) data.hymn.order = hymnDefaultOrder(blocks);
 
+    // ── 부르는 순서 (드래그 조절·빼기·추가·기본순서) ──
+    const arr = document.createElement('div'); arr.className = 'hymn-arrange';
+    const at = document.createElement('div'); at.className = 'hymn-arrange-title';
+    at.textContent = '부르는 순서 (칩을 끌어 순서 변경 · ✕ 빼기)';
+    arr.appendChild(at);
+    const chips = document.createElement('div'); chips.className = 'hymn-chips';
+    data.hymn.order.forEach((id, i) => {
+      const b = byId[id]; if (!b) return;
+      const chip = document.createElement('div'); chip.className = 'hymn-chip' + (b.type === 'chorus' ? ' is-chorus' : '');
+      chip._bid = id;
+      const t = document.createElement('span'); t.className = 'hymn-chip-t'; t.textContent = b.label; chip.appendChild(t);
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'hymn-chip-x'; x.textContent = '✕';
+      x.addEventListener('click', (e) => { e.stopPropagation(); data.hymn.order.splice(i, 1); save(); renderHymnPreview(); });
+      chip.appendChild(x);
+      chips.appendChild(chip);
+    });
+    arr.appendChild(chips);
+    const pal = document.createElement('div'); pal.className = 'hymn-pal';
+    blocks.forEach(b => {
+      const add = document.createElement('button'); add.type = 'button'; add.className = 'hymn-pal-btn';
+      add.textContent = '+ ' + b.label;
+      add.addEventListener('click', () => { data.hymn.order.push(b.id); save(); renderHymnPreview(); });
+      pal.appendChild(add);
+    });
+    const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'hymn-pal-btn hymn-reset';
+    reset.textContent = '↻ 기본 순서 (매 절 뒤 후렴)';
+    reset.addEventListener('click', () => { data.hymn.order = hymnDefaultOrder(blocks); save(); renderHymnPreview(); });
+    pal.appendChild(reset);
+    arr.appendChild(pal);
+    el.appendChild(arr);
+
+    if (typeof DragSort !== 'undefined') {
+      DragSort.bind(el, {
+        container: '.hymn-chips', item: '.hymn-chip', ignore: 'button', group: 'hymn-order',
+        commit: () => { data.hymn.order = [].map.call(chips.querySelectorAll('.hymn-chip'), c => c._bid); save(); },
+        rerender: renderHymnPreview
+      });
+    }
+
+    // ── 부르는 순서대로 슬라이드 미리보기 (후렴이 절마다 반복돼 보임) ──
     let count = 0;
-    blocks.forEach(block => {
+    data.hymn.order.forEach(id => {
+      const block = byId[id]; if (!block) return;
       const card = document.createElement('div');
       card.className = 'hymn-block';
-      const lab = document.createElement('div');
-      lab.className = 'hymn-block-label';
-      lab.textContent = block.label + (block.type === 'chorus' && block.label !== '후렴' ? ' (후렴)' : '');
+      const lab = document.createElement('button');
+      lab.type = 'button'; lab.className = 'block-label'; lab.textContent = block.label;
+      lab.title = '눌러서 라벨(절/후렴) 바꾸기';
+      lab.addEventListener('click', () => editHymnLabel(block, lab));
       card.appendChild(lab);
       const strip = document.createElement('div');
       strip.className = 'block-slides';
@@ -236,7 +301,7 @@ const Pastor = (function () {
 
     const sum = document.createElement('div');
     sum.className = 'pv-note';
-    sum.textContent = '= 찬송가 슬라이드 ' + count + '장';
+    sum.textContent = '= 찬송가 슬라이드 ' + count + '장 (라벨을 눌러 절/후렴 수정)';
     el.appendChild(sum);
     requestAnimationFrame(() => fitBandLyrics(el));
   }
@@ -252,6 +317,7 @@ const Pastor = (function () {
     }));
     if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
     $('#hymn-name').value = data.hymn.title || '';
+    data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(매 절 뒤 후렴) 재설정
   }
 
   async function parseHymn() {
@@ -263,9 +329,18 @@ const Pastor = (function () {
     try {
       const r = CONFIG.USE_SERVER
         ? await API.call('extractText', { text })
-        : { blocks: [{ id: 'h1', type: 'verse', label: '1절',
-            lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })),
-            breaks: text.split('\n').filter(Boolean).map((_, i) => i % 2 === 1) }] };
+        : (function () { // 목: 빈 줄=블록, '후렴' 시작 문단=후렴
+            const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+            let vn = 0;
+            const blocks = (paras.length ? paras : [text]).map((p, i) => {
+              const isChorus = /^\s*(후렴|\(후렴\)|렴)\b/.test(p) || /^\s*후렴/.test(p);
+              const body = p.replace(/^\s*(후렴|\(후렴\)|렴)\s*[:：)]?\s*\n?/, '');
+              const lines = body.split('\n').map(t => t.trim()).filter(Boolean).map(t => ({ text: t, low: [] }));
+              const breaks = []; for (let j = 0; j < lines.length - 1; j++) breaks.push((j + 1) % 2 === 0);
+              return { id: 'h' + (i + 1), type: isChorus ? 'chorus' : 'verse', label: isChorus ? '후렴' : (++vn) + '절', lines, breaks };
+            });
+            return { blocks };
+          })();
       applyHymnExtract(r);
       renderHymnPreview();
       save();
