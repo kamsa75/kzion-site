@@ -174,6 +174,7 @@ const Pastor = (function () {
       wrap.appendChild(renderSlide(sl));
       el.appendChild(wrap);
     });
+    requestAnimationFrame(() => fitBandLyrics(el));
     if (pages.length > 1) {
       const n = document.createElement('div');
       n.className = 'pv-note';
@@ -197,7 +198,17 @@ const Pastor = (function () {
   function renderHymnPreview() {
     const el = $('#hymn-preview');
     el.innerHTML = '';
+    const title = (data.hymn.title || '').trim();
     const blocks = data.hymn.blocks || [];
+    if (title) { // 제목 슬라이드(그린 자막형) — 예: 438장 내 영혼이 은총 입어
+      const tcard = document.createElement('div');
+      tcard.className = 'hymn-block';
+      const tlab = document.createElement('div'); tlab.className = 'hymn-block-label'; tlab.textContent = '제목 슬라이드';
+      const tstrip = document.createElement('div'); tstrip.className = 'block-slides';
+      tstrip.appendChild(renderSlide({ layout: 'green', text: title }));
+      tcard.append(tlab, tstrip);
+      el.appendChild(tcard);
+    }
     if (!blocks.length) return;
 
     const tip = document.createElement('p');
@@ -227,6 +238,7 @@ const Pastor = (function () {
     sum.className = 'pv-note';
     sum.textContent = '= 찬송가 슬라이드 ' + count + '장';
     el.appendChild(sum);
+    requestAnimationFrame(() => fitBandLyrics(el));
   }
 
   // 추출 결과(JSON) → data.hymn.blocks (songs.applyExtract와 동일 스키마)
@@ -238,7 +250,8 @@ const Pastor = (function () {
       lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
       breaks: b.breaks || []
     }));
-    if (r.title) data.hymn.title = String(r.title).trim();
+    if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
+    $('#hymn-name').value = data.hymn.title || '';
   }
 
   async function parseHymn() {
@@ -313,6 +326,7 @@ const Pastor = (function () {
     renderFixedPreviews();
     renderPassages();
     renderReadings();
+    $('#hymn-name').value = data.hymn.title || '';
     $('#hymn-input').value = data.hymn.raw || '';
     renderHymnPreview();
     renderThumbs();
@@ -356,6 +370,8 @@ const Pastor = (function () {
     $('#pf-ref').addEventListener('input', () => renderPassages());
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
     $('#btn-add-reading').addEventListener('click', () => { data.readings.push(''); renderReadings(); save(); });
+    // 찬송가 제목(몇 장·제목) — 입력 즉시 저장·미리보기 갱신(제목 슬라이드)
+    $('#hymn-name').addEventListener('input', () => { data.hymn.title = $('#hymn-name').value; renderHymnPreview(); save(); });
     // 찬송가: 입력은 자동 저장(raw만), 블록은 "정리하기"를 눌러야 갱신 (API 호출 아끼기)
     $('#hymn-input').addEventListener('input', () => { data.hymn.raw = $('#hymn-input').value; save(); });
     $('#btn-hymn-parse').addEventListener('click', parseHymn);

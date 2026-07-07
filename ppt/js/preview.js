@@ -196,8 +196,8 @@ function fitDarkSlides(root) {
    절 번호([n] 또는 'n ')를 인식해 절 단위로 페이지 분할, 없으면 글자수로 분할.
    각 페이지는 fit:true(가운데·자동축소)로 잘림 없이 한 화면에 맞춤.
    ============================================================ */
-var PASSAGE_CHARS = 200;   // 다크 1장 목표 글자수
-var PASSAGE_MAXV = 5;      // 1장 최대 절 수
+var PASSAGE_CHARS = 400;   // 다크 1장 목표 글자수(위쪽정렬·6cqh 한 화면을 채운 뒤 분할)
+var PASSAGE_MAXV = 12;     // 1장 최대 절 수
 function passagePages(text, ref) {
   text = (text || '').trim();
   if (!text) return [];
@@ -250,4 +250,15 @@ function bandPages(text) {
   var pages = [];
   for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', lyrics: lines.slice(j, j + 2) });
   return pages;
+}
+
+// 크로마 밴드 가사가 밴드(검정 띠) 높이를 넘으면 글자를 줄여 2줄이 안 잘리게 함.
+// 요소가 화면에 붙은 뒤 호출.
+function fitBandLyrics(root) {
+  (root || document).querySelectorAll('.slide--band .sl-lyrics').forEach(function (ly) {
+    var band = ly.parentElement; if (!band || !band.clientHeight) return;
+    var s = parseFloat(getComputedStyle(ly).fontSize) || 12, guard = 0;
+    ly.style.fontSize = s + 'px';
+    while (ly.scrollHeight > band.clientHeight + 1 && s > 6 && guard < 80) { s -= 0.5; ly.style.fontSize = s + 'px'; guard++; }
+  });
 }

@@ -127,8 +127,15 @@ const Generate = (function () {
       }
       case 'hymn': {
         const blocks = ((p.hymn || {}).blocks) || [];
-        if (!blocks.length) return [{ label: '찬송가 가사', slide: { layout: 'band', lyrics: ['(찬송가 가사 미입력)'] }, missing: true }];
-        return bandFromBlocks(blocks, null).map((sl, i) => ({ label: '찬송가 ' + (i + 1), slide: sl }));
+        const title = ((p.hymn || {}).title || '').trim();
+        const out = [];
+        if (title) out.push({ label: '찬송가 제목', slide: { layout: 'green', text: title } }); // 예: 438장 내 영혼이 은총 입어
+        if (!blocks.length) {
+          if (out.length) return out; // 제목만 있고 가사 없음
+          return [{ label: '찬송가 가사', slide: { layout: 'band', lyrics: ['(찬송가 가사 미입력)'] }, missing: true }];
+        }
+        bandFromBlocks(blocks, null).forEach((sl, i) => out.push({ label: '찬송가 ' + (i + 1), slide: sl }));
+        return out;
       }
       case 'passage_long': {
         const out = [];
@@ -340,7 +347,7 @@ const Generate = (function () {
       case 'band': {
         s.background = { color: C.green };
         s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band } });
-        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15 });
+        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
         break;
       }
       case 'dark': {
