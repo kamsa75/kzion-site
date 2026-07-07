@@ -243,10 +243,11 @@ var PASSAGE_MAXV = 12;     // 1장 최대 절 수
 function passagePages(text, ref) {
   text = (text || '').trim();
   if (!text) return [];
-  // 선두 [삼상 1:1-3] 형태(숫자 아닌 = 구절 표기) → 구절칩, 본문에서 대괄호째 제거 (#2, 짧은 구절과 동일)
+  // 선두 [삼상 1:1-3] 또는 (삼상 1:1-3) (숫자 아닌 = 구절 표기) → 구절칩, 본문에서 괄호째 제거
   var cap = (ref || '').trim();
-  var mref = text.match(/^\s*\[([^\]]+)\]\s*/);
-  if (mref && /\D/.test(mref[1])) { cap = mref[1].trim(); text = text.slice(mref[0].length).trim(); }
+  var mref = text.match(/^\s*(?:\[([^\]]+)\]|\(([^)]+)\))\s*/);
+  var mcap = mref && (mref[1] || mref[2]);
+  if (mcap && /\D/.test(mcap)) { cap = mcap.trim(); text = text.slice(mref[0].length).trim(); }
   if (!text) return [];
   // 절 번호 파싱: [17] / 17  (숫자 뒤 공백 있는 것만 — "1)" 각주 마커는 제외)
   var s = text.replace(/\[(\d+)\]/g, ' $1 ').replace(/\s+/g, ' ').trim();
@@ -298,10 +299,10 @@ function bandLineCap() {
 function bandPages(text, ref) {
   var t = (text || '').trim();
   if (!t) return [];
-  // 선두 [느헤미야 1:3] 형태 → 구절칩 참조로, 본문에서 대괄호째 제거 (#2)
+  // 선두 [느헤미야 1:3] 또는 (느헤미야 1:3) → 구절칩 참조로, 본문에서 괄호째 제거 (#2)
   var chipRef = (ref || '').trim();
-  var mref = t.match(/^\s*\[([^\]]+)\]\s*/);
-  if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
+  var mref = t.match(/^\s*(?:\[([^\]]+)\]|\(([^)]+)\))\s*/);
+  if (mref) { if (!chipRef) chipRef = (mref[1] || mref[2] || '').trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
   t = t.replace(/\s+/g, ' ');
   // 실제 폰트 한 줄 용량으로 줄바꿈 시뮬레이션 → 딱 2줄까지 채우고 넘치면 새 페이지(항상 2줄 규칙)

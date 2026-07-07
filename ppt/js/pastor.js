@@ -315,6 +315,7 @@ const Pastor = (function () {
       lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
       breaks: b.breaks || []
     }));
+    data.hymn.blocks.forEach(b => Songs.normalizeBreaks(b)); // 찬양팀처럼 항상 2줄씩 슬라이드
     if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
     $('#hymn-name').value = data.hymn.title || '';
     data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(매 절 뒤 후렴) 재설정
@@ -325,7 +326,7 @@ const Pastor = (function () {
     data.hymn.raw = text;
     if (!text) { data.hymn.blocks = []; renderHymnPreview(); save(); return; }
     const btn = $('#btn-hymn-parse');
-    btn.disabled = true; btn.textContent = '정리 중…';
+    btn.disabled = true; btn.textContent = '생성 중…';
     try {
       const r = CONFIG.USE_SERVER
         ? await API.call('extractText', { text })
@@ -347,7 +348,7 @@ const Pastor = (function () {
     } catch (e) {
       alert('가사를 정리하지 못했습니다: ' + (e.message || '') + '\n네트워크를 확인하거나 잠시 후 다시 시도해 주세요.');
     } finally {
-      btn.disabled = false; btn.textContent = '가사 정리하기';
+      btn.disabled = false; btn.textContent = '슬라이드 생성하기';
     }
   }
 
