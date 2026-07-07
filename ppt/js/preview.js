@@ -49,7 +49,7 @@ function renderSlide(slide) {
     }
 
     case 'dark': { // 다크 전체화면형 — 프리미엄 배경(성전광) + 골드 캡션/아멘
-      el.className = 'slide slide--dark' + (slide.fit ? ' is-fit' : '');
+      el.className = 'slide slide--dark' + (slide.fit ? ' is-fit' : '') + (slide.dash ? ' is-dash' : '');
       const bg = darkSlideBg();
       if (bg) { el.style.backgroundImage = 'url(' + bg + ')'; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; }
       if (slide.caption) {
@@ -60,27 +60,31 @@ function renderSlide(slide) {
       }
       const body = document.createElement('div');
       body.className = 'sl-body';
+      // 내용은 단일 래퍼(sl-body-in)에 담아 인라인 흐름 유지 → is-fit 세로중앙(flex)이 span/텍스트를 줄로 쪼개지 않음(미리보기=PPT)
+      const inner = document.createElement('div');
+      inner.className = 'sl-body-in';
       if (slide.verses) {
         slide.verses.forEach(v => {
           const num = document.createElement('span');
           num.className = 'sl-vnum';
           num.textContent = v.num;
-          body.appendChild(num);
-          body.appendChild(document.createTextNode(v.text + ' '));
+          inner.appendChild(num);
+          inner.appendChild(document.createTextNode(v.text + ' '));
         });
       } else if (slide.body) {
         // 마지막 줄이 "아멘."이면 골드로 분리 (사도신경 등)
         const m = String(slide.body).match(/^([\s\S]*?)\n\s*(아멘[.。]?)\s*$/);
         if (m) {
-          body.appendChild(document.createTextNode(m[1]));
+          inner.appendChild(document.createTextNode(m[1]));
           const am = document.createElement('span');
           am.className = 'sl-amen';
           am.textContent = m[2].replace(/。/, '.');
-          body.appendChild(am);
+          inner.appendChild(am);
         } else {
-          body.textContent = slide.body;
+          inner.textContent = slide.body;
         }
       }
+      body.appendChild(inner);
       el.appendChild(body);
       break;
     }
@@ -169,12 +173,14 @@ function darkSlideBg() {
   return _darkBgCache;
 }
 
-// 다크 '한 페이지 맞춤' 슬라이드(사도신경 등): 본문이 넘치지 않게 글자 크기 자동 축소.
+// 다크 '한 페이지 맞춤' 슬라이드(사도신경·성경 본문): 본문이 넘치지 않게 글자 크기 자동 축소.
 // 요소가 화면에 붙은 뒤(측정 가능해진 뒤) 호출해야 함.
 function fitDarkSlides(root) {
   (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
     if (!b.clientHeight) return;
-    var size = 9.2;
+    var slide = b.closest('.slide--dark');
+    // 사도신경(is-dash)은 크게, 성경 본문은 페이지 간 균일하도록 낮은 상한
+    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 6.4;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
     while (b.scrollHeight > b.clientHeight + 1 && size > 1.4 && guard < 80) {
@@ -183,4 +189,39 @@ function fitDarkSlides(root) {
       guard++;
     }
   });
+}
+
+/* ============================================================
+   성경 본문 → 다크 슬라이드 페이지 배열 (미리보기·PPT 공용, 단일 소스).
+   절 번호([n] 또는 'n ')를 인식해 절 단위로 페이지 분할, 없으면 글자수로 분할.
+   각 페이지는 fit:true(가운데·자동축소)로 잘림 없이 한 화면에 맞춤.
+   ============================================================ */
+var PASSAGE_CHARS = 200;   // 다크 1장 목표 글자수
+var PASSAGE_MAXV = 5;      // 1장 최대 절 수
+function passagePages(text, ref) {
+  text = (text || '').trim();
+  if (!text) return [];
+  // 절 번호 파싱: [17] / 17  (숫자 뒤 공백 있는 것만 — "1)" 각주 마커는 제외)
+  var s = text.replace(/\[(\d+)\]/g, ' $1 ').replace(/\s+/g, ' ').trim();
+  var verses = [], re = /(\d{1,3})\s+(.*?)(?=(?:\s\d{1,3}\s)|$)/g, m;
+  while ((m = re.exec(s))) { var tx = m[2].trim(); if (tx) verses.push({ num: m[1], text: tx }); }
+  if (verses.length >= 2) {
+    var pages = [], cur = [], len = 0;
+    for (var i = 0; i < verses.length; i++) {
+      var v = verses[i], vlen = v.text.length + 3;
+      if (cur.length && (len + vlen > PASSAGE_CHARS || cur.length >= PASSAGE_MAXV)) { pages.push(cur); cur = []; len = 0; }
+      cur.push(v); len += vlen;
+    }
+    if (cur.length) pages.push(cur);
+    return pages.map(function (vs) { return { layout: 'dark', caption: ref, verses: vs, fit: true }; });
+  }
+  // 절 번호 없으면 글자수(단어 경계)로 페이지 분할
+  var plain = text.replace(/\s+/g, ' ').trim(), words = plain.split(' '), chunks = [], c = '';
+  for (var j = 0; j < words.length; j++) {
+    var w = words[j];
+    if (c && (c.length + 1 + w.length) > PASSAGE_CHARS) { chunks.push(c); c = ''; }
+    c += (c ? ' ' : '') + w;
+  }
+  if (c) chunks.push(c);
+  return chunks.map(function (b) { return { layout: 'dark', caption: ref, body: b, fit: true }; });
 }

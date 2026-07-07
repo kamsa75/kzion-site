@@ -87,39 +87,9 @@ const Generate = (function () {
       : bandFromBlocks(getBlocks(s), getOrder(s));          // 폴백: 옛 부르는 순서/블록
   }
 
-  /* ---------- 성경 긴 본문 자동 분할 (절 번호 경계 + 글자수) ---------- */
-  const PASSAGE_CHARS = 200;  // 다크 슬라이드 1장 목표 글자수(프로젝터 실측 후 조정 — 체크리스트)
-  const PASSAGE_MAXV = 5;     // 슬라이드당 최대 절 수
-
+  /* ---------- 성경 긴 본문 자동 분할 — preview.js passagePages()와 단일 소스(잘림 방지·미리보기=PPT) ---------- */
   function splitPassage(text, ref) {
-    text = (text || '').trim();
-    if (!text) return [];
-    const verses = [];
-    const re = /\[(\d+)\]\s*([^\[]*)/g;
-    let m;
-    while ((m = re.exec(text))) verses.push({ num: m[1], text: m[2].trim() });
-
-    if (verses.length) {
-      const pages = [];
-      let cur = [], len = 0;
-      for (const v of verses) {
-        const vlen = v.text.length + 3;
-        if (cur.length && (len + vlen > PASSAGE_CHARS || cur.length >= PASSAGE_MAXV)) { pages.push(cur); cur = []; len = 0; }
-        cur.push(v); len += vlen;
-      }
-      if (cur.length) pages.push(cur);
-      return pages.map(vs => ({ layout: 'dark', caption: ref, verses: vs }));
-    }
-    // 절 번호가 없으면 문장/글자수로 분할 (lookbehind 미사용 — 구형 사파리 대비)
-    const sentences = text.match(/[^.!?。]+[.!?。]?/g) || [text];
-    const pages = []; let cur = '';
-    for (const p of sentences) {
-      const t = p.trim(); if (!t) continue;
-      if (cur && cur.length + t.length > PASSAGE_CHARS) { pages.push(cur.trim()); cur = ''; }
-      cur += (cur ? ' ' : '') + t;
-    }
-    if (cur.trim()) pages.push(cur.trim());
-    return pages.map(b => ({ layout: 'dark', caption: ref, body: b }));
+    return (typeof passagePages === 'function') ? passagePages(text, ref) : [];
   }
 
   /* ---------- 슬롯 → 슬라이드 확장 ---------- */
@@ -137,8 +107,8 @@ const Generate = (function () {
         if (slot.type === 'dark') { // 사도신경 등 고정 텍스트 — settings.creed_text (B)
           const body = slot.id === 'creed' ? (ctx.settings.creed_text || '').trim() : '';
           if (!body) return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: slot.placeholder || '' }, missing: true }];
-          // 줄바꿈 그대로 유지 + 한 페이지 맞춤(fit) — 요청 반영
-          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: body, fit: true } }];
+          // 줄바꿈 그대로 유지 + 한 페이지 맞춤(fit) + 대시 캡션(dash) — 사도신경
+          return [{ label: slot.title, slide: { layout: 'dark', caption: slot.title, body: body, fit: true, dash: true } }];
         }
         // 다함께 찬양 부제(곡명) = settings.praise_all_sub (B)
         const sub = slot.id === 'praise-all' ? (ctx.settings.praise_all_sub || '') : (slot.sub || '');
@@ -375,12 +345,15 @@ const Generate = (function () {
         const bg = darkBg();
         s.background = bg ? { data: bg } : { color: C.dark };
         if (sl.caption) {
-          if (sl.fit) {
-            // 사도신경 등: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
+          if (sl.dash) {
+            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
             const capY = 0.85, lineY = capY + 0.30, half = (sl.caption.length * 0.34);
             s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.7, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 26, bold: true, color: C.gold, charSpacing: 6 });
             s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
             s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
+          } else if (sl.fit) {
+            // 성경 본문: 가운데 골드 캡션(참조 구절)
+            s.addText(sl.caption, { x: 0.8, y: 0.55, w: 11.73, h: 0.7, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 3 });
           } else {
             s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
           }
@@ -403,7 +376,11 @@ const Generate = (function () {
           } else body = [{ text: sl.body || '', options: { color: C.warm } }];
         }
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
-        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center'; dopts.x = 0.5; dopts.w = 12.33; dopts.y = 1.75; dopts.h = 5.45; dopts.fontSize = 56; dopts.lineSpacingMultiple = 1.38; } // 사도신경 등 한 페이지·가운데·크게(축소로 채움)
+        if (sl.fit) { // 가운데(가로·세로) + 축소로 잘림 방지. 사도신경은 크게, 성경 본문은 균일하게
+          dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center';
+          dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6;
+          dopts.fontSize = sl.dash ? 56 : 34; dopts.lineSpacingMultiple = 1.4;
+        }
         s.addText(body, dopts);
         break;
       }

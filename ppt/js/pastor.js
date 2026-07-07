@@ -113,12 +113,19 @@ const Pastor = (function () {
     el.innerHTML = '';
     const t = (text || '').trim();
     if (!t) return;
-    el.appendChild(renderSlide({ layout: 'dark', caption: data.ref, body: t.replace(/\s+/g, ' ') }));
-    // 다크 슬라이드는 넘치면 잘려 보임 → 길면 안내
-    if (t.length > 110) {
+    // 실제 PPT와 동일하게 자동 분할(잘림 방지) — 각 페이지는 가운데 정렬
+    const pages = passagePages(t, data.ref);
+    pages.forEach((sl) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'pv-page';
+      wrap.appendChild(renderSlide(sl));
+      el.appendChild(wrap);
+    });
+    requestAnimationFrame(() => fitDarkSlides(el));
+    if (pages.length > 1) {
       const n = document.createElement('div');
       n.className = 'pv-note';
-      n.textContent = '내용이 한 화면보다 많아 보이면 “페이지 추가”로 나눠주세요. (절 번호 골드는 생성 때 적용)';
+      n.textContent = '길이가 길어 자동으로 ' + pages.length + '장으로 나뉩니다 — 슬라이드 모두 잘림 없이 생성됩니다. (절 번호 골드는 생성 때 적용)';
       el.appendChild(n);
     }
   }

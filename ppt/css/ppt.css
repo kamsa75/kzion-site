@@ -229,14 +229,15 @@ input{font-family:inherit;}
   text-shadow:0 0.3cqh 1.6cqh rgba(0,0,0,.55);
 }
 .slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
+.sl-body-in{max-width:100%; white-space:inherit; word-break:inherit;}
 .sl-amen{display:block; color:var(--sl-gold); margin-top:1.1em;}
 /* 사도신경 등 '한 페이지 맞춤' = 가운데 정렬 + 골드 대시 캡션 + 세로 중앙 + 굵게 */
 .slide--dark.is-fit .sl-cap{
   top:10cqh; letter-spacing:.3em; font-size:3.9cqh;
   display:flex; align-items:center; justify-content:center; gap:2.4cqw;
 }
-.slide--dark.is-fit .sl-cap::before,
-.slide--dark.is-fit .sl-cap::after{
+.slide--dark.is-dash .sl-cap::before,
+.slide--dark.is-dash .sl-cap::after{
   content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
 }
 .slide--dark.is-fit .sl-body{
@@ -270,6 +271,8 @@ input{font-family:inherit;}
 .field textarea{resize:vertical;}
 .field-preview{margin:8px 0 4px;}
 .field-preview .slide{max-width:520px;}
+.field-preview .pv-page{margin-bottom:8px;}
+.field-preview .pv-page .slide{max-width:520px;}
 .field-preview .pv-note{font-size:12px; color:var(--ui-sub); margin-top:5px;}
 .label-hint{font-size:12px; font-weight:400; color:var(--ui-sub);}
 .page-block{

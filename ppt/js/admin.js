@@ -137,7 +137,7 @@ const Admin = (function () {
     const box = $('#set-creed-pv'); box.innerHTML = '';
     const t = $('#set-creed').value.trim();
     if (!t) return;
-    box.appendChild(renderSlide({ layout: 'dark', caption: '사도신경', body: t, fit: true })); // 줄바꿈 유지 + 한 페이지 맞춤
+    box.appendChild(renderSlide({ layout: 'dark', caption: '사도신경', body: t, fit: true, dash: true })); // 줄바꿈 유지 + 한 페이지 맞춤 + 대시 캡션
     requestAnimationFrame(() => fitDarkSlides(box));
   }
   function drawPraisePv() {
