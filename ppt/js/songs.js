@@ -743,15 +743,23 @@ const Songs = (function () {
     return changed;
   }
 
+  // 2줄씩 슬라이드가 되도록 break 배열 생성(줄 사이 i: 홀수 위치마다 분할 = 2줄 그룹). 지침 18
+  function twoLineBreaks(n) {
+    const b = [];
+    for (let i = 0; i < Math.max(0, n - 1); i++) b.push(i % 2 === 1);
+    return b;
+  }
+
   function applyExtract(song, r) {
     song.blocks = (r.blocks || []).map((b, i) => ({
       id: b.id || ('b' + (i + 1)),
       type: b.type || 'verse',
       label: b.label || ('' + (i + 1)),
       lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
-      breaks: b.breaks || []
+      breaks: []
     }));
-    song.blocks.forEach(normalizeBreaks);   // 붙여넣기·추출 시 항상 2줄씩
+    // 추출 결과는 항상 2줄씩 고정(AI가 한 줄씩 나눠 보내도 강제 2줄). 이후 검수에서 수동 조정 가능
+    song.blocks.forEach(b => { b.breaks = twoLineBreaks(b.lines.length); });
     song.crop = !!r.crop;
     song.cropReason = r.crop_reason || '';
     // 악보에 적힌 곡 제목 자동 입력 (사용자가 이미 입력했으면 유지)
@@ -799,5 +807,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, renderPdf, isPdf };
+  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, twoLineBreaks, renderPdf, isPdf };
 })();

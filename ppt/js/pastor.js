@@ -334,9 +334,9 @@ const Pastor = (function () {
       type: b.type || 'verse',
       label: b.label || ('' + (i + 1)),
       lines: (b.lines || []).map(l => ({ text: l.text || '', low: l.low || [] })),
-      breaks: b.breaks || []
+      breaks: []
     }));
-    data.hymn.blocks.forEach(b => Songs.normalizeBreaks(b)); // 찬양팀처럼 항상 2줄씩 슬라이드
+    data.hymn.blocks.forEach(b => { b.breaks = Songs.twoLineBreaks(b.lines.length); }); // 항상 2줄씩(AI가 한 줄씩 줘도 강제)
     if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
     $('#hymn-name').value = data.hymn.title || '';
     data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(매 절 뒤 후렴) 재설정
