@@ -179,8 +179,8 @@ function fitDarkSlides(root) {
   (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
     if (!b.clientHeight) return;
     var slide = b.closest('.slide--dark');
-    // 사도신경(is-dash)=크게 채움. 성경 본문=글자 작게(상한 5.5cqh) 후 대칭 상자에 세로중앙 → 상·하 여백 동일
-    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 5.5;
+    // 사도신경(is-dash)=크게 채움. 성경 본문=글자 6cqh(상한) 위쪽 정렬, 상·하 여백 7cqh(≈50px)
+    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 6;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
     while (b.scrollHeight > b.clientHeight + 1 && size > 1.4 && guard < 80) {

@@ -354,8 +354,8 @@ const Generate = (function () {
             s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
             s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
           } else if (sl.fit) {
-            // 성경 본문: 가운데 골드 캡션(참조 구절)
-            s.addText(sl.caption, { x: 0.8, y: 0.3, w: 11.73, h: 0.55, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 20, bold: true, color: C.gold, charSpacing: 3 });
+            // 성경 본문: 가운데 골드 캡션(참조 구절) — 본문 위쪽 정렬과 안 겹치게 상단
+            s.addText(sl.caption, { x: 0.8, y: 0.05, w: 11.73, h: 0.42, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 18, bold: true, color: C.gold, charSpacing: 3 });
           } else {
             s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
           }
@@ -381,8 +381,8 @@ const Generate = (function () {
         if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { dopts.align = 'center'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6; dopts.fontSize = 56; }
-          // 성경 본문: 상자 대칭(y=1.0, h=5.5 → 상·하 여백 1.0 동일) + 세로중앙 + 글자 2/3(≈30pt)
-          else { dopts.align = 'left'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.0; dopts.h = 5.5; dopts.fontSize = 30; }
+          // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
+          else { dopts.align = 'left'; dopts.valign = 'top'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.52; dopts.h = 6.46; dopts.fontSize = 32; }
         }
         s.addText(body, dopts);
         break;
