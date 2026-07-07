@@ -244,6 +244,8 @@ input{font-family:inherit;}
   top:18cqh; bottom:5.5cqh; left:4cqw; right:4cqw; font-weight:800; line-height:1.46;
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
 }
+/* 성경 본문(사도신경 제외)은 글자 왼쪽 정렬 — 블록은 가로·세로 가운데 유지 */
+.slide--dark.is-fit:not(.is-dash) .sl-body{ text-align:left; }
 
 /* 악보 통짜형 */
 .slide--score{background:var(--sl-white); display:flex; align-items:center; justify-content:center;}

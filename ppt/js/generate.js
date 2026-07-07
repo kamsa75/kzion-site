@@ -138,7 +138,9 @@ const Generate = (function () {
       }
       case 'reading_short': {
         const arr = (p.readings || []).filter(x => (x || '').trim());
-        return arr.map(r => ({ label: '함께 읽는 구절', slide: { layout: 'band', lyrics: r.trim().split('\n').filter(Boolean).slice(0, 2) } }));
+        const out = [];
+        arr.forEach(r => (typeof bandPages === 'function' ? bandPages(r) : []).forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl })));
+        return out;
       }
       case 'praise_songs': {
         const songs = ctx.songs.filter(s => getRole(s) === 'praise');
@@ -376,8 +378,8 @@ const Generate = (function () {
           } else body = [{ text: sl.body || '', options: { color: C.warm } }];
         }
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
-        if (sl.fit) { // 가운데(가로·세로) + 축소로 잘림 방지. 사도신경은 크게, 성경 본문은 균일하게
-          dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center';
+        if (sl.fit) { // 세로 가운데 + 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·균일
+          dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = sl.dash ? 'center' : 'left';
           dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6;
           dopts.fontSize = sl.dash ? 56 : 34; dopts.lineSpacingMultiple = 1.4;
         }

@@ -125,7 +125,7 @@ const Pastor = (function () {
     if (pages.length > 1) {
       const n = document.createElement('div');
       n.className = 'pv-note';
-      n.textContent = '길이가 길어 자동으로 ' + pages.length + '장으로 나뉩니다 — 슬라이드 모두 잘림 없이 생성됩니다. (절 번호 골드는 생성 때 적용)';
+      n.textContent = '길이가 길어 자동으로 ' + pages.length + '장으로 나뉩니다 — 슬라이드 모두 잘림 없이 생성됩니다.';
       el.appendChild(n);
     }
   }
@@ -140,9 +140,9 @@ const Pastor = (function () {
       block.className = 'page-block';
 
       const ta = document.createElement('textarea');
-      ta.rows = 2;
+      ta.rows = 4;
       ta.value = text;
-      ta.placeholder = '함께 읽을 짧은 구절 (2줄까지)';
+      ta.placeholder = '함께 읽을 구절 — 길면 자동으로 2줄씩 나뉩니다';
       ta.addEventListener('input', () => {
         data.readings[i] = ta.value;
         drawReadingPreview(prev, ta.value);
@@ -165,13 +165,19 @@ const Pastor = (function () {
 
   function drawReadingPreview(el, text) {
     el.innerHTML = '';
-    const lines = (text || '').trim().split('\n').filter(Boolean);
-    if (!lines.length) return;
-    el.appendChild(renderSlide({ layout: 'band', lyrics: lines.slice(0, 2) }));
-    if (lines.length > 2) {
+    // 실제 PPT와 동일하게 자동으로 2줄씩 밴드 페이지 분할
+    const pages = bandPages(text);
+    if (!pages.length) return;
+    pages.forEach((sl) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'pv-page';
+      wrap.appendChild(renderSlide(sl));
+      el.appendChild(wrap);
+    });
+    if (pages.length > 1) {
       const n = document.createElement('div');
       n.className = 'pv-note';
-      n.textContent = '한 슬라이드는 2줄까지예요. 나머지는 “페이지 추가”로 나눠주세요.';
+      n.textContent = '자동으로 ' + pages.length + '장(2줄씩)으로 나뉩니다 — 잘림 없이 생성됩니다.';
       el.appendChild(n);
     }
   }

@@ -225,3 +225,29 @@ function passagePages(text, ref) {
   if (c) chunks.push(c);
   return chunks.map(function (b) { return { layout: 'dark', caption: ref, body: b, fit: true }; });
 }
+
+/* ============================================================
+   함께 읽는 구절 → 크로마 밴드 슬라이드 페이지 배열 (미리보기·PPT 공용).
+   줄바꿈이 있으면 그 줄 단위, 없으면 자동 줄나눔 → 2줄씩 한 페이지.
+   ============================================================ */
+function bandPages(text) {
+  var t = (text || '').trim();
+  if (!t) return [];
+  var lines;
+  if (/\n/.test(t)) {
+    lines = t.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+  } else {
+    // 한 줄 목표 글자수(D11: 짧은 소절 2개 병합 ~ 24자)로 단어 경계 줄나눔
+    var TARGET = 24, words = t.replace(/\s+/g, ' ').split(' ');
+    lines = []; var cur = '';
+    for (var i = 0; i < words.length; i++) {
+      var w = words[i];
+      if (cur && (cur.length + 1 + w.length) > TARGET) { lines.push(cur); cur = ''; }
+      cur += (cur ? ' ' : '') + w;
+    }
+    if (cur) lines.push(cur);
+  }
+  var pages = [];
+  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', lyrics: lines.slice(j, j + 2) });
+  return pages;
+}
