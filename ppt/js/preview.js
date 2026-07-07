@@ -273,8 +273,23 @@ function passagePages(text, ref) {
    글자 크기는 고정, 카드 폭에 맞춰 '자연 줄바꿈'으로 채움(좌우 여백 대칭).
    한 페이지 = 카드 2줄 분량(~52자)씩 묶음. (#2 선두 [참조] 자동 제거)
    ============================================================ */
-var BAND_EM = 64;   // 카드 2줄에 해당하는 '실제 폭'(em) — 한글 폭 기준(한 줄 ~32자 × 2)
 function bandEm(s) { var w = 0; for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += (c >= 0xAC00 && c <= 0xD7A3) ? 1 : (c === 0x20 ? 0.35 : 0.55); } return w; }
+// 카드 한 줄 용량(em) — 실제 로드된 폰트(Pretendard 등)로 직접 측정(폰트 무관 자동 보정).
+// 카드 한 줄 폭 = 84cqw, 글자 = 5.4cqh → 16:9에서 한 줄 = 폰트높이의 27.65배.
+function bandLineCap() {
+  var cap = 27.65;
+  try {
+    if (typeof document !== 'undefined' && document.body) {
+      var probe = '가나다라마바사아자차', d = document.createElement('div');
+      d.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-weight:800;font-family:Pretendard,"Apple SD Gothic Neo",-apple-system,sans-serif;font-size:100px;';
+      d.textContent = probe; document.body.appendChild(d);
+      var emPx = d.getBoundingClientRect().width / probe.length / 100; // 한글 1자 폭(em)
+      document.body.removeChild(d);
+      if (emPx > 0.4) cap = 27.65 / emPx;
+    }
+  } catch (e) {}
+  return cap;
+}
 function bandPages(text, ref) {
   var t = (text || '').trim();
   if (!t) return [];
@@ -284,12 +299,16 @@ function bandPages(text, ref) {
   if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
   t = t.replace(/\s+/g, ' ');
-  // 실제 폭(em) 기준 2줄 분량으로 묶음 → 앞 페이지들은 두 줄 모두 꽉 참
-  var words = t.split(' '), pages = [], cur = '', em = 0;
+  // 실제 폰트 한 줄 용량으로 줄바꿈 시뮬레이션 → 딱 2줄까지 채우고 넘치면 새 페이지(항상 2줄 규칙)
+  var cap = bandLineCap(), words = t.split(' '), pages = [], cur = '', lineEm = 0, lines = 1;
   for (var i = 0; i < words.length; i++) {
-    var w = words[i], we = bandEm(w) + (cur ? 0.35 : 0);
-    if (cur && em + we > BAND_EM) { pages.push(cur); cur = ''; em = 0; we = bandEm(w); }
-    cur += (cur ? ' ' : '') + w; em += we;
+    var w = words[i], we = bandEm(w), withW = cur ? lineEm + 0.35 + we : we;
+    if (cur && withW > cap) {          // 이 줄에 안 들어감 → 줄바꿈
+      if (lines >= 2) { pages.push(cur); cur = ''; lines = 1; }  // 이미 2줄 → 새 페이지
+      else { lines = 2; }              // 둘째 줄로
+      withW = we;
+    }
+    cur += (cur ? ' ' : '') + w; lineEm = withW;
   }
   if (cur) pages.push(cur);
   // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. text = 자연 줄바꿈으로 채울 본문
