@@ -35,19 +35,39 @@ const Choir = (function () {
 
   async function tidy(song, textarea, editorEl, btn) {
     const text = textarea.value.trim();
-    if (!text) return;
+    if (!text) { alert('먼저 가사를 입력해 주세요.'); return; }
     song.raw = text;
-    btn.disabled = true; const old = btn.textContent; btn.textContent = '정리 중…';
+    btn.disabled = true; btn.textContent = '✨ 만드는 중…';
+    let usedFallback = false, serverErr = '';
     try {
-      const r = CONFIG.USE_SERVER ? await API.call('extractText', { text }) : mockSplit(text);
-      Songs.applyExtract(song, r);            // song.blocks 채움 (동일 스키마)
+      let r = null;
+      if (CONFIG.USE_SERVER) {
+        // AI 추출 — 실패/지연(45초)이면 로컬 기본 분할로라도 만들어 성가대가 막히지 않게
+        try {
+          r = await Promise.race([
+            API.call('extractText', { text }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('시간 초과')), 45000))
+          ]);
+        } catch (e) { serverErr = e.message || ''; r = null; }
+      } else {
+        r = mockSplit(text);
+      }
+      if (r) Songs.applyExtract(song, r);
+      if (!song.blocks || !song.blocks.length) { // AI 결과 없음/실패 → 로컬 기본 분할(빈 줄=블록, 2줄씩)
+        Songs.applyExtract(song, mockSplit(text));
+        usedFallback = CONFIG.USE_SERVER;
+      }
       SongStore.save(); SongStore.pushNow(song);
       renderEditor(song, editorEl);
+      if (usedFallback) {
+        alert('자동 정리(AI)가 안 돼서 기본 분할로 만들었어요' + (serverErr ? '\n(' + serverErr + ')' : '') +
+          '\n절 사이를 빈 줄로 띄우고 다시 누르면 더 정확합니다.');
+      }
     } catch (e) {
-      alert('정리에 실패했습니다: ' + (e.message || ''));
+      alert('만들지 못했습니다: ' + (e.message || '네트워크를 확인해 주세요.'));
     } finally {
       btn.disabled = false;
-      btn.textContent = (song.blocks && song.blocks.length) ? '✨ 다시 정리하기' : old;
+      btn.textContent = (song.blocks && song.blocks.length) ? '✨ 다시 ppt로 만들기' : '✨ ppt로 만들기';
     }
   }
 
@@ -244,7 +264,7 @@ const Choir = (function () {
 
     const btn = document.createElement('button');
     btn.className = 'btn btn-primary btn-wide choir-tidy';
-    btn.textContent = song.blocks && song.blocks.length ? '✨ 다시 정리하기' : '✨ 정리하기';
+    btn.textContent = song.blocks && song.blocks.length ? '✨ 다시 ppt로 만들기' : '✨ ppt로 만들기';
     card.appendChild(btn);
 
     const editor = document.createElement('div');
