@@ -11,6 +11,7 @@
 const SongStore = (function () {
   let role = null;
   let songs = [];            // [{id, name, status, blocks, order, images, warnDark}]
+  let week = null;           // 마지막 getWeek 원본(홈 섹션 상태 계산용 — pastor 데이터 포함)
   const imgCache = {};       // songId -> [dataUrl] 세션 내 표시용 캐시
   let pushTimer = null;
 
@@ -20,6 +21,7 @@ const SongStore = (function () {
     role = r;
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
+      week = w;
       songs = (w.songs || [])
         .sort((a, b) => a.position - b.position)
         .map(row => ({
@@ -86,6 +88,7 @@ const SongStore = (function () {
 
   return {
     load, save,
+    week: () => week,
     pushNow: async (s) => { if (CONFIG.USE_SERVER) { try { await pushOne(s, songs.indexOf(s)); } catch (e) {} } },
     all: () => songs,
     get: (id) => songs.find(s => s.id === id),

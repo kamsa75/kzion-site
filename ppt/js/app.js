@@ -97,6 +97,37 @@
     return sec.items;
   }
 
+  // 목사님 섹션 상태 — 핵심 항목(설교 제목·성경 본문·기도 담당자·찬송가)이 채워졌는지로 판정
+  function pastorStatus(p) {
+    if (!p) return 'empty';
+    const req = [
+      (p.title || '').trim(),
+      (p.passages || []).some(x => (x || '').trim()),
+      (p.prayer || '').trim(),
+      (p.hymn && ((p.hymn.blocks || []).length || (p.hymn.raw || '').trim()))
+    ];
+    const opt = [(p.ref || '').trim(), (p.readings || []).some(x => (x || '').trim())];
+    if (!req.some(Boolean) && !opt.some(Boolean)) return 'empty';   // 아무것도 없음 → 대기
+    return req.every(Boolean) ? 'done' : 'progress';                // 핵심 다 채움 → 완료, 일부 → 작성 중
+  }
+
+  // 섹션 상태를 '실제 데이터'로 계산. 데이터가 없는(=내 소관 아님, 관리자 아님) 섹션은 null → 상태칩 미표시
+  //  · getWeek는 역할별로 자기 데이터만 반환(praise→자기 곡, pastor→pastor, owner/admin→전체) — 서버 제약 반영
+  function sectionStatus(sec, role) {
+    if (!CONFIG.USE_SERVER) return sec.status;   // 목/데모 모드는 샘플 상태 유지
+    if (sec.owner === 'praise' || sec.owner === 'choir') {
+      if (role !== 'owner' && role !== sec.owner) return null;   // 데이터 없음
+      const list = SongStore.all().filter(s => (s.role || sec.owner) === sec.owner && hasSongContent(s));
+      if (!list.length) return 'empty';
+      const ordered = list.filter(s => s.status === 'ordered').length;
+      return ordered === list.length ? 'done' : 'progress';
+    }
+    // pastor
+    if (role !== 'owner' && role !== 'pastor') return null;      // 데이터 없음
+    const w = SongStore.week && SongStore.week();
+    return pastorStatus(w && w.pastor && (w.pastor.data || w.pastor));
+  }
+
   function renderHome(role) {
     currentRole = role;
     $('#home-role').textContent = MOCK.roles[role].label;
@@ -132,10 +163,15 @@
         owner.textContent = '담당: ' + MOCK.roles[sec.owner].label;
         left.appendChild(owner);
       }
-      const st = document.createElement('span');
-      st.className = 'status status-' + sec.status;
-      st.textContent = MOCK.statusLabel[sec.status];
-      head.append(left, st);
+      const status = sectionStatus(sec, role);   // 실데이터 기반(없으면 null)
+      if (status) {
+        const st = document.createElement('span');
+        st.className = 'status status-' + status;
+        st.textContent = MOCK.statusLabel[status];
+        head.append(left, st);
+      } else {
+        head.append(left);
+      }
       card.appendChild(head);
 
       if (showDetail) {
