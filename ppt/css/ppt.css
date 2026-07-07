@@ -53,6 +53,11 @@ input{font-family:inherit;}
 .btn-primary{background:var(--ui-dark); color:#fff;}
 .btn-ghost{color:var(--ui-sub); padding:10px 12px;}
 .btn-wide{width:100%;}
+/* '이번 주 준비 완료' 토글 — 완료 전=골드 CTA, 완료 후=다크(골드 글씨)로 확정감. 초록 금지(크로마키) */
+.btn-done{background:var(--ui-gold); color:#2b1f0e; border-color:var(--ui-gold);}
+.btn-done.is-done{background:var(--ui-dark); color:var(--ui-gold); border-color:var(--ui-dark);}
+.done-bar{margin-top:24px; padding-top:18px; border-top:1px solid var(--ui-line);}
+.done-hint{margin-top:8px; font-size:12px; color:var(--ui-sub); line-height:1.5; text-align:center;}
 .btn[disabled]{opacity:.4; cursor:default;}
 .btn:active{transform:scale(.98);}
 @media(hover:hover){

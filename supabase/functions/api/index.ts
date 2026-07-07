@@ -228,7 +228,30 @@ Deno.serve(async (req) => {
           .order("position");
         out.songs = data || [];
       }
+      // 섹션 완료 플래그(찬양팀·성가대) — 담당자가 '이번 주 준비 완료'를 눌렀는지. 워커는 본인 것만, 관리자·본부장은 전체
+      {
+        let q = db.from("section_done").select("role, done").eq("week_id", weekId);
+        if (role === "praise" || role === "choir") q = q.eq("role", role);
+        const { data: dq } = await q;
+        const doneOut: Record<string, boolean> = {};
+        (dq || []).forEach((r: { role: string; done: boolean }) => { doneOut[r.role] = !!r.done; });
+        out.sectionDone = doneOut;
+      }
       return json(out);
+    }
+
+    // 섹션 '이번 주 준비 완료' 토글 (찬양팀·성가대) — 곡과 별개의 작은 플래그
+    case "setDone": {
+      if (role !== "praise" && role !== "choir") return json({ error: "권한 없음" }, 403);
+      await ensureWeek(weekId);
+      const { error } = await db
+        .from("section_done")
+        .upsert(
+          { week_id: weekId, role, done: Boolean(body.done), updated_at: new Date().toISOString() },
+          { onConflict: "week_id,role" },
+        );
+      if (error) return json({ error: "저장 실패" }, 500);
+      return json({ ok: true });
     }
 
     // 목사님 섹션 저장 (자동 저장 — 지침 3번)

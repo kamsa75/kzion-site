@@ -89,6 +89,13 @@ const SongStore = (function () {
   return {
     load, save,
     week: () => week,
+    isDone: () => !!(week && week.sectionDone && week.sectionDone[role]),   // 이번 주 이 섹션 완료?
+    setDone: async (val) => {   // '이번 주 준비 완료' 토글 — 서버에 저장(작은 플래그)
+      if (CONFIG.USE_SERVER) await API.call('setDone', { done: !!val });
+      if (!week) week = {};
+      if (!week.sectionDone) week.sectionDone = {};
+      week.sectionDone[role] = !!val;
+    },
     pushNow: async (s) => { if (CONFIG.USE_SERVER) { try { await pushOne(s, songs.indexOf(s)); } catch (e) {} } },
     all: () => songs,
     get: (id) => songs.find(s => s.id === id),
@@ -411,9 +418,17 @@ const Songs = (function () {
 
   /* ---------- 곡 목록 렌더 ---------- */
 
+  function renderDone() {
+    const btn = $('#btn-songs-done'); if (!btn) return;
+    const done = SongStore.isDone();
+    btn.textContent = done ? '✅ 완료됨 — 눌러서 취소' : '✅ 이번 주 준비 완료';
+    btn.classList.toggle('is-done', done);
+  }
+
   function render() {
     const role = KZ.role();
     $('#songs-title').textContent = MOCK.roles[role].label + ' — 곡 준비';
+    renderDone();
     const list = $('#songs-list');
     list.innerHTML = '';
 
@@ -756,6 +771,10 @@ const Songs = (function () {
       }
     });
     $('#btn-songs-back').addEventListener('click', () => KZ.show('home'));
+    $('#btn-songs-done').addEventListener('click', async () => {
+      try { await SongStore.setDone(!SongStore.isDone()); renderDone(); }
+      catch (e) { alert('완료 상태를 저장하지 못했습니다: ' + (e.message || '') + '\n잠시 후 다시 시도해 주세요.'); }
+    });
 
     const screen = $('#screen-songs');
     screen.addEventListener('dragover', (e) => e.preventDefault());

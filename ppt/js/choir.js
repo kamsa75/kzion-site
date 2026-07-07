@@ -327,7 +327,15 @@ const Choir = (function () {
     return SongStore.all().filter(s => !s.role || s.role === 'choir');
   }
 
+  function renderDone() {
+    const btn = $('#btn-choir-done'); if (!btn) return;
+    const done = SongStore.isDone();
+    btn.textContent = done ? '✅ 완료됨 — 눌러서 취소' : '✅ 이번 주 준비 완료';
+    btn.classList.toggle('is-done', done);
+  }
+
   function render() {
+    renderDone();
     const list = $('#choir-list');
     list.innerHTML = '';
     let songs = choirSongs();
@@ -360,6 +368,11 @@ const Choir = (function () {
     if (back) back.addEventListener('click', () => KZ.show('home'));
     const addBtn = $('#btn-choir-add');
     if (addBtn) addBtn.addEventListener('click', add);
+    const doneBtn = $('#btn-choir-done');
+    if (doneBtn) doneBtn.addEventListener('click', async () => {
+      try { await SongStore.setDone(!SongStore.isDone()); renderDone(); }
+      catch (e) { alert('완료 상태를 저장하지 못했습니다: ' + (e.message || '') + '\n잠시 후 다시 시도해 주세요.'); }
+    });
   }
 
   return { init, open, render };

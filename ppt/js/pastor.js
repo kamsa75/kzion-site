@@ -26,7 +26,8 @@ const Pastor = (function () {
       title: d.title || '', ref: d.ref || '', prayer: d.prayer || '',
       passages: Array.isArray(d.passages) ? d.passages : (d.passage ? [d.passage] : ['']),
       readings: Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : ['']),
-      hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [], order: Array.isArray(h.order) ? h.order : [] }
+      hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [], order: Array.isArray(h.order) ? h.order : [] },
+      done: !!d.done   // 담당자가 '완료'로 표시했는지 (D: 명시적 완료 버튼)
     };
     if (!out.passages.length) out.passages = [''];
     if (!out.readings.length) out.readings = [''];
@@ -433,6 +434,13 @@ const Pastor = (function () {
     $('#hymn-input').value = data.hymn.raw || '';
     renderHymnPreview();
     renderThumbs();
+    renderDone();
+  }
+
+  function renderDone() {
+    const btn = $('#btn-pastor-done'); if (!btn) return;
+    btn.textContent = data.done ? '✅ 완료됨 — 눌러서 취소' : '✅ 이번 주 준비 완료';
+    btn.classList.toggle('is-done', !!data.done);
   }
 
   async function open() {
@@ -471,6 +479,7 @@ const Pastor = (function () {
     bindSimple('#pf-prayer', 'prayer');
     // ref는 성경 본문 캡션에도 쓰이므로 본문 미리보기도 갱신
     $('#pf-ref').addEventListener('input', () => renderPassages());
+    $('#btn-pastor-done').addEventListener('click', () => { data.done = !data.done; renderDone(); save(); });
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
     $('#btn-add-reading').addEventListener('click', () => { data.readings.push(''); renderReadings(); save(); });
     // 찬송가 제목(몇 장·제목) — 입력 즉시 저장·미리보기 갱신(제목 슬라이드)
