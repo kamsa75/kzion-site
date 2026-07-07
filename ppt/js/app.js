@@ -179,7 +179,7 @@
       const block = document.createElement('div');
       block.className = 'admin-block';
       const h = document.createElement('h2');
-      h.textContent = isOwner ? '관리자 (본부장)' : '관리자';
+      h.textContent = isOwner ? '어드민' : '관리자';
       block.appendChild(h);
 
       const card = document.createElement('div');

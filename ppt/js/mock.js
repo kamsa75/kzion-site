@@ -15,7 +15,7 @@ const MOCK = {
     praise: { label: '찬양팀' },
     choir:  { label: '성가대' },
     admin:  { label: '관리자' },       // 위임 관리자
-    owner:  { label: '관리자 (본부장)' } // 진짜 관리자 = 본부장 전용
+    owner:  { label: '어드민' } // 진짜 관리자 = 본부장 전용
   },
 
   // 이번 주 문서의 3섹션 상태 (예시)
