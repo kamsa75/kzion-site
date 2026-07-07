@@ -72,6 +72,8 @@ const Pastor = (function () {
       (data.title || data.ref) ? { layout: 'green', text: data.title, sub: data.ref } : null);
     previewBox($('#pv-prayer'),
       data.prayer.trim() ? { layout: 'green', text: '기도 : ' + data.prayer.trim() } : null); // D13
+    previewBox($('#pv-hymn-title'),   // 찬송가 제목 슬라이드(그린 자막형) — 제목 입력 즉시 미리보기
+      (data.hymn.title || '').trim() ? { layout: 'green', text: (data.hymn.title || '').trim() } : null);
   }
 
   /* ---------- 성경 본문(다크) 다중 페이지 ---------- */
@@ -318,7 +320,7 @@ const Pastor = (function () {
 
     if (count) {
       const sum = document.createElement('div'); sum.className = 'pv-note';
-      sum.textContent = '= 찬송가 슬라이드 ' + count + '장 (라벨을 눌러 절/후렴 수정)';
+      sum.textContent = '= 찬송가 슬라이드 ' + count + '장';
       el.appendChild(sum);
     }
     requestAnimationFrame(() => fitFilm(el));
@@ -465,7 +467,7 @@ const Pastor = (function () {
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
     $('#btn-add-reading').addEventListener('click', () => { data.readings.push(''); renderReadings(); save(); });
     // 찬송가 제목(몇 장·제목) — 입력 즉시 저장·미리보기 갱신(제목 슬라이드)
-    $('#hymn-name').addEventListener('input', () => { data.hymn.title = $('#hymn-name').value; renderHymnPreview(); save(); });
+    $('#hymn-name').addEventListener('input', () => { data.hymn.title = $('#hymn-name').value; renderFixedPreviews(); renderHymnPreview(); save(); });
     // 찬송가: 입력은 자동 저장(raw만), 블록은 "정리하기"를 눌러야 갱신 (API 호출 아끼기)
     $('#hymn-input').addEventListener('input', () => { data.hymn.raw = $('#hymn-input').value; save(); });
     $('#btn-hymn-parse').addEventListener('click', parseHymn);
