@@ -585,6 +585,7 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .ofilm::-webkit-scrollbar{display:none;}
 .ofilm-group{position:relative; flex:0 0 auto;}
 .ofilm-thumbs{display:flex; gap:4px;}
+.choir-thumbs{flex-wrap:wrap; margin-top:8px;} /* 성가대 블록 미리보기: 여러 슬라이드 줄바꿈 */
 .film-thumb{width:168px; border-radius:6px; overflow:hidden; border:1px solid rgba(0,0,0,.22);}
 .film-green{background:var(--sl-chroma); height:30px;}
 .film-band{background:var(--sl-band); min-height:46px; padding:6px 7px;

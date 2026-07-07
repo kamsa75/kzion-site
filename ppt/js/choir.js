@@ -82,6 +82,29 @@ const Choir = (function () {
     return groups;
   }
 
+  // 찬양팀 검수와 동일한 밴드 슬라이드 필름 썸네일(그린 + 검정 밴드 2줄)
+  function filmThumb(lines) {
+    const t = document.createElement('div'); t.className = 'film-thumb';
+    const green = document.createElement('div'); green.className = 'film-green';
+    const band = document.createElement('div'); band.className = 'film-band';
+    (lines || []).slice(0, 2).forEach(tx => {
+      const d = document.createElement('div'); d.className = 'film-line'; d.textContent = tx;
+      band.appendChild(d);
+    });
+    t.append(green, band);
+    return t;
+  }
+
+  // 필름 썸네일 가사가 폭을 넘으면 축소(찬양팀 검수와 동일)
+  function fitFilm(root) {
+    root.querySelectorAll('.film-line').forEach(l => {
+      if (!l.clientWidth) return;
+      let size = 11;
+      l.style.fontSize = size + 'px';
+      while (l.scrollWidth > l.clientWidth && size > 6) { size -= 0.5; l.style.fontSize = size + 'px'; }
+    });
+  }
+
   function fitLines(root) {
     root.querySelectorAll('.line-text').forEach(t => {
       if (!t.clientWidth) return;
@@ -203,9 +226,14 @@ const Choir = (function () {
         bcard.appendChild(lineRow(song, block, li, el));
         if (li < block.lines.length - 1) bcard.appendChild(dividerNode(song, block, li, el));
       });
+      // 슬라이드 미리보기 — 찬양팀 검수와 동일한 필름 썸네일(밴드)
+      const strip = document.createElement('div');
+      strip.className = 'ofilm-thumbs choir-thumbs';
+      blockSlides(block).forEach(g => strip.appendChild(filmThumb(g.map(i => block.lines[i].text))));
+      bcard.appendChild(strip);
       el.appendChild(bcard);
     });
-    fitLines(el);
+    fitLines(el); fitFilm(el);
   }
 
   /* ---------- 곡 카드 ---------- */
@@ -308,6 +336,8 @@ const Choir = (function () {
       songs = choirSongs();
     }
     songs.forEach((s, i) => list.appendChild(renderCard(s, i, songs.length)));
+    // 카드가 화면에 붙은 뒤 미리보기 글자 크기 맞춤(필름 썸네일·줄)
+    requestAnimationFrame(() => { fitLines(list); fitFilm(list); });
   }
 
   function add() {
