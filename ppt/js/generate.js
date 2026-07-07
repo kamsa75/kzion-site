@@ -355,7 +355,7 @@ const Generate = (function () {
             s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
           } else if (sl.fit) {
             // 성경 본문: 가운데 골드 캡션(참조 구절)
-            s.addText(sl.caption, { x: 0.8, y: 0.55, w: 11.73, h: 0.7, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 3 });
+            s.addText(sl.caption, { x: 0.8, y: 0.3, w: 11.73, h: 0.55, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 20, bold: true, color: C.gold, charSpacing: 3 });
           } else {
             s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
           }
@@ -378,10 +378,10 @@ const Generate = (function () {
           } else body = [{ text: sl.body || '', options: { color: C.warm } }];
         }
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
-        if (sl.fit) { // 세로 가운데 + 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·균일
-          dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = sl.dash ? 'center' : 'left';
-          dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6;
-          dopts.fontSize = sl.dash ? 56 : 34; dopts.lineSpacingMultiple = 1.4;
+        if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
+          dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
+          if (sl.dash) { dopts.align = 'center'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6; dopts.fontSize = 56; }
+          else { dopts.align = 'left'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.95; dopts.h = 6.2; dopts.fontSize = 54; }
         }
         s.addText(body, dopts);
         break;

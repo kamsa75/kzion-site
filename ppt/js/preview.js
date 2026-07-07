@@ -179,8 +179,8 @@ function fitDarkSlides(root) {
   (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
     if (!b.clientHeight) return;
     var slide = b.closest('.slide--dark');
-    // 사도신경(is-dash)은 크게, 성경 본문은 페이지 간 균일하도록 낮은 상한
-    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 6.4;
+    // 상한에서 시작해 축소하며 상자를 꽉 채움 — 사도신경·성경 본문 모두 여백 최소화
+    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 12;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
     while (b.scrollHeight > b.clientHeight + 1 && size > 1.4 && guard < 80) {
