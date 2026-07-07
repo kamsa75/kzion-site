@@ -230,7 +230,7 @@ input{font-family:inherit;}
 .vcard-box{margin-top:-3.4cqh; border-radius:2.4cqh; padding:5cqh 4cqw 3.2cqh;
   background:linear-gradient(180deg,#ffffff 0%,#eef2f8 100%); color:#17233f;
   box-shadow:0 1.2cqh 3.4cqh rgba(0,0,0,.32);}
-.vcard-line{font-weight:800; font-size:5.4cqh; line-height:1.5; text-align:left; white-space:nowrap;}
+.vcard-para{font-weight:800; font-size:5.4cqh; line-height:1.5; text-align:left; word-break:keep-all;}
 .vcard-box .sl-vnum{color:#b0801f; font-weight:800; margin-right:.15em;}
 /* 긴 성경 본문 카드 — 화면 거의 가득 채우는 큰 카드(같은 팔레트, 여러 절 줄바꿈) */
 .vcard.is-full{left:4cqw; right:4cqw; top:9cqh; bottom:6cqh; display:flex; flex-direction:column;}

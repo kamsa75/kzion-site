@@ -35,18 +35,17 @@ function renderSlide(slide) {
 
     case 'band': { // 크로마 밴드형 / 성경 구절 카드
       el.className = 'slide slide--band'; // 배경 그린 = 라이브 영상(키잉)
-      if (slide.scripture) { // 함께 읽는 구절 = 하단 플로팅 흰 카드 + 블루 구절칩 + 골드 절번호
+      if (slide.scripture) { // 함께 읽는 구절 = 하단 흰 카드 + 블루 구절칩 + 골드 절번호(자연 줄바꿈)
         const card = document.createElement('div'); card.className = 'vcard';
         if (slide.ref) { const chip = document.createElement('div'); chip.className = 'vcard-chip'; chip.textContent = slide.ref; card.appendChild(chip); }
         const box = document.createElement('div'); box.className = 'vcard-box';
-        (slide.lyrics || []).slice(0, 2).forEach(line => {
-          const ln = document.createElement('div'); ln.className = 'vcard-line';
-          scriptureRuns(line).forEach(r => {
-            if (r.gold) { const sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; ln.appendChild(sp); }
-            else ln.appendChild(document.createTextNode(r.t));
-          });
-          box.appendChild(ln);
+        const para = document.createElement('div'); para.className = 'vcard-para';
+        const txt = slide.text || (slide.lyrics || []).join(' '); // 고정 크기 + 카드 폭 자연 줄바꿈으로 채움
+        scriptureRuns(txt).forEach(r => {
+          if (r.gold) { const sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; para.appendChild(sp); }
+          else para.appendChild(document.createTextNode(r.t));
         });
+        box.appendChild(para);
         card.appendChild(box);
         el.appendChild(card);
         break;
@@ -270,10 +269,11 @@ function passagePages(text, ref) {
 }
 
 /* ============================================================
-   함께 읽는 구절 → 크로마 밴드 슬라이드 페이지 배열 (미리보기·PPT 공용).
-   찬양팀 가사처럼 '읽기 좋은 크기'로 항상 일정하게 — 긴 줄은 밴드 한 줄에
-   들어갈 길이(~24자)로 자동 재줄바꿈한 뒤 2줄씩 한 페이지. (D11)
+   함께 읽는 구절 → 흰 카드 페이지 배열 (미리보기·PPT 공용).
+   글자 크기는 고정, 카드 폭에 맞춰 '자연 줄바꿈'으로 채움(좌우 여백 대칭).
+   한 페이지 = 카드 2줄 분량(~52자)씩 묶음. (#2 선두 [참조] 자동 제거)
    ============================================================ */
+var BAND_CHARS = 52;   // 카드 2줄에 해당하는 글자수(고정 글자 크기로 폭을 채우는 자연 줄바꿈)
 function bandPages(text, ref) {
   var t = (text || '').trim();
   if (!t) return [];
@@ -282,25 +282,16 @@ function bandPages(text, ref) {
   var mref = t.match(/^\s*\[([^\]]+)\]\s*/);
   if (mref) { if (!chipRef) chipRef = mref[1].trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
-  var TARGET = 32;              // 넓은 카드 한 줄을 꽉 채우는 길이(오른쪽 여백 최소화)
-  var segments = t.split('\n'); // 사용자가 넣은 줄바꿈은 우선 끊는 지점으로 존중
-  var lines = [];
-  segments.forEach(function (seg) {
-    seg = seg.replace(/\s+/g, ' ').trim();
-    if (!seg) return;
-    if (seg.length <= TARGET) { lines.push(seg); return; } // 이미 짧으면 그대로
-    var words = seg.split(' '), cur = '';                  // 길면 단어 경계로 재줄바꿈
-    for (var i = 0; i < words.length; i++) {
-      var w = words[i];
-      if (cur && (cur.length + 1 + w.length) > TARGET) { lines.push(cur); cur = ''; }
-      cur += (cur ? ' ' : '') + w;
-    }
-    if (cur) lines.push(cur);
-  });
-  var pages = [];
-  // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. ref = 구절칩 표기
-  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', scripture: true, ref: chipRef, lyrics: lines.slice(j, j + 2) });
-  return pages;
+  t = t.replace(/\s+/g, ' ');
+  var words = t.split(' '), pages = [], cur = '';
+  for (var i = 0; i < words.length; i++) {
+    var w = words[i];
+    if (cur && (cur.length + 1 + w.length) > BAND_CHARS) { pages.push(cur); cur = ''; }
+    cur += (cur ? ' ' : '') + w;
+  }
+  if (cur) pages.push(cur);
+  // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. text = 자연 줄바꿈으로 채울 본문
+  return pages.map(function (chunk) { return { layout: 'band', scripture: true, ref: chipRef, text: chunk }; });
 }
 
 // 밴드/본문에서 절 번호(숫자+공백, 줄 시작 또는 공백 뒤)를 골드로 분리. [{t, gold}]

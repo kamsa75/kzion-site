@@ -370,13 +370,10 @@ const Generate = (function () {
         s.background = { color: C.green }; // 순수 그린 — 라이브/전환 (D20)
         break;
       case 'band': {
-        if (sl.scripture) { // 함께 읽는 구절 = 하단 흰 카드(긴 본문과 통일)
-          const runs = [];
-          (sl.lyrics || []).slice(0, 2).forEach((line, i) => {
-            if (i > 0) runs.push({ text: '\n', options: {} });
-            (typeof scriptureRuns === 'function' ? scriptureRuns(line) : [{ t: line, gold: false }])
-              .forEach(r => runs.push({ text: r.t, options: { color: r.gold ? CARD.num : CARD.ink } }));
-          });
+        if (sl.scripture) { // 함께 읽는 구절 = 하단 흰 카드(자연 줄바꿈으로 폭 채움)
+          const chunk = sl.text || (sl.lyrics || []).join(' ');
+          const runs = (typeof scriptureRuns === 'function' ? scriptureRuns(chunk) : [{ t: chunk, gold: false }])
+            .map(r => ({ text: r.t, options: { color: r.gold ? CARD.num : CARD.ink } }));
           addVerseCard(pptx, s, sl.ref, runs, false);
           break;
         }
