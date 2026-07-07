@@ -214,20 +214,34 @@ input{font-family:inherit;}
   word-break:keep-all;
 }
 
-/* 다크 전체화면형 — 세로 그레이디언트(위 밝음 → 아래 어두움), 초록 없음(크로마 안전) */
-.slide--dark{background:linear-gradient(180deg,#2A3242 0%,#171D28 52%,#0B0E13 100%);}
+/* 다크 전체화면형 — 프리미엄 '성전광' 배경 이미지(darkSlideBg, JS 인라인). 초록 없음(크로마 안전) */
+.slide--dark{background:#0a0e14; background-size:cover; background-position:center;}
 .slide--dark .sl-cap{
   position:absolute; top:6cqh; left:6cqw; right:6cqw;
   color:var(--sl-gold); font-size:4.6cqh; font-weight:800; letter-spacing:.06em;
+  text-shadow:0 0.3cqh 1.4cqh rgba(0,0,0,.5);
 }
 .slide--dark .sl-body{
   position:absolute; top:17cqh; left:6cqw; right:6cqw; bottom:6cqh;
   color:var(--sl-warm); font-size:6.4cqh; font-weight:700; line-height:1.62;
-  overflow:hidden; white-space:pre-wrap; /* 붙여넣은 줄바꿈(엔터) 그대로 표시 */
+  overflow:hidden; white-space:pre-wrap; word-break:keep-all; /* 줄바꿈 유지 + 단어 안 쪼갬 */
+  text-shadow:0 0.3cqh 1.6cqh rgba(0,0,0,.55);
 }
 .slide--dark .sl-vnum{color:var(--sl-gold); font-size:.72em; margin-right:.45em;}
-.slide--dark.is-fit .sl-cap{text-align:center;}  /* 사도신경 제목도 가운데 */
-.slide--dark.is-fit .sl-body{text-align:center;} /* 사도신경 등 한 페이지 맞춤 = 가운데 정렬 */
+.sl-amen{display:block; color:var(--sl-gold); margin-top:1.1em;}
+/* 사도신경 등 '한 페이지 맞춤' = 가운데 정렬 + 골드 대시 캡션 + 세로 중앙 + 굵게 */
+.slide--dark.is-fit .sl-cap{
+  top:10cqh; letter-spacing:.3em; font-size:3.9cqh;
+  display:flex; align-items:center; justify-content:center; gap:2.4cqw;
+}
+.slide--dark.is-fit .sl-cap::before,
+.slide--dark.is-fit .sl-cap::after{
+  content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
+}
+.slide--dark.is-fit .sl-body{
+  top:18cqh; bottom:5.5cqh; left:4cqw; right:4cqw; font-weight:800; line-height:1.46;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+}
 
 /* 악보 통짜형 */
 .slide--score{background:var(--sl-white); display:flex; align-items:center; justify-content:center;}

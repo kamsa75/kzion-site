@@ -348,20 +348,9 @@ const Generate = (function () {
     show(idx);
   }
 
-  /* ---------- 다크 배경 그레이디언트 이미지 (PptxGenJS는 배경 그레이디언트 미지원 → 이미지로) ---------- */
-  let darkBgCache;
-  function darkBg() {
-    if (darkBgCache !== undefined) return darkBgCache;
-    try {
-      const c = document.createElement('canvas'); c.width = 8; c.height = 720;
-      const ctx = c.getContext('2d');
-      const g = ctx.createLinearGradient(0, 0, 0, 720);
-      g.addColorStop(0, '#2A3242'); g.addColorStop(0.52, '#171D28'); g.addColorStop(1, '#0B0E13');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, 8, 720);
-      darkBgCache = c.toDataURL('image/png');
-    } catch (e) { darkBgCache = ''; }
-    return darkBgCache;
-  }
+  /* ---------- 다크 배경 (PptxGenJS는 배경 그레이디언트 미지원 → 이미지로).
+       preview.js의 darkSlideBg()와 '동일 이미지'를 공유 → 미리보기 = PPT 보장 ---------- */
+  function darkBg() { return (typeof darkSlideBg === 'function') ? darkSlideBg() : ''; }
 
   /* ---------- PPTX 생성 (PptxGenJS) ---------- */
   function addSlide(pptx, sl) {
@@ -385,7 +374,17 @@ const Generate = (function () {
       case 'dark': {
         const bg = darkBg();
         s.background = bg ? { data: bg } : { color: C.dark };
-        if (sl.caption) s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: sl.fit ? 'center' : 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
+        if (sl.caption) {
+          if (sl.fit) {
+            // 사도신경 등: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
+            const capY = 0.85, lineY = capY + 0.30, half = (sl.caption.length * 0.34);
+            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.7, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 26, bold: true, color: C.gold, charSpacing: 6 });
+            s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
+            s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
+          } else {
+            s.addText(sl.caption, { x: 0.8, y: 0.45, w: 11.73, h: 0.7, align: 'left', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 2 });
+          }
+        }
         let body;
         if (sl.verses) {
           body = [];
@@ -393,9 +392,18 @@ const Generate = (function () {
             body.push({ text: v.num + ' ', options: { color: C.gold, fontSize: 22, bold: true } });
             body.push({ text: v.text + (i < sl.verses.length - 1 ? '   ' : ''), options: { color: C.warm } });
           });
-        } else body = [{ text: sl.body || '', options: { color: C.warm } }];
-        const dopts = { x: 0.8, y: 1.3, w: 11.73, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5 };
-        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center'; } // 사도신경 등 한 페이지·가운데
+        } else {
+          // 마지막 줄 "아멘."이면 골드로 분리 (사도신경)
+          const m = String(sl.body || '').match(/^([\s\S]*?)\n\s*(아멘[.。]?)\s*$/);
+          if (m) {
+            body = [
+              { text: m[1] + '\n\n', options: { color: C.warm } },
+              { text: m[2].replace(/。/, '.'), options: { color: C.gold } }
+            ];
+          } else body = [{ text: sl.body || '', options: { color: C.warm } }];
+        }
+        const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
+        if (sl.fit) { dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.align = 'center'; dopts.x = 0.5; dopts.w = 12.33; dopts.y = 1.75; dopts.h = 5.45; dopts.fontSize = 56; dopts.lineSpacingMultiple = 1.38; } // 사도신경 등 한 페이지·가운데·크게(축소로 채움)
         s.addText(body, dopts);
         break;
       }
