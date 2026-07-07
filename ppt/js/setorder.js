@@ -702,7 +702,7 @@ const SetOrder = (function () {
       btn.addEventListener('click', async () => {
         const text = ta.value.trim(); if (!text) return;
         song.raw = text;
-        btn.disabled = true; btn.textContent = '정리 중…';
+        btn.disabled = true; btn.textContent = '생성 중…';
         try {
           const r = CONFIG.USE_SERVER ? await API.call('extractText', { text })
             : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
@@ -831,7 +831,7 @@ const SetOrder = (function () {
     fitVisible();   // 화면 표시 후 폭 맞춤(숨김 상태 render에선 못 잼)
   }
 
-  // 특정 곡을 펼친 채로 진입 (곡 목록 "가사·편곡 열기" 드릴인) — 검수 화면 흡수
+  // 특정 곡을 펼친 채로 진입 (곡 목록 "편집하기" 드릴인) — 검수 화면 흡수
   function openSong(id) {
     expandedIds.add(id);
     render();
@@ -839,6 +839,13 @@ const SetOrder = (function () {
     fitVisible();
     const card = document.querySelector('#setorder-list .so-card[data-id="' + id + '"]');
     if (card) card.scrollIntoView({ block: 'start' });
+  }
+
+  // 서버 저장으로 곡 id가 임시→확정으로 바뀌면 펼침 상태를 옮겨 유지(즉시 이동+백그라운드 저장 대응)
+  function remapExpanded(oldId, newId) {
+    if (expandedIds.has(oldId)) { expandedIds.delete(oldId); expandedIds.add(newId); }
+    render();
+    fitVisible();
   }
 
   function init() {
@@ -892,5 +899,5 @@ const SetOrder = (function () {
     });
   }
 
-  return { init, open, openSong, render };
+  return { init, open, openSong, remapExpanded, render };
 })();

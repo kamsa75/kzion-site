@@ -215,7 +215,7 @@ const Review = (function () {
       btn.addEventListener('click', async () => {
         const text = ta.value.trim();
         if (!text) return;
-        btn.disabled = true; btn.textContent = '정리 중…';
+        btn.disabled = true; btn.textContent = '생성 중…';
         try {
           const r = CONFIG.USE_SERVER
             ? await API.call('extractText', { text })

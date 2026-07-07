@@ -71,7 +71,7 @@ const SongStore = (function () {
   async function pushAll() {
     for (let i = 0; i < songs.length; i++) {
       const s = songs[i];
-      if (s.status === 'extracting') continue;
+      if (s.status === 'extracting' || s._pushing) continue;  // 최초 저장(pushNow) 진행 중이면 중복 insert 방지
       try { await pushOne(s, i); }
       catch (e) { /* 네트워크 오류 — 다음 저장에서 재시도 */ }
     }
@@ -605,10 +605,14 @@ const Songs = (function () {
       name: '', status: 'review',
       blocks: [], order: [], images: [], warnDark: false, extractError: null
     };
+    const tempId = song.id;
+    song._pushing = true;          // 최초 저장 중 자동저장(pushAll)이 중복 insert 하지 않게
     SongStore.add(song);
-    await SongStore.pushNow(song); // 서버 id 확정 후에 화면 이동 (id가 중간에 바뀌면 곡을 놓침)
-    render();
-    SetOrder.openSong(song.id);
+    SetOrder.openSong(tempId);      // 즉시 이동 — 서버 저장을 기다리지 않음(체감 지연 제거)
+    try { await SongStore.pushNow(song); }  // 백그라운드로 서버 id 확정
+    catch (e) { /* 다음 자동저장에서 재시도 */ }
+    song._pushing = false;
+    if (song.id !== tempId) SetOrder.remapExpanded(tempId, song.id); // id 스왑 → 펼침 상태 유지
   }
 
   // 파일 N장 → 곡 1개 (전 과정: 리사이즈→업로드→추출→저장)

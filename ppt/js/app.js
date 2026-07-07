@@ -193,7 +193,7 @@
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
         if (role === 'praise') {
-          btn.textContent = '곡 준비 시작';
+          btn.textContent = '이번 주 곡목';
           btn.addEventListener('click', () => Songs.open());
         } else if (role === 'choir') {
           btn.textContent = '곡 입력 시작';
