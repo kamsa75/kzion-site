@@ -305,20 +305,63 @@ function bandPages(text, ref) {
   if (mref) { if (!chipRef) chipRef = (mref[1] || mref[2] || '').trim(); t = t.slice(mref[0].length).trim(); }
   if (!t) return [];
   t = t.replace(/\s+/g, ' ');
-  // 실제 폰트 한 줄 용량으로 줄바꿈 시뮬레이션 → 딱 2줄까지 채우고 넘치면 새 페이지(항상 2줄 규칙)
-  var cap = bandLineCap(), words = t.split(' '), pages = [], cur = '', lineEm = 0, lines = 1;
+  // 실제 흰 카드 구조로 DOM 측정해 '2줄까지' 최대한 채움 → 카드 실제 줄바꿈과 100% 일치(추정 오차 제거)
+  var chunks = bandChunk2Lines(t.split(' '));
+  // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. text = 자연 줄바꿈으로 채울 본문
+  return chunks.map(function (chunk) { return { layout: 'band', scripture: true, ref: chipRef, text: chunk }; });
+}
+
+// vcard-para에 절번호(골드)까지 실제와 동일하게 렌더 (측정 정확도)
+function setVcardParaRuns(para, txt) {
+  para.textContent = '';
+  scriptureRuns(txt).forEach(function (r) {
+    if (r.gold) { var sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; para.appendChild(sp); }
+    else para.appendChild(document.createTextNode(r.t));
+  });
+}
+
+// 실제 .slide--band > .vcard > .vcard-box > .vcard-para 를 화면 밖에 만들어, 각 페이지에 '2줄까지' 단어를 담는다.
+// 폰트·CSS가 그대로 적용되므로 미리보기·PPT의 카드 줄바꿈과 정확히 일치. (비율은 크기 무관 → 고정폭 프로브로 측정)
+function bandChunk2Lines(words) {
+  if (typeof document === 'undefined' || !document.body) return bandChunk2LinesEm(words);
+  var host = document.createElement('div');
+  host.style.cssText = 'position:absolute;left:-9999px;top:0;width:800px;pointer-events:none;';
+  var slide = document.createElement('div'); slide.className = 'slide slide--band';
+  var card = document.createElement('div'); card.className = 'vcard';
+  var box = document.createElement('div'); box.className = 'vcard-box';
+  var para = document.createElement('div'); para.className = 'vcard-para';
+  box.appendChild(para); card.appendChild(box); slide.appendChild(card); host.appendChild(slide);
+  document.body.appendChild(host);
+  var lh = parseFloat(getComputedStyle(para).lineHeight) || 20;
+  var twoLineMax = lh * 2.5;   // 2줄 ≈ 2*lh, 3줄 ≈ 3*lh → 그 사이 값이 '2줄 이하' 경계
+  function fits(str) { setVcardParaRuns(para, str); return para.scrollHeight < twoLineMax; }
+  var pages = [], i = 0, n = words.length, guard = 0;
+  while (i < n && guard++ < 1000) {
+    var chosen = i;                                  // 페이지당 최소 1단어(초장문 단어 보호)
+    for (var j = i; j < n; j++) {
+      if (fits(words.slice(i, j + 1).join(' '))) chosen = j; else break;
+    }
+    pages.push(words.slice(i, chosen + 1).join(' '));
+    i = chosen + 1;
+  }
+  document.body.removeChild(host);
+  return pages.length ? pages : [words.join(' ')];
+}
+
+// 폴백(헤드리스 등 DOM 없음): 기존 em 추정
+function bandChunk2LinesEm(words) {
+  var cap = bandLineCap(), pages = [], cur = '', lineEm = 0, lines = 1;
   for (var i = 0; i < words.length; i++) {
     var w = words[i], we = bandEm(w), withW = cur ? lineEm + 0.35 + we : we;
-    if (cur && withW > cap) {          // 이 줄에 안 들어감 → 줄바꿈
-      if (lines >= 2) { pages.push(cur); cur = ''; lines = 1; }  // 이미 2줄 → 새 페이지
-      else { lines = 2; }              // 둘째 줄로
+    if (cur && withW > cap) {
+      if (lines >= 2) { pages.push(cur); cur = ''; lines = 1; }
+      else { lines = 2; }
       withW = we;
     }
     cur += (cur ? ' ' : '') + w; lineEm = withW;
   }
   if (cur) pages.push(cur);
-  // scripture:true → 흰 카드 + 블루 구절칩 + 골드 절번호. text = 자연 줄바꿈으로 채울 본문
-  return pages.map(function (chunk) { return { layout: 'band', scripture: true, ref: chipRef, text: chunk }; });
+  return pages;
 }
 
 // 밴드/본문에서 절 번호(숫자+공백, 줄 시작 또는 공백 뒤)를 골드로 분리. [{t, gold}]
