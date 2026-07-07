@@ -207,14 +207,6 @@ const Pastor = (function () {
     t.append(green, band);
     return t;
   }
-  // 제목(그린 자막형) 썸네일 — 그린 전면에 흰 글씨
-  function greenThumb(text) {
-    const t = document.createElement('div'); t.className = 'film-thumb film-thumb-green';
-    const green = document.createElement('div'); green.className = 'film-green film-green-full';
-    const d = document.createElement('div'); d.className = 'film-line'; d.textContent = text || '';
-    green.appendChild(d); t.appendChild(green);
-    return t;
-  }
   function fitFilm(root) {
     root.querySelectorAll('.film-line').forEach(l => {
       if (!l.clientWidth) return;
@@ -252,7 +244,7 @@ const Pastor = (function () {
     const title = (data.hymn.title || '').trim();
     const blocks = data.hymn.blocks || [];
     const byId = {}; blocks.forEach(b => { byId[b.id] = b; });
-    if (!title && !blocks.length) return;
+    if (!blocks.length) return;
 
     if (blocks.length) {
     // order 정리: 존재하는 블록만, 비면 기본순서(후렴 반복)
@@ -313,8 +305,8 @@ const Pastor = (function () {
       group.appendChild(cap);
       strip.appendChild(group);
     };
-    if (title) addGroup(greenThumb(title), '제목', null);
-    (blocks.length ? data.hymn.order : []).forEach(id => {
+    // 제목 슬라이드는 순서표에서 별도로 생성 → 여기 가사 필름스트립엔 가사만(2줄씩)
+    data.hymn.order.forEach(id => {
       const block = byId[id]; if (!block) return;
       const gs = blockSlides(block);
       gs.forEach((g, gi) => {
