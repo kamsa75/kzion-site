@@ -346,8 +346,20 @@ const Generate = (function () {
         break;
       case 'band': {
         s.background = { color: C.green };
-        s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band } });
-        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
+        // 성경 구절(scripture)은 긴 본문과 통일: 다크 네이비 밴드 + 골드 절번호 + 웜화이트
+        s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: sl.scripture ? C.dark : C.band } });
+        const bopt = { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' };
+        if (sl.scripture) {
+          const runs = [];
+          (sl.lyrics || []).slice(0, 2).forEach((line, i) => {
+            if (i > 0) runs.push({ text: '\n', options: {} });
+            (typeof scriptureRuns === 'function' ? scriptureRuns(line) : [{ t: line, gold: false }])
+              .forEach(r => runs.push({ text: r.t, options: { color: r.gold ? C.gold : C.warm } }));
+          });
+          s.addText(runs, bopt);
+        } else {
+          s.addText((sl.lyrics || []).join('\n'), bopt);
+        }
         break;
       }
       case 'dark': {

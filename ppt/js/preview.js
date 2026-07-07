@@ -34,14 +34,19 @@ function renderSlide(slide) {
     }
 
     case 'band': { // 크로마 밴드형
-      el.className = 'slide slide--band';
+      el.className = 'slide slide--band' + (slide.scripture ? ' is-scripture' : '');
       const band = document.createElement('div');
       band.className = 'sl-band';
       const ly = document.createElement('div');
       ly.className = 'sl-lyrics';
       (slide.lyrics || []).slice(0, 2).forEach((line, i) => { // 2줄 고정 (지침 18번)
         if (i > 0) ly.appendChild(document.createElement('br'));
-        ly.appendChild(document.createTextNode(line));
+        if (slide.scripture) { // 성경 구절 = 절번호 골드(긴 본문과 통일)
+          scriptureRuns(line).forEach(r => {
+            if (r.gold) { const sp = document.createElement('span'); sp.className = 'sl-vnum'; sp.textContent = r.t; ly.appendChild(sp); }
+            else ly.appendChild(document.createTextNode(r.t));
+          });
+        } else ly.appendChild(document.createTextNode(line));
       });
       band.appendChild(ly); // 곡명·절 캡션 없음 — 밴드에는 가사만 (D9)
       el.appendChild(band);
@@ -250,8 +255,22 @@ function bandPages(text) {
     if (cur) lines.push(cur);
   });
   var pages = [];
-  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', lyrics: lines.slice(j, j + 2) });
+  // scripture:true → 긴 성경 본문과 통일(다크 네이비 밴드 · 골드 절번호 · 웜화이트 본문)
+  for (var j = 0; j < lines.length; j += 2) pages.push({ layout: 'band', scripture: true, lyrics: lines.slice(j, j + 2) });
   return pages;
+}
+
+// 밴드/본문에서 절 번호(숫자+공백, 줄 시작 또는 공백 뒤)를 골드로 분리. [{t, gold}]
+function scriptureRuns(line) {
+  var out = [], re = /(?:^|\s)(\d{1,3})(?=\s)/g, last = 0, m;
+  while ((m = re.exec(line))) {
+    var numIdx = m.index + (m[0].length - m[1].length);
+    if (numIdx > last) out.push({ t: line.slice(last, numIdx), gold: false });
+    out.push({ t: m[1], gold: true });
+    last = numIdx + m[1].length;
+  }
+  if (last < line.length) out.push({ t: line.slice(last), gold: false });
+  return out.length ? out : [{ t: line, gold: false }];
 }
 
 // 크로마 밴드 가사가 밴드(검정 띠) 높이를 넘으면 글자를 줄여 2줄이 안 잘리게 함.

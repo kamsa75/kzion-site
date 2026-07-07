@@ -214,6 +214,10 @@ input{font-family:inherit;}
   font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 4cqw;
   word-break:keep-all;
 }
+/* 성경 구절(함께 읽는 구절) = 긴 성경 본문(다크)과 통일: 네이비 밴드·웜화이트·골드 절번호 */
+.slide--band.is-scripture .sl-band{background:var(--sl-dark);}
+.slide--band.is-scripture .sl-lyrics{color:var(--sl-warm);}
+.slide--band.is-scripture .sl-vnum{color:var(--sl-gold); font-size:.8em; margin-right:.12em;}
 
 /* 다크 전체화면형 — 프리미엄 '성전광' 배경 이미지(darkSlideBg, JS 인라인). 초록 없음(크로마 안전) */
 .slide--dark{background:#0a0e14; background-size:cover; background-position:center;}
