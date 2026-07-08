@@ -441,9 +441,9 @@ const Generate = (function () {
         s.background = bg ? { data: bg } : { color: C.dark };
         if (sl.caption) {
           if (sl.dash) {
-            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
-            const capY = 0.85, lineY = capY + 0.30, half = (sl.caption.length * 0.34);
-            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.7, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 26, bold: true, color: C.gold, charSpacing: 6 });
+            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선) — 위로(preview 5cqh와 동일, 본문과 안 겹침)
+            const capY = 0.28, lineY = capY + 0.25, half = (sl.caption.length * 0.29);
+            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 6 });
             s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
             s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
           } else if (sl.fit) {
@@ -473,9 +473,9 @@ const Generate = (function () {
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
         if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
-          if (sl.dash) { // 사도신경 — 미리보기 .sl-body(is-dash) 박스와 동일 + 미리보기와 같은 fit 폰트(뷰어 무관 잘림 방지)
+          if (sl.dash) { // 사도신경 — 미리보기 .sl-body(is-dash, top:13cqh/bottom:5.5cqh) 박스와 동일 + 미리보기와 같은 fit 폰트(캡션과 안 겹침)
             const cfs = previewFitPt(sl, '.sl-body');
-            dopts.align = 'center'; dopts.x = 0.53; dopts.w = 12.27; dopts.y = 1.35; dopts.h = 5.74;
+            dopts.align = 'center'; dopts.x = 0.53; dopts.w = 12.27; dopts.y = 0.975; dopts.h = 6.11;
             dopts.lineSpacingMultiple = 1.46;
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.97) : 40;   // 화면과 동일, 미세 안전여백 + fit:'shrink' 이중 안전
           }
