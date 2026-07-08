@@ -204,6 +204,17 @@
         }
         actions.appendChild(btn);
         card.appendChild(actions);
+      } else if (role === 'owner') {
+        // 어드민(본부장)은 검토·오류 확인용으로 각 섹션 화면에 직접 들어갈 수 있음(조회 위주 — 저장 권한은 담당자)
+        const actions = document.createElement('div');
+        actions.className = 'sec-actions';
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline';
+        if (sec.owner === 'pastor') { btn.textContent = '목사님 화면 열기'; btn.addEventListener('click', () => Pastor.open()); }
+        else if (sec.owner === 'praise') { btn.textContent = '찬양팀 화면 열기'; btn.addEventListener('click', () => Songs.open()); }
+        else if (sec.owner === 'choir') { btn.textContent = '성가대 화면 열기'; btn.addEventListener('click', () => Choir.open()); }
+        actions.appendChild(btn);
+        card.appendChild(actions);
       }
 
       list.appendChild(card);

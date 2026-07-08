@@ -427,12 +427,13 @@ const Songs = (function () {
 
   function render() {
     const role = KZ.role();
-    $('#songs-title').textContent = MOCK.roles[role].label + ' — 곡 준비';
+    $('#songs-title').textContent = (role === 'owner' ? '찬양팀' : MOCK.roles[role].label) + ' — 곡 준비';
     renderDone();
     const list = $('#songs-list');
     list.innerHTML = '';
 
-    SongStore.all().forEach(song => {
+    // 이 화면은 찬양팀 전용 → praise 곡만(어드민은 getWeek로 전체를 받으므로 필터). 담당자는 서버가 이미 자기 곡만 반환
+    SongStore.all().filter(s => (s.role || 'praise') === 'praise').forEach(song => {
       const card = document.createElement('div');
       card.className = 'sec-card song-card';
 
