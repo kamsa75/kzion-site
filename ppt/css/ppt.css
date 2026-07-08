@@ -272,7 +272,7 @@ input{font-family:inherit;}
   content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
 }
 .slide--dark.is-fit .sl-body{
-  top:13cqh; bottom:5.5cqh; left:2.25cqw; right:2.25cqw; font-weight:800; line-height:1.46;
+  top:13cqh; bottom:5.5cqh; left:0.9cqw; right:0.9cqw; font-weight:800; line-height:1.35;
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
 }
 /* 성경 본문(사도신경 제외): 글자 왼쪽 정렬 + 상·하 여백 7cqh(≈720p 기준 50px) + 위쪽 정렬 */

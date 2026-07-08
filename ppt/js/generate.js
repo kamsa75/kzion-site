@@ -475,9 +475,9 @@ const Generate = (function () {
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
             const plainCreed = body.map(r => r.text).join('');
-            const cfs = fitTextPt(plainCreed, 12.5, 6.11, 1.46, 56);   // 넓은 박스(12.73)보다 살짝 좁게 측정 → PP에서 확실히 들어감
-            dopts.align = 'center'; dopts.x = 0.3; dopts.w = 12.73; dopts.y = 0.975; dopts.h = 6.11;
-            dopts.lineSpacingMultiple = 1.46;
+            const cfs = fitTextPt(plainCreed, 12.9, 6.11, 1.35, 56);   // 넓은 박스(13.09)보다 살짝 좁게 측정 → PP에서 확실히 들어감
+            dopts.align = 'center'; dopts.x = 0.12; dopts.w = 13.09; dopts.y = 0.975; dopts.h = 6.11;
+            dopts.lineSpacingMultiple = 1.35;
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }
           // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
