@@ -779,6 +779,14 @@ const SetOrder = (function () {
       return;
     }
 
+    // '가사 확인·편집' 헤더 오른쪽 끝에 '텍스트로 통째 편집' 진입 버튼
+    const teBtn = document.createElement('button');
+    teBtn.className = 'btn btn-outline te-open-btn';
+    teBtn.textContent = '✎ 통째로 고치기';
+    teBtn.title = 'AI가 절을 잘못 나눴을 때 — 전체를 텍스트로 한 번에(줄을 다른 절로 이동·절 추가/삭제/순서변경)';
+    teBtn.addEventListener('click', () => { textEditIds.add(song.id); render(); });
+    zt.appendChild(teBtn);
+
     song.blocks.forEach(block => {
       const bc = document.createElement('div'); bc.className = 'block-card';
       const label = document.createElement('button'); label.type = 'button'; label.className = 'block-label';
@@ -791,12 +799,6 @@ const SetOrder = (function () {
       });
       zone.appendChild(bc);
     });
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn btn-outline btn-wide'; editBtn.style.marginTop = '10px';
-    editBtn.textContent = '✎ 텍스트로 통째 편집 (절 이동·추가·순서)';
-    editBtn.title = 'AI가 절을 잘못 나눴을 때 — 텍스트로 자유롭게 재구성';
-    editBtn.addEventListener('click', () => { textEditIds.add(song.id); render(); });
-    zone.appendChild(editBtn);
     card.appendChild(zone);
     renderScore(song, zone);   // 원본 악보(맨 아래)
   }

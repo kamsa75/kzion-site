@@ -680,6 +680,7 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .so-zt{display:flex; align-items:center; gap:7px; font-size:13px; font-weight:800; color:var(--ui-ink); margin:0 0 9px;}
 .so-zt .so-zk{width:5px; height:14px; background:var(--ui-gold); border-radius:2px; flex:0 0 auto;}
 .so-zt small{font-weight:700; color:var(--ui-sub); font-size:11px;}
+.so-zt .te-open-btn{margin-left:auto; flex:0 0 auto; align-self:flex-start; padding:5px 10px; font-size:11.5px; white-space:nowrap;}
 .so-zt mark{background:#FCE9A8; padding:0 3px; border-radius:3px;}
 /* 원본 악보 (블록 위, 탭하면 확대) */
 .so-score{border:1.5px solid var(--ui-line); border-radius:11px; background:#FCFBF8; padding:10px; margin-bottom:10px;}
