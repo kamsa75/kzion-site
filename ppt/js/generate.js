@@ -480,7 +480,7 @@ const Generate = (function () {
           if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
             const plainCreed = body.map(r => r.text).join('');
             const cfs = fitTextPt(plainCreed, 13.0, 6.11, 1.35, 56);   // 폰트는 6.11 기준으로 계산(그대로), 박스는 6.22로 여유 → PP 렌더 차이 흡수(실측값)
-            dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.9; dopts.h = 6.22;   // 본부장님 실측: 폭 13.23·높이 6.22에서 딱 맞음
+            dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.6; dopts.h = 6.6;   // 박스 높이 6.6·위치 약간 위로(본부장님 요청)
             dopts.lineSpacingMultiple = 1.35;
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }
