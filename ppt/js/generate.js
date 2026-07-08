@@ -338,15 +338,51 @@ const Generate = (function () {
   function emWidth(str) { // 대략 글자 폭(em) — 칩 알약 폭 추정용(한글=1.0, 공백=0.35, 그 외≈0.55)
     var w = 0; for (var i = 0; i < str.length; i++) { var c = str.charCodeAt(i); w += (c >= 0xAC00 && c <= 0xD7A3) ? 1.0 : (c === 0x20 ? 0.35 : 0.55); } return w;
   }
-  function addVerseCard(pptx, s, ref, runs, full) {
+  // ★ PPT 텍스트 박스(인치)에 실제로 들어가는 최대 폰트(pt)를 DOM 측정으로 계산.
+  //   PptxGenJS의 fit:'shrink'는 뷰어 autofit에 의존해 파워포인트에서 원본 크기로 넘치는 사고가 있음 →
+  //   명시적 fontSize로 넣어 '미리보기=다운로드' 어떤 뷰어에서도 일치 보장. (1in=100px 측정 → pt=px*0.72)
+  function fitTextPt(text, wIn, hIn, lineHeight, startPt) {
+    try {
+      if (typeof document === 'undefined' || !document.body) return null;
+      var d = document.createElement('div');
+      d.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;width:' + (wIn * 100) + 'px;'
+        + 'font-family:Pretendard,"Apple SD Gothic Neo",sans-serif;font-weight:800;line-height:' + lineHeight + ';'
+        + 'white-space:pre-wrap;word-break:keep-all;';
+      d.textContent = text || '';
+      document.body.appendChild(d);
+      var boxPx = hIn * 100, px = (startPt || 40) / 0.72, guard = 0;
+      d.style.fontSize = px + 'px';
+      while (d.scrollHeight > boxPx && px > 8 && guard < 400) { px -= 1; d.style.fontSize = px + 'px'; guard++; }
+      document.body.removeChild(d);
+      return px * 0.72;   // px(100px=1in) → pt(72pt=1in)
+    } catch (e) { return null; }
+  }
+  // 미리보기의 실제 자동맞춤(fitDarkSlides)을 그대로 실행해 '화면과 똑같은' 폰트(pt)를 얻는다.
+  //   1333px 폭 슬라이드(=13.33in, 100px/in) → pt = px*0.72. selector: 사도신경 '.sl-body'.
+  function previewFitPt(sl, selector) {
+    try {
+      if (typeof document === 'undefined' || !document.body || typeof renderSlide !== 'function' || typeof fitDarkSlides !== 'function') return null;
+      var host = document.createElement('div');
+      host.style.cssText = 'position:absolute;left:-9999px;top:0;width:1333px;pointer-events:none;';
+      var node = renderSlide(sl);
+      host.appendChild(node); document.body.appendChild(host);
+      fitDarkSlides(host);
+      var el = node.querySelector(selector);
+      var px = el ? parseFloat(getComputedStyle(el).fontSize) : 0;
+      document.body.removeChild(host);
+      return px ? px * 0.72 : null;
+    } catch (e) { return null; }
+  }
+  function addVerseCard(pptx, s, ref, runs, full, fontPt) {
     s.background = { color: C.green };
     const X = 0.53, W = 12.27;
     const cardY = full ? 0.72 : 5.0, cardH = full ? 6.33 : 2.05;
     // 흰 카드 + 그림자
     s.addShape(pptx.ShapeType.roundRect, { x: X, y: cardY, w: W, h: cardH, rectRadius: 0.16, fill: { color: 'FFFFFF' }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.30, blur: 9, offset: 5, angle: 90 } });
-    // 본문(칩 아래 여백 확보)
+    // 본문(칩 아래 여백 확보) — full은 계산된 폰트(뷰어 무관 잘림 방지), 짧은 구절은 27
     const padTop = full ? 0.62 : 0.5, padX = 0.42, padBot = full ? 0.5 : 0.3;
-    s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: full ? 30 : 27, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, fit: 'shrink' });
+    const bodyFs = full ? (fontPt || 30) : 27;
+    s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, fit: 'shrink' });
     // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
     if (ref) {
       const chipFs = 22, chipH = 0.52, chipW = emWidth(ref) * chipFs / 72 + 0.42;
@@ -393,7 +429,10 @@ const Generate = (function () {
               runs.push({ text: v.text + (i < sl.verses.length - 1 ? '  ' : ''), options: { color: CARD.ink } });
             });
           } else runs = [{ text: sl.body || '', options: { color: CARD.ink } }];
-          addVerseCard(pptx, s, sl.caption, runs, true);
+          // 카드 본문 박스(폭 12.27-0.84, 높이 6.33-0.62-0.5)에 맞는 폰트 계산 → 뷰어 무관 잘림 방지
+          const plain = runs.map(r => r.text).join('');
+          const vfs = fitTextPt(plain, 11.43, 5.21, 1.5, 30);
+          addVerseCard(pptx, s, sl.caption, runs, true, vfs ? Math.max(12, vfs * 0.96) : 30);
           break;
         }
         const bg = darkBg();
@@ -432,7 +471,12 @@ const Generate = (function () {
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
         if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
-          if (sl.dash) { dopts.align = 'center'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 1.55; dopts.h = 5.6; dopts.fontSize = 56; }
+          if (sl.dash) { // 사도신경 — 미리보기 .sl-body(is-dash) 박스와 동일 + 미리보기와 같은 fit 폰트(뷰어 무관 잘림 방지)
+            const cfs = previewFitPt(sl, '.sl-body');
+            dopts.align = 'center'; dopts.x = 0.53; dopts.w = 12.27; dopts.y = 1.35; dopts.h = 5.74;
+            dopts.lineSpacingMultiple = 1.46;
+            dopts.fontSize = cfs ? Math.max(12, cfs * 0.97) : 40;   // 화면과 동일, 미세 안전여백 + fit:'shrink' 이중 안전
+          }
           // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
           else { dopts.align = 'left'; dopts.valign = 'top'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.52; dopts.h = 6.46; dopts.fontSize = 32; }
         }
