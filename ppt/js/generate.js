@@ -377,12 +377,12 @@ const Generate = (function () {
   }
   function addVerseCard(pptx, s, ref, runs, full, fontPt) {
     s.background = { color: C.green };
-    const X = 0.53, W = 12.27;
+    const X = 0.35, W = 12.63;   // 흰 카드 폭 확대(좌우 여백 축소)
     const cardY = full ? 0.72 : 5.0, cardH = full ? 6.33 : 2.05;
     // 흰 카드 + 그림자
     s.addShape(pptx.ShapeType.roundRect, { x: X, y: cardY, w: W, h: cardH, rectRadius: 0.16, fill: { color: 'FFFFFF' }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.30, blur: 9, offset: 5, angle: 90 } });
     // 본문(칩 아래 여백 확보) — full은 계산된 폰트(뷰어 무관 잘림 방지), 짧은 구절은 27
-    const padTop = full ? 0.62 : 0.5, padX = 0.42, padBot = full ? 0.5 : 0.3;
+    const padTop = full ? 0.62 : 0.5, padX = 0.3, padBot = full ? 0.5 : 0.3;
     const bodyFs = full ? (fontPt || 30) : 27;
     s.addText(runs, { x: X + padX, y: cardY + padTop, w: W - padX * 2, h: cardH - padTop - padBot, align: 'left', valign: 'top', fontFace: FONT, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, margin: 0, fit: 'shrink' });
     // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
@@ -431,9 +431,9 @@ const Generate = (function () {
               runs.push({ text: v.text + (i < sl.verses.length - 1 ? '  ' : ''), options: { color: CARD.ink } });
             });
           } else runs = [{ text: sl.body || '', options: { color: CARD.ink } }];
-          // 카드 본문 박스(폭 12.27-0.84, 높이 6.33-0.62-0.5)에 맞는 폰트 계산 → 뷰어 무관 잘림 방지
+          // 카드 본문 박스(폭 12.63-0.6=12.03, 높이 6.33-0.62-0.5)에 맞는 폰트 계산 → 뷰어 무관 잘림 방지
           const plain = runs.map(r => r.text).join('');
-          const vfs = fitTextPt(plain, 11.1, 5.21, 1.5, 30);   // 측정폭 = 실제(11.43)보다 좁게 → PP에서 확실히 들어감
+          const vfs = fitTextPt(plain, 11.8, 5.21, 1.5, 30);   // 넓은 카드(12.03)보다 살짝 좁게 측정 → PP에서 확실히 들어감
           addVerseCard(pptx, s, sl.caption, runs, true, vfs ? Math.max(12, vfs * 0.96) : 30);
           break;
         }
@@ -475,8 +475,8 @@ const Generate = (function () {
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
             const plainCreed = body.map(r => r.text).join('');
-            const cfs = fitTextPt(plainCreed, 11.9, 6.11, 1.46, 56);   // 측정폭 = 실제(12.27)보다 좁게 → PP에서 확실히 들어감
-            dopts.align = 'center'; dopts.x = 0.53; dopts.w = 12.27; dopts.y = 0.975; dopts.h = 6.11;
+            const cfs = fitTextPt(plainCreed, 12.5, 6.11, 1.46, 56);   // 넓은 박스(12.73)보다 살짝 좁게 측정 → PP에서 확실히 들어감
+            dopts.align = 'center'; dopts.x = 0.3; dopts.w = 12.73; dopts.y = 0.975; dopts.h = 6.11;
             dopts.lineSpacingMultiple = 1.46;
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }

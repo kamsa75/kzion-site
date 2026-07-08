@@ -228,20 +228,20 @@ input{font-family:inherit;}
   word-break:keep-all;
 }
 /* 성경 구절 카드 — 하단 플로팅 흰 카드 + 블루 구절칩 + 골드 절번호(짧은 '함께 읽는 구절') */
-.vcard{position:absolute; left:4cqw; right:4cqw; bottom:6cqh;}
+.vcard{position:absolute; left:2.6cqw; right:2.6cqw; bottom:6cqh;}
 .vcard-chip{display:inline-block; margin-left:2.4cqw; font-weight:800; font-size:4.3cqh; color:#fff;
   background:#1e3a6b; padding:.9cqh 2cqw; border-radius:99px; position:relative; z-index:1;
   box-shadow:0 .4cqh 1cqh rgba(0,0,0,.25); white-space:nowrap;}
-.vcard-box{margin-top:-3.4cqh; border-radius:2.4cqh; padding:5cqh 4cqw 3.2cqh;
+.vcard-box{margin-top:-3.4cqh; border-radius:2.4cqh; padding:5cqh 2.25cqw 3.2cqh;
   background:linear-gradient(180deg,#ffffff 0%,#eef2f8 100%); color:#17233f;
   box-shadow:0 1.2cqh 3.4cqh rgba(0,0,0,.32);}
 .vcard-para{font-weight:800; font-size:5.4cqh; line-height:1.5; text-align:left; word-break:keep-all;}
 .vcard-box .sl-vnum{color:#b0801f; font-weight:800; margin-right:.15em;}
 /* 긴 성경 본문 카드 — 화면 거의 가득 채우는 큰 카드(같은 팔레트, 여러 절 줄바꿈) */
-.vcard.is-full{left:4cqw; right:4cqw; top:9cqh; bottom:6cqh; display:flex; flex-direction:column;}
+.vcard.is-full{left:2.6cqw; right:2.6cqw; top:9cqh; bottom:6cqh; display:flex; flex-direction:column;}
 .vcard.is-full .vcard-chip{align-self:flex-start;} /* 짧은 본문처럼 글자 길이만큼만(막대 늘림 방지) */
 .vcard.is-full .vcard-box{flex:1; margin-top:-3.4cqh; overflow:hidden; display:flex; align-items:flex-start;
-  padding:5.5cqh 4.5cqw 3.5cqh;}
+  padding:5.5cqh 2.25cqw 3.5cqh;}
 .vcard.is-full .vcard-body{font-weight:800; font-size:5cqh; line-height:1.5; text-align:left;
   word-break:keep-all; white-space:pre-wrap;}
 .vcard.is-full .vcard-body .sl-vnum{color:#b0801f; font-weight:800; font-size:.82em; margin-right:.1em;}
@@ -272,7 +272,7 @@ input{font-family:inherit;}
   content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
 }
 .slide--dark.is-fit .sl-body{
-  top:13cqh; bottom:5.5cqh; left:4cqw; right:4cqw; font-weight:800; line-height:1.46;
+  top:13cqh; bottom:5.5cqh; left:2.25cqw; right:2.25cqw; font-weight:800; line-height:1.46;
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
 }
 /* 성경 본문(사도신경 제외): 글자 왼쪽 정렬 + 상·하 여백 7cqh(≈720p 기준 50px) + 위쪽 정렬 */
