@@ -400,7 +400,7 @@ const Generate = (function () {
     switch (sl.layout) {
       case 'green': {
         s.background = { color: C.green };
-        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 3.9 : 4.3, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', fontFace: FONT, fontSize: 44, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
+        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 4.2 : 4.7, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', fontFace: FONT, fontSize: 60, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
         if (sl.sub) s.addText(sl.sub, { x: 0.5, y: 6.35, w: 12.33, h: 0.7, align: 'center', valign: 'top', fontFace: FONT, fontSize: 24, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
         break;
       }
@@ -418,7 +418,7 @@ const Generate = (function () {
         // 찬송가 등 = 기존 크로마 밴드(초록 + 검정 밴드 + 흰 가사)
         s.background = { color: C.green };
         s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band } });
-        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 30, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
+        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 34, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
         break;
       }
       case 'dark': {
@@ -473,11 +473,12 @@ const Generate = (function () {
         const dopts = { x: 0.7, y: 1.3, w: 11.93, h: 5.7, align: 'left', valign: 'top', fontFace: FONT, fontSize: 30, bold: true, color: C.warm, lineSpacingMultiple: 1.5, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 4, offset: 2, angle: 90 } };
         if (sl.fit) { // 축소로 잘림 방지. 사도신경=가운데·크게, 성경 본문=왼쪽·꽉 차게(여백 최소)
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
-          if (sl.dash) { // 사도신경 — 미리보기 .sl-body(is-dash, top:13cqh/bottom:5.5cqh) 박스와 동일 + 미리보기와 같은 fit 폰트(캡션과 안 겹침)
-            const cfs = previewFitPt(sl, '.sl-body');
+          if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
+            const plainCreed = body.map(r => r.text).join('');
+            const cfs = fitTextPt(plainCreed, 12.27, 6.11, 1.46, 56);
             dopts.align = 'center'; dopts.x = 0.53; dopts.w = 12.27; dopts.y = 0.975; dopts.h = 6.11;
             dopts.lineSpacingMultiple = 1.46;
-            dopts.fontSize = cfs ? Math.max(12, cfs * 0.97) : 40;   // 화면과 동일, 미세 안전여백 + fit:'shrink' 이중 안전
+            dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }
           // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
           else { dopts.align = 'left'; dopts.valign = 'top'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.52; dopts.h = 6.46; dopts.fontSize = 32; }

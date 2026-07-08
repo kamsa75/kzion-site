@@ -197,9 +197,9 @@ input{font-family:inherit;}
 /* 그린 자막형 */
 .slide--green{background:var(--sl-chroma);}
 .slide--green .sl-text{
-  position:absolute; left:4cqw; right:4cqw; bottom:10cqh;
+  position:absolute; left:4cqw; right:4cqw; bottom:7cqh;
   text-align:center; color:var(--sl-white);
-  font-size:10cqh; font-weight:800; line-height:1.35;
+  font-size:11.1cqh; font-weight:800; line-height:1.3;
   text-shadow:0 0 1.2cqh rgba(0,0,0,.45);
 }
 .slide--green .sl-sub{
@@ -224,7 +224,7 @@ input{font-family:inherit;}
 }
 .slide--band .sl-lyrics{
   text-align:center; color:var(--sl-white);
-  font-size:6.2cqh; font-weight:800; line-height:1.4; padding:0 4cqw;
+  font-size:6.3cqh; font-weight:800; line-height:1.4; padding:0 4cqw;
   word-break:keep-all;
 }
 /* 성경 구절 카드 — 하단 플로팅 흰 카드 + 블루 구절칩 + 골드 절번호(짧은 '함께 읽는 구절') */
