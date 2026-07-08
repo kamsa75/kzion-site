@@ -264,7 +264,7 @@ input{font-family:inherit;}
 .sl-amen{display:block; color:var(--sl-gold); margin-top:1.1em;}
 /* 사도신경 등 '한 페이지 맞춤' = 가운데 정렬 + 골드 대시 캡션 + 세로 중앙 + 굵게 */
 .slide--dark.is-fit .sl-cap{
-  top:5cqh; letter-spacing:.3em; font-size:3.9cqh;
+  top:5cqh; letter-spacing:.3em; font-size:4.6cqh;
   display:flex; align-items:center; justify-content:center; gap:2.4cqw;
 }
 .slide--dark.is-dash .sl-cap::before,
@@ -272,7 +272,7 @@ input{font-family:inherit;}
   content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
 }
 .slide--dark.is-fit .sl-body{
-  top:12cqh; bottom:6.5cqh; left:0.4cqw; right:0.4cqw; font-weight:800; line-height:1.35;
+  top:12cqh; bottom:6.5cqh; left:0.4cqw; right:0.4cqw; font-weight:800; line-height:1.25;
   display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
 }
 /* 성경 본문(사도신경 제외): 글자 왼쪽 정렬 + 상·하 여백 7cqh(≈720p 기준 50px) + 위쪽 정렬 */

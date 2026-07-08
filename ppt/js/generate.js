@@ -441,13 +441,15 @@ const Generate = (function () {
           addVerseCard(pptx, s, sl.caption, runs, true);   // 폰트는 addVerseCard가 박스에 맞춰 계산
           break;
         }
+        // 배경: 솔리드 네이비 + 네이비 그라디언트를 '전면 이미지'로(불투명) → 어떤 뷰어에서도 확실히 덮음(썸네일 비침 방지)
+        s.background = { color: C.dark };
         const bg = darkBg();
-        s.background = bg ? { data: bg } : { color: C.dark };
+        if (bg) s.addImage({ data: bg, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'cover', w: 13.33, h: 7.5 } });
         if (sl.caption) {
           if (sl.dash) {
-            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선) — 위로(preview 5cqh와 동일, 본문과 안 겹침)
-            const capY = 0.28, lineY = capY + 0.25, half = (sl.caption.length * 0.29);
-            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 22, bold: true, color: C.gold, charSpacing: 6 });
+            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
+            const capY = 0.26, lineY = capY + 0.3, half = (sl.caption.length * 0.34);
+            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.6, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 26, bold: true, color: C.gold, charSpacing: 6 });
             s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
             s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
           } else if (sl.fit) {
@@ -479,9 +481,9 @@ const Generate = (function () {
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
             const plainCreed = body.map(r => r.text).join('');
-            const cfs = fitTextPt(plainCreed, 13.0, 6.11, 1.35, 56);   // 폰트는 6.11 기준으로 계산(그대로), 박스는 6.22로 여유 → PP 렌더 차이 흡수(실측값)
-            dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.6; dopts.h = 6.6;   // 박스 높이 6.6·위치 약간 위로(본부장님 요청)
-            dopts.lineSpacingMultiple = 1.35;
+            const cfs = fitTextPt(plainCreed, 13.0, 6.11, 1.25, 56);   // 폰트는 6.11 기준으로 계산, 박스는 6.6으로 여유 → PP 렌더 차이 흡수
+            dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.6; dopts.h = 6.6;   // 박스 높이 6.6·위치 약간 위로
+            dopts.lineSpacingMultiple = 1.25;   // 줄간격 좁게(보기 좋게)
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }
           // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
