@@ -30,10 +30,13 @@ const SetOrder = (function () {
   // (사용자가 여러 줄을 한 슬라이드로 묶어도 가사를 잃지 않도록 — 2026-07-06 버그픽스)
   function blockSlideGroups(block) {
     const lines = block.lines || [];
+    const n = lines.length;
     const breaks = block.breaks || [];
+    // breaks가 전부 true(모든 줄 분리=1줄씩; 추출 기본값 오류·구데이터)면 무시하고 2줄씩 재페어링(수동 혼합 나눔은 존중)
+    const allSplit = n > 1 && breaks.slice(0, n - 1).every(Boolean);
     const raw = [[]];
     lines.forEach((_, i) => {
-      if (i > 0 && breaks[i - 1]) raw.push([]);
+      if (i > 0 && !allSplit && breaks[i - 1]) raw.push([]);
       raw[raw.length - 1].push(i);
     });
     const out = [];
@@ -635,9 +638,8 @@ const SetOrder = (function () {
       img.addEventListener('click', () => openScoreZoom(src));
       wrap.appendChild(img);
     });
-    // 악보를 가사 블록 '위'에 오도록 zone 맨 앞(제목 다음)에 삽입
-    const anchor = zone.querySelector('.block-card') || null;
-    zone.insertBefore(wrap, anchor);
+    // 악보는 가사 아래(맨 끝)에 배치 — 가사 먼저 확인, 필요시 원본 대조
+    zone.appendChild(wrap);
   }
 
   function openScoreZoom(src) {

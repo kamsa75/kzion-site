@@ -38,9 +38,11 @@ const Generate = (function () {
     const n = (block.lines || []).length;
     if (!n) return [];
     const breaks = block.breaks || [];
+    // breaks가 전부 true(=모든 줄 분리=1줄씩; 추출 기본값 오류·구데이터)면 무시하고 2줄씩 재페어링(수동 혼합 나눔은 존중)
+    const allSplit = n > 1 && breaks.slice(0, n - 1).every(Boolean);
     const raw = [[0]];
     for (let i = 1; i < n; i++) {
-      if (breaks[i - 1]) raw.push([i]);
+      if (!allSplit && breaks[i - 1]) raw.push([i]);
       else raw[raw.length - 1].push(i);
     }
     const out = [];

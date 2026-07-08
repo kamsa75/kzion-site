@@ -74,11 +74,18 @@ const Choir = (function () {
   /* ---------- 블록 편집 (찬양팀 검수와 동일 클래스·동작) ---------- */
 
   function blockSlides(block) {
-    const groups = [[0]];
-    for (let i = 1; i < block.lines.length; i++) {
-      if (block.breaks[i - 1]) groups.push([i]);
-      else groups[groups.length - 1].push(i);
+    const n = (block.lines || []).length;
+    if (!n) return [];
+    const breaks = block.breaks || [];
+    // breaks 전부 true(1줄씩; 추출 오류·구데이터)면 무시하고 2줄씩 재페어링(수동 혼합 나눔은 존중)
+    const allSplit = n > 1 && breaks.slice(0, n - 1).every(Boolean);
+    const raw = [[0]];
+    for (let i = 1; i < n; i++) {
+      if (!allSplit && breaks[i - 1]) raw.push([i]);
+      else raw[raw.length - 1].push(i);
     }
+    const groups = [];
+    raw.forEach(g => { for (let i = 0; i < g.length; i += 2) groups.push(g.slice(i, i + 2)); });
     return groups;
   }
 
