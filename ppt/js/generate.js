@@ -378,17 +378,17 @@ const Generate = (function () {
   function addVerseCard(pptx, s, ref, runs, full) {
     s.background = { color: C.green };
     const X = 0.35, W = 12.63;   // 흰 카드 폭 확대(좌우 여백 축소)
-    const cardY = full ? 0.72 : 5.0, cardH = full ? 6.33 : 2.05;
+    const cardY = full ? 0.72 : 4.85, cardH = full ? 6.33 : 2.2;   // 짧은 카드: 본부장님 실측 textH 1.4"(=2.2-0.5-0.3)
     // 흰 카드 + 그림자
     s.addShape(pptx.ShapeType.roundRect, { x: X, y: cardY, w: W, h: cardH, rectRadius: 0.16, fill: { color: 'FFFFFF' }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.30, blur: 9, offset: 5, angle: 90 } });
     // 본문 폰트를 카드 박스에 확실히 들어가게 계산(긴·짧은 공통, 넉넉한 안전여백: 폭 95%·높이 90% → PP 렌더 차이 흡수)
-    const padTop = full ? 0.62 : 0.5, padX = 0.3, padBot = full ? 0.5 : 0.3;
+    const padTop = full ? 0.62 : 0.5, padX = 0.275, padBot = full ? 0.5 : 0.3;   // 짧은 카드 textW 12.08"(=12.63-0.55)
     const textW = W - padX * 2, textH = cardH - padTop - padBot;
     const plainTxt = runs.map(r => r.text).join('');
-    // 긴 본문=넉넉 안전여백(폭95%·높이90%), 짧은 구절=bandPages가 2줄로 담은 크기(≈29pt)로 꽉 채움
+    // 긴 본문=넉넉 안전여백(폭95%·높이90%), 짧은 구절=실측 폰트 29(bandPages 2줄과 일치, 미리보기와 동일 줄바꿈)
     const measured = (typeof fitTextPt === 'function')
       ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.5, 30)
-              : fitTextPt(plainTxt, textW, textH, 1.5, 30))
+              : fitTextPt(plainTxt, textW, textH, 1.5, 29))
       : null;
     const bodyFs = measured ? Math.max(10, measured) : (full ? 30 : 29);
     s.addText(runs, { x: X + padX, y: cardY + padTop, w: textW, h: textH, align: 'left', valign: 'top', fontFace: FONT, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, margin: 0, fit: 'shrink' });
