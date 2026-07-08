@@ -15,6 +15,8 @@ const SetOrder = (function () {
   const activePass = {};
   // 펼친 곡 id (아코디언 — 펼치면 편곡·필름스트립·가사·원본이 한 카드에)
   const expandedIds = new Set();
+  // 가사를 '텍스트로 통째 편집' 중인 곡 id (절 이동·추가·순서 자유 편집)
+  const textEditIds = new Set();
   // 편집한 콘티 텍스트 저장(기기 로컬 — 다시 열어도 유지). 큐를 여기서만 관리(D30 갱신)
   const CONTI_KEY = 'kzppt_conti_text';
 
@@ -683,6 +685,26 @@ const SetOrder = (function () {
     wrap.addEventListener('pointercancel', up);
   }
 
+  // 블록 → 편집용 텍스트(각 절: 첫 줄=이름, 아래 가사, 절 사이 빈 줄)
+  function blocksToText(blocks) {
+    return (blocks || []).map(b =>
+      [b.label || '절'].concat((b.lines || []).map(l => l.text || '')).join('\n')
+    ).join('\n\n');
+  }
+  // 편집 텍스트 → 블록(결정적 파싱: 빈 줄=절 구분, 첫 줄=라벨). AI 재해석 없음 — 입력한 구조 그대로
+  function textToBlocks(text) {
+    const chunks = String(text || '').split(/\n\s*\n+/).map(c => c.trim()).filter(Boolean);
+    const out = [];
+    chunks.forEach((chunk, ci) => {
+      const rows = chunk.split('\n').map(r => r.trim()).filter(Boolean);
+      if (rows.length < 2) return;                    // 라벨 + 최소 1줄 가사 필요
+      const label = rows[0], body = rows.slice(1);
+      const type = /후렴|렴|chorus|^c$/i.test(label) ? 'chorus' : /브릿지|bridge/i.test(label) ? 'bridge' : 'verse';
+      out.push({ id: 'b' + (ci + 1), type, label, lines: body.map(t => ({ text: t, low: [] })), breaks: Songs.twoLineBreaks(body.length) });
+    });
+    return out;
+  }
+
   function renderGasaZone(song, card) {
     const zone = document.createElement('div'); zone.className = 'so-zone';
     const zt = document.createElement('div'); zt.className = 'so-zt';
@@ -729,6 +751,34 @@ const SetOrder = (function () {
     song.blocks.forEach(b => { if (Songs.normalizeBreaks(b)) normed = true; });
     if (normed) SongStore.save();
 
+    // 텍스트 통째 편집 모드 — 절 이동·추가·삭제·순서를 자유롭게(결정적 파싱, AI 재해석 없음)
+    if (textEditIds.has(song.id)) {
+      const tip = document.createElement('p'); tip.className = 'review-tip';
+      tip.innerHTML = '각 절의 <b>첫 줄 = 이름</b>(1절·후렴 등), 그 아래가 가사. <b>절 사이는 빈 줄</b>로 띄우세요. 줄을 다른 절로 옮기거나 절을 추가·삭제·순서변경할 수 있어요.';
+      zone.appendChild(tip);
+      const ta = document.createElement('textarea'); ta.className = 'choir-ta'; ta.rows = 12;
+      ta.value = blocksToText(song.blocks);
+      zone.appendChild(ta);
+      const row = document.createElement('div'); row.style.cssText = 'display:flex; gap:8px; margin-top:10px;';
+      const apply = document.createElement('button'); apply.className = 'btn btn-primary'; apply.style.flex = '1'; apply.textContent = '적용';
+      apply.addEventListener('click', () => {
+        const nb = textToBlocks(ta.value);
+        if (!nb.length) { alert('내용이 없어요. 각 절의 첫 줄에 이름, 그 아래 가사를 넣고 절 사이를 빈 줄로 띄워 주세요.'); return; }
+        const oldCount = (song.blocks || []).length;
+        song.blocks = nb;
+        if (nb.length !== oldCount) song.arrange = null;   // 절 수가 바뀌면 편곡(회차·×N)이 옛 절을 참조 → 재시드
+        textEditIds.delete(song.id);
+        SongStore.save(); SongStore.pushNow(song); render();
+      });
+      const cancel = document.createElement('button'); cancel.className = 'btn btn-outline'; cancel.textContent = '취소';
+      cancel.addEventListener('click', () => { textEditIds.delete(song.id); render(); });
+      row.append(apply, cancel);
+      zone.appendChild(row);
+      card.appendChild(zone);
+      renderScore(song, zone);   // 원본 악보를 참고하며 편집(맨 아래)
+      return;
+    }
+
     song.blocks.forEach(block => {
       const bc = document.createElement('div'); bc.className = 'block-card';
       const label = document.createElement('button'); label.type = 'button'; label.className = 'block-label';
@@ -741,8 +791,14 @@ const SetOrder = (function () {
       });
       zone.appendChild(bc);
     });
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-outline btn-wide'; editBtn.style.marginTop = '10px';
+    editBtn.textContent = '✎ 텍스트로 통째 편집 (절 이동·추가·순서)';
+    editBtn.title = 'AI가 절을 잘못 나눴을 때 — 텍스트로 자유롭게 재구성';
+    editBtn.addEventListener('click', () => { textEditIds.add(song.id); render(); });
+    zone.appendChild(editBtn);
     card.appendChild(zone);
-    renderScore(song, zone);   // 원본 악보를 블록 위에 삽입(async)
+    renderScore(song, zone);   // 원본 악보(맨 아래)
   }
 
   /* ---------- 렌더 ---------- */
