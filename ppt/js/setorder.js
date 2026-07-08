@@ -145,7 +145,7 @@ const SetOrder = (function () {
         });
         return toks.join('+');
       }).filter(Boolean);
-      if (passStrs.length) lines.push(passStrs.join(' / '));
+      passStrs.forEach(ps => lines.push(ps));   // 파트(회차)마다 줄바꿈 → 추가된 파트가 한눈에 구분
     });
     return lines.join('\n');
   }
