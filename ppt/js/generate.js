@@ -385,8 +385,12 @@ const Generate = (function () {
     const padTop = full ? 0.62 : 0.5, padX = 0.3, padBot = full ? 0.5 : 0.3;
     const textW = W - padX * 2, textH = cardH - padTop - padBot;
     const plainTxt = runs.map(r => r.text).join('');
-    const measured = (typeof fitTextPt === 'function') ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.5, full ? 30 : 27) : null;
-    const bodyFs = measured ? Math.max(10, measured) : (full ? 30 : 27);
+    // 긴 본문=넉넉 안전여백(폭95%·높이90%), 짧은 구절=bandPages가 2줄로 담은 크기(≈29pt)로 꽉 채움
+    const measured = (typeof fitTextPt === 'function')
+      ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.5, 30)
+              : fitTextPt(plainTxt, textW, textH, 1.5, 30))
+      : null;
+    const bodyFs = measured ? Math.max(10, measured) : (full ? 30 : 29);
     s.addText(runs, { x: X + padX, y: cardY + padTop, w: textW, h: textH, align: 'left', valign: 'top', fontFace: FONT, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, margin: 0, fit: 'shrink' });
     // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
     if (ref) {
@@ -475,8 +479,8 @@ const Generate = (function () {
           dopts.fit = 'shrink'; dopts.valign = 'middle'; dopts.lineSpacingMultiple = 1.4;
           if (sl.dash) { // 사도신경 — 박스(top:13cqh/bottom:5.5cqh)에 맞춘 계산 폰트(뷰어·타이밍 무관, 잘림 없음)
             const plainCreed = body.map(r => r.text).join('');
-            const cfs = fitTextPt(plainCreed, 12.9, 6.11, 1.35, 56);   // 넓은 박스(13.09)보다 살짝 좁게 측정 → PP에서 확실히 들어감
-            dopts.align = 'center'; dopts.x = 0.12; dopts.w = 13.09; dopts.y = 0.975; dopts.h = 6.11;
+            const cfs = fitTextPt(plainCreed, 13.0, 6.11, 1.35, 56);   // 넓은 박스(13.23)보다 살짝 좁게 측정 → PP에서 확실히 들어감
+            dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.975; dopts.h = 6.11;
             dopts.lineSpacingMultiple = 1.35;
             dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
           }
