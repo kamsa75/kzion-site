@@ -59,8 +59,67 @@
       const bar = cur.querySelector('.topbar');
       if (bar && lo.parentElement !== bar) bar.appendChild(lo);
     }
+    mountAdminNav(name);   // 관리자·owner 전용 상단바 액션(⬇ 받기 / ⋯ 관리) — 어느 화면에서든
     window.scrollTo(0, 0);
   }
+
+  // 관리자·owner 상단바 네비게이션. 매 화면 전환마다 현재 헤더에 주입(로그아웃 왼쪽).
+  //   admin  = [⬇ 받기] [PPT 미리보기·생성]
+  //   owner  = [⬇ 받기] [⋯ 관리]  (⋯ = PPT 미리보기·생성 / 이미지·문구 관리 / 슬라이드 디자인 미리보기)
+  function mountAdminNav(name) {
+    document.querySelectorAll('.admin-nav').forEach(n => n.remove());   // 중복 방지(단일 유지)
+    if (name === 'pin') return;
+    if (currentRole !== 'admin' && currentRole !== 'owner') return;
+    const cur = screens[name]; if (!cur) return;
+    const bar = cur.querySelector('.topbar'); if (!bar) return;
+    const isOwner = (currentRole === 'owner');
+
+    const nav = document.createElement('div');
+    nav.className = 'admin-nav';
+
+    const dl = document.createElement('button');
+    dl.className = 'btn btn-primary btn-sm';
+    dl.textContent = '⬇ 받기';
+    dl.title = '저장된 최신 상태로 전체 PPT 받기';
+    dl.addEventListener('click', () => Generate.quickDownload(dl));
+    nav.appendChild(dl);
+
+    if (isOwner) {
+      const wrap = document.createElement('div');
+      wrap.className = 'admin-menu-wrap';
+      const more = document.createElement('button');
+      more.className = 'btn btn-outline btn-sm';
+      more.textContent = '⋯ 관리';
+      const menu = document.createElement('div');
+      menu.className = 'admin-menu'; menu.hidden = true;
+      [['PPT 미리보기 · 생성', () => Generate.open()],
+       ['이미지 · 문구 관리', () => Admin.open()],
+       ['슬라이드 디자인 미리보기', () => { renderPreview(); show('preview'); }]
+      ].forEach(([label, fn]) => {
+        const mi = document.createElement('button');
+        mi.className = 'admin-menu-item';
+        mi.textContent = label;
+        mi.addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = true; fn(); });
+        menu.appendChild(mi);
+      });
+      more.addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; });
+      wrap.append(more, menu);
+      nav.appendChild(wrap);
+    } else {
+      const gen = document.createElement('button');
+      gen.className = 'btn btn-outline btn-sm';
+      gen.textContent = 'PPT 미리보기 · 생성';
+      gen.addEventListener('click', () => Generate.open());
+      nav.appendChild(gen);
+    }
+
+    const loBtn = bar.querySelector('#btn-logout');
+    if (loBtn) bar.insertBefore(nav, loBtn); else bar.appendChild(nav);
+  }
+  // ⋯ 관리 메뉴: 바깥 클릭 시 닫기 (1회 등록)
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.admin-menu').forEach(m => { m.hidden = true; });
+  });
 
   /* ---------- 주일 날짜 (표시용) ---------- */
 
@@ -220,46 +279,9 @@
       list.appendChild(card);
     });
 
-    // 관리자 블록 — owner(본부장)=전부 / 위임 관리자(admin)=PPT 생성만
-    const extra = $('#home-admin-extra');
-    extra.innerHTML = '';
-    if (role === 'admin' || role === 'owner') {
-      const isOwner = (role === 'owner');
-      const block = document.createElement('div');
-      block.className = 'admin-block';
-      const h = document.createElement('h2');
-      h.textContent = isOwner ? '어드민' : '관리자';
-      block.appendChild(h);
-
-      const card = document.createElement('div');
-      card.className = 'sec-card';
-      const actions = document.createElement('div');
-      actions.className = 'sec-actions';
-
-      if (isOwner) {
-        const btnAssets = document.createElement('button');
-        btnAssets.className = 'btn btn-outline';
-        btnAssets.textContent = '이미지 · 문구 관리';
-        btnAssets.addEventListener('click', () => Admin.open());
-        actions.appendChild(btnAssets);
-
-        const btnPreview = document.createElement('button');
-        btnPreview.className = 'btn btn-outline';
-        btnPreview.textContent = '슬라이드 디자인 미리보기';
-        btnPreview.addEventListener('click', () => { renderPreview(); show('preview'); });
-        actions.appendChild(btnPreview);
-      }
-
-      const btnGen = document.createElement('button');
-      btnGen.className = 'btn btn-primary';
-      btnGen.textContent = 'PPT 미리보기 · 생성';
-      btnGen.addEventListener('click', () => Generate.open());
-      actions.appendChild(btnGen);
-
-      card.appendChild(actions);
-      block.appendChild(card);
-      extra.appendChild(block);
-    }
+    // 관리자·owner 액션(이미지·문구 관리 / 디자인 미리보기 / PPT 생성 / ⬇ 받기)은
+    // 이제 상단바(mountAdminNav)로 이동 — 어느 화면에서든 접근 가능. 홈 하단 블록은 비운다.
+    $('#home-admin-extra').innerHTML = '';
   }
 
   /* ---------- 디자인 미리보기 데모 ---------- */

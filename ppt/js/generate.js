@@ -532,6 +532,23 @@ const Generate = (function () {
     }
   }
 
+  // 상단바 "⬇ 최신 PPT 받기" — 미리보기 화면을 거치지 않고 최신 데이터로 바로 생성·다운로드.
+  // 생성 화면 상태(items/weekId)에 의존하지 않도록 매번 새로 loadCtx→build 한다(독립 실행).
+  async function quickDownload(btn) {
+    if (typeof PptxGenJS === 'undefined') { alert('PPTX 라이브러리를 불러오지 못했습니다. 네트워크를 확인하고 새로고침해 주세요.'); return; }
+    const orig = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '생성 중…'; }
+    try {
+      const ctx = await loadCtx();
+      const list = build(ctx);
+      await buildPptx(list).writeFile({ fileName: '주일예배_' + ctx.weekId + '.pptx' });
+    } catch (e) {
+      alert('최신 PPT 생성 중 문제가 생겼습니다: ' + (e.message || ''));
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+    }
+  }
+
   /* ---------- 진입 ---------- */
   async function open() {
     const list = $('#gen-list');
@@ -550,5 +567,5 @@ const Generate = (function () {
     $('#btn-gen-download').addEventListener('click', download);
   }
 
-  return { init, open, build, buildPptx };
+  return { init, open, build, buildPptx, quickDownload };
 })();
