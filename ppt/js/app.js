@@ -74,15 +74,20 @@
     const bar = cur.querySelector('.topbar'); if (!bar) return;
     const isOwner = (currentRole === 'owner');
 
+    // 생성 화면은 자체 다운로드 버튼("최신 PPT 받기")이 있으므로 상단바 받기·생성 버튼은 중복 → 숨김
+    const onGenerate = (name === 'generate');
+
     const nav = document.createElement('div');
     nav.className = 'admin-nav';
 
-    const dl = document.createElement('button');
-    dl.className = 'btn btn-primary btn-sm';
-    dl.textContent = '⬇ 받기';
-    dl.title = '저장된 최신 상태로 전체 PPT 받기';
-    dl.addEventListener('click', () => Generate.quickDownload(dl));
-    nav.appendChild(dl);
+    if (!onGenerate) {
+      const dl = document.createElement('button');
+      dl.className = 'btn btn-primary btn-sm';
+      dl.textContent = '⬇ 받기';
+      dl.title = '저장된 최신 상태로 전체 PPT 받기';
+      dl.addEventListener('click', () => Generate.quickDownload(dl));
+      nav.appendChild(dl);
+    }
 
     if (isOwner) {
       const wrap = document.createElement('div');
@@ -105,7 +110,7 @@
       more.addEventListener('click', (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; });
       wrap.append(more, menu);
       nav.appendChild(wrap);
-    } else {
+    } else if (!onGenerate) {   // 생성 화면에선 '미리보기·생성'도 중복(이미 그 화면)
       const gen = document.createElement('button');
       gen.className = 'btn btn-outline btn-sm';
       gen.textContent = 'PPT 미리보기 · 생성';
@@ -113,6 +118,7 @@
       nav.appendChild(gen);
     }
 
+    if (!nav.children.length) return;   // 넣을 게 없으면(관리자·생성화면) 빈 nav 미부착
     const loBtn = bar.querySelector('#btn-logout');
     if (loBtn) bar.insertBefore(nav, loBtn); else bar.appendChild(nav);
   }
