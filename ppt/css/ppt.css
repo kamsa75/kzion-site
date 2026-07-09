@@ -868,6 +868,10 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .choir-title-slide.empty{opacity:.7; font-weight:700; font-size:15px;}
 .cts-name{font-size:17px; font-weight:800; line-height:1.2;}
 .cts-sub{font-size:12px; font-weight:700; opacity:.92; margin-top:4px;}
+.cts-sub.cts-warn{color:#FFE08A;}  /* 특송 이름/팀 미입력 — 부드러운 경고 */
+/* 특송 배지 */
+.choir-badge{display:inline-block; margin-left:8px; font-size:12px; font-weight:800;
+  color:var(--ui-gold); background:var(--ui-gold-soft); padding:3px 10px; border-radius:999px;}
 
 /* 성가대/특송 타입 선택 (곡마다) */
 .choir-type{display:inline-flex; border:1px solid var(--ui-line); border-radius:10px; overflow:hidden; margin:2px 0 12px;}

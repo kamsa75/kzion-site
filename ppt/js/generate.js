@@ -166,7 +166,9 @@ const Generate = (function () {
         songs.forEach(s => {
           const special = (s.songType === 'special');
           if (special) {
-            out.push({ label: '특송', slide: { layout: 'green', text: '특송 : ' + (s.name || '(이름 미입력)') }, missing: !s.name });
+            // 특송 = 곡명(크게) + '특송 · 이름/팀'(작게) — 성가대와 평행 구조
+            const who = s.performer ? ('특송 · ' + s.performer) : '특송';
+            out.push({ label: '특송', slide: { layout: 'green', text: s.name || '(곡 제목 미입력)', sub: who }, missing: !s.name || !s.performer });
           } else {
             out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)', sub: '시온 성가대' }, missing: !s.name });
           }

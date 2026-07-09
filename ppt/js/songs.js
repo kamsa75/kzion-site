@@ -36,6 +36,7 @@ const SongStore = (function () {
           arrange: row.arrange || null,   // 세트 편곡(회차·×N·간주·메모) — D29
           key: row.song_key || '',        // 곡 키
           songType: row.song_type || 'choir',  // 성가대(choir) / 특송(special) — 성가대 섹션 전용
+          performer: row.song_performer || '',  // 특송 이름/팀 (성가대는 빈 값)
           images: row.images || [],   // storage 경로
           warnDark: row.warn_dark,
           updatedAt: row.updated_at || null   // 마지막 수정 시각(#3 동시편집 표시·충돌감지 기준)
@@ -63,6 +64,7 @@ const SongStore = (function () {
         arrange: s.arrange || null,   // 세트 편곡 (D29) — null=아직 편곡 안 함(순서에서 자동 시드)
         songKey: s.key || '',
         songType: s.songType === 'special' ? 'special' : 'choir',   // 성가대/특송
+        performer: s.performer || '',   // 특송 이름/팀
         images: s.images || [],
         warnDark: !!s.warnDark
       }

@@ -296,6 +296,7 @@ Deno.serve(async (req) => {
         position: Number(s.position ?? 0),
         status: String(s.status ?? "review"),
         song_type: (s.songType === "special" ? "special" : "choir"), // 성가대 기본 / 특송
+        song_performer: String(s.performer ?? ""),   // 특송 이름/팀 (성가대는 빈 값 — 자막엔 '시온 성가대')
         blocks: s.blocks ?? null,
         ord: s.ord ?? [],
         arrange: s.arrange ?? null,          // 세트 편곡(회차·×N·간주·메모) — D29

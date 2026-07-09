@@ -14,7 +14,8 @@ const Choir = (function () {
     return {
       id: 'c' + Date.now() + Math.floor(Math.random() * 1000),
       name: '', status: 'review', role: 'choir',
-      songType: 'choir',   // 'choir'=성가대(곡명+시온 성가대) / 'special'=특송(특송 : 이름)
+      songType: 'choir',   // 'choir'=성가대(곡명+시온 성가대) / 'special'=특송(곡명+특송·이름/팀)
+      performer: '',        // 특송 이름/팀 (성가대는 미사용)
       blocks: null, images: [], order: [], raw: ''
     };
   }
@@ -102,21 +103,23 @@ const Choir = (function () {
     return t;
   }
 
-  // 곡명 그린 자막 미리보기: 성가대=곡명+시온 성가대 / 특송='특송 : 이름'
+  // 곡명 그린 자막 미리보기(= 실제 생성될 슬라이드, WYSIWYG)
+  //   성가대 = 곡명(크게) + '시온 성가대'(작게)
+  //   특송   = 곡명(크게) + '특송 · 이름/팀'(작게)
   function renderTitleSlide(song) {
     const title = document.createElement('div');
     title.className = 'choir-title-slide';
     const special = (song.songType === 'special');
     if (!song.name) {
       title.classList.add('empty');
-      title.textContent = special ? '(특송 이름을 입력하세요)' : '(곡 제목을 입력하세요)';
-    } else if (special) {
-      title.textContent = '특송 : ' + song.name;
-    } else {
-      const nm = document.createElement('div'); nm.className = 'cts-name'; nm.textContent = song.name;
-      const sub = document.createElement('div'); sub.className = 'cts-sub'; sub.textContent = '시온 성가대';
-      title.append(nm, sub);
+      title.textContent = '(곡 제목을 입력하세요)';
+      return title;
     }
+    const nm = document.createElement('div'); nm.className = 'cts-name'; nm.textContent = song.name;
+    const sub = document.createElement('div'); sub.className = 'cts-sub';
+    sub.textContent = special ? ('특송 · ' + (song.performer || '이름/팀 미입력')) : '시온 성가대';
+    if (special && !song.performer) sub.classList.add('cts-warn');
+    title.append(nm, sub);
     return title;
   }
 
@@ -260,8 +263,9 @@ const Choir = (function () {
   /* ---------- 곡 카드 ---------- */
 
   function renderCard(song, idx, total) {
+    const special = (song.songType === 'special');
     const card = document.createElement('div');
-    card.className = 'choir-song';
+    card.className = 'choir-song' + (special ? ' is-special' : '');
     card.dataset.id = song.id;
 
     const head = document.createElement('div');
@@ -270,6 +274,11 @@ const Choir = (function () {
     n.className = 'choir-song-n';
     n.textContent = '곡 ' + (idx + 1);
     head.appendChild(n);
+    if (special) {   // 한눈에 특송임을 알 수 있는 배지
+      const badge = document.createElement('span');
+      badge.className = 'choir-badge'; badge.textContent = '✨ 특송';
+      head.appendChild(badge);
+    }
 
     if (total > 1) {
       const mv = document.createElement('div');
@@ -294,8 +303,6 @@ const Choir = (function () {
     head.appendChild(del);
     card.appendChild(head);
 
-    const special = (song.songType === 'special');
-
     // 타입 선택 (성가대 / 특송) — 곡마다 지정. 기본 성가대
     const typeRow = document.createElement('div');
     typeRow.className = 'choir-type';
@@ -312,14 +319,25 @@ const Choir = (function () {
     });
     card.appendChild(typeRow);
 
-    // 곡 제목 / 특송 이름
+    // 곡 제목 (성가대·특송 공통)
     const tl = document.createElement('div'); tl.className = 'choir-lbl';
-    tl.textContent = special ? '특송 이름' : '곡 제목';
+    tl.textContent = '곡 제목';
     card.appendChild(tl);
     const ti = document.createElement('input');
     ti.className = 'choir-title-input'; ti.type = 'text'; ti.value = song.name || '';
-    ti.placeholder = special ? '예: 남성중창단, 유년부 특송' : '곡 제목을 입력하세요';
+    ti.placeholder = special ? '특송 곡 제목' : '곡 제목을 입력하세요';
     card.appendChild(ti);
+
+    // 특송 이름/팀 (특송일 때만 나타남)
+    let pi = null;
+    if (special) {
+      const pl = document.createElement('div'); pl.className = 'choir-lbl'; pl.textContent = '특송 이름/팀';
+      card.appendChild(pl);
+      pi = document.createElement('input');
+      pi.className = 'choir-title-input'; pi.type = 'text'; pi.value = song.performer || '';
+      pi.placeholder = '예: 남성중창단, 김하늘 집사';
+      card.appendChild(pi);
+    }
 
     // 가사
     const gl = document.createElement('div'); gl.className = 'choir-lbl'; gl.textContent = '가사';
@@ -347,13 +365,13 @@ const Choir = (function () {
     delBottom.addEventListener('click', removeSong);
     card.appendChild(delBottom);
 
-    // 제목 입력 → 저장 + 곡명 자막 미리보기 갱신(성가대=곡명+시온 성가대 / 특송=특송 : 이름)
-    ti.addEventListener('input', () => {
-      song.name = ti.value.trim();
-      SongStore.save();
+    // 제목/이름 입력 → 저장 + 곡명 자막 미리보기 갱신(WYSIWYG)
+    const refreshTitle = () => {
       const t = editor.querySelector('.choir-title-slide');
       if (t) t.replaceWith(renderTitleSlide(song));
-    });
+    };
+    ti.addEventListener('input', () => { song.name = ti.value.trim(); SongStore.save(); refreshTitle(); });
+    if (pi) pi.addEventListener('input', () => { song.performer = pi.value.trim(); SongStore.save(); refreshTitle(); });
     ta.addEventListener('input', () => { song.raw = ta.value; });
     btn.addEventListener('click', () => tidy(song, ta, editor, btn));
 
