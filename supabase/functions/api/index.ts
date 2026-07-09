@@ -254,11 +254,20 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
-    // 목사님 섹션 저장 (자동 저장 — 지침 3번)
+    // 목사님 섹션 저장 (자동 저장 — 지침 3번). 목사님 본인 + 본부장(owner)
     case "savePastor": {
-      if (role !== "pastor") return json({ error: "권한 없음" }, 403);
+      if (role !== "pastor" && role !== "owner") return json({ error: "권한 없음" }, 403);
       await ensureWeek(weekId);
-      const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      // 저장 충돌 감지: 내가 불러온 시점(baseUpdatedAt) 이후 남이 저장했으면 막고 알림
+      if (body.baseUpdatedAt) {
+        const { data: cur } = await db
+          .from("pastor_inputs").select("updated_at").eq("week_id", weekId).maybeSingle();
+        if (cur && cur.updated_at && new Date(cur.updated_at) > new Date(body.baseUpdatedAt as string)) {
+          return json({ error: "conflict", conflict: true, serverUpdatedAt: cur.updated_at }, 409);
+        }
+      }
+      const nowIso = new Date().toISOString();
+      const patch: Record<string, unknown> = { updated_at: nowIso };
       if (body.data !== undefined) patch.data = body.data;
       if (body.hymnImages !== undefined) patch.hymn_images = body.hymnImages;
       const { error } = await db
@@ -266,48 +275,70 @@ Deno.serve(async (req) => {
         .update(patch)
         .eq("week_id", weekId);
       if (error) return json({ error: "저장 실패" }, 500);
-      return json({ ok: true });
+      return json({ ok: true, updatedAt: nowIso });
     }
 
-    // 곡 저장 (신규/수정 겸용)
+    // 곡 저장 (신규/수정 겸용). 담당자(자기 섹션) + 관리자·본부장(찬양팀·성가대 대리 편집)
     case "saveSong": {
-      if (role !== "praise" && role !== "choir") return json({ error: "권한 없음" }, 403);
+      const canEdit = role === "praise" || role === "choir" || role === "admin" || role === "owner";
+      if (!canEdit) return json({ error: "권한 없음" }, 403);
       await ensureWeek(weekId);
       const s = (body.song || {}) as Record<string, unknown>;
+      // 대상 섹션(곡 소속): 담당자는 자기 역할, 관리자·본부장은 곡의 role을 지정받음
+      const target = (role === "praise" || role === "choir") ? role : String(s.role ?? "");
+      if (target !== "praise" && target !== "choir")
+        return json({ error: "곡 소속(role)이 올바르지 않습니다" }, 400);
+      const nowIso = new Date().toISOString();
       const row: Record<string, unknown> = {
         week_id: weekId,
-        role,
+        role: target,
         name: String(s.name ?? ""),
         position: Number(s.position ?? 0),
         status: String(s.status ?? "review"),
+        song_type: (s.songType === "special" ? "special" : "choir"), // 성가대 기본 / 특송
         blocks: s.blocks ?? null,
         ord: s.ord ?? [],
         arrange: s.arrange ?? null,          // 세트 편곡(회차·×N·간주·메모) — D29
         song_key: String(s.songKey ?? ""),   // 곡 키
         images: s.images ?? [],
         warn_dark: Boolean(s.warnDark),
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
       };
       let q;
       if (s.id) {
-        q = await db.from("songs").update(row).eq("id", s.id).eq("role", role).select("id").single();
+        // 저장 충돌 감지 (신규 곡은 검사 안 함)
+        if (body.baseUpdatedAt) {
+          const { data: cur } = await db
+            .from("songs").select("updated_at").eq("id", s.id).maybeSingle();
+          if (cur && cur.updated_at && new Date(cur.updated_at) > new Date(body.baseUpdatedAt as string)) {
+            return json({ error: "conflict", conflict: true, serverUpdatedAt: cur.updated_at }, 409);
+          }
+        }
+        q = await db.from("songs").update(row).eq("id", s.id).eq("role", target).select("id, updated_at").single();
       } else {
-        q = await db.from("songs").insert(row).select("id").single();
+        q = await db.from("songs").insert(row).select("id, updated_at").single();
       }
       if (q.error || !q.data) return json({ error: "저장 실패" }, 500);
-      return json({ ok: true, id: q.data.id });
+      return json({ ok: true, id: q.data.id, updatedAt: q.data.updated_at });
     }
 
     case "deleteSong": {
-      if (role !== "praise" && role !== "choir") return json({ error: "권한 없음" }, 403);
-      await db.from("songs").delete().eq("id", body.id as string).eq("role", role);
+      const canEdit = role === "praise" || role === "choir" || role === "admin" || role === "owner";
+      if (!canEdit) return json({ error: "권한 없음" }, 403);
+      const del = db.from("songs").delete().eq("id", body.id as string);
+      // 담당자는 자기 섹션만, 관리자·본부장은 id로 삭제(찬양팀·성가대 어느 쪽이든)
+      if (role === "praise" || role === "choir") del.eq("role", role);
+      await del;
       return json({ ok: true });
     }
 
-    // 이미지 업로드용 서명 URL 발급 (지침 5번 — 키는 서버에만)
+    // 이미지 업로드용 서명 URL 발급 (지침 5번 — 키는 서버에만). 담당자 + 관리자·본부장(대리 편집)
     case "uploadUrl": {
-      if (role === "admin") return json({ error: "권한 없음" }, 403);
-      const path = `${weekId}/${role}/${crypto.randomUUID()}.jpg`;
+      // 저장 경로용 섹션: 담당자는 자기 역할, 관리자·본부장은 지정받은 섹션(없으면 misc)
+      const seg = (role === "praise" || role === "choir" || role === "pastor")
+        ? role
+        : (String(body.sectionRole ?? "") || "misc");
+      const path = `${weekId}/${seg}/${crypto.randomUUID()}.jpg`;
       const { data, error } = await db.storage.from("scores").createSignedUploadUrl(path);
       if (error || !data) return json({ error: "업로드 URL 발급 실패" }, 500);
       return json({ path, url: data.signedUrl });
@@ -380,7 +411,7 @@ Deno.serve(async (req) => {
 
     // 악보 이미지 → 가사 추출 (지침 12번). storage 경로 배열을 받아 서버가 내려받아 비전 호출
     case "extract": {
-      if (role !== "praise" && role !== "choir" && role !== "pastor")
+      if (role !== "praise" && role !== "choir" && role !== "pastor" && role !== "admin" && role !== "owner")
         return json({ error: "권한 없음" }, 403);
       if (!ANTHROPIC_KEY) return json({ error: "추출 키가 설정되지 않았습니다(관리자 문의)" }, 500);
       const paths = (body.paths as string[]) || [];
@@ -408,7 +439,7 @@ Deno.serve(async (req) => {
 
     // 가사 붙여넣기 반자동 모드 (지침 12-7): 텍스트를 절/후렴 분류 + 2줄 분할
     case "extractText": {
-      if (role !== "praise" && role !== "choir" && role !== "pastor")
+      if (role !== "praise" && role !== "choir" && role !== "pastor" && role !== "admin" && role !== "owner")
         return json({ error: "권한 없음" }, 403);
       if (!ANTHROPIC_KEY) return json({ error: "추출 키가 설정되지 않았습니다(관리자 문의)" }, 500);
       const text = String(body.text || "").trim();
