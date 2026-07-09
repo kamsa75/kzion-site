@@ -24,6 +24,7 @@
     preview: $('#screen-preview')
   };
   let currentRole = null;
+  let currentScreen = null;   // 현재 보이는 화면 — 충돌 리로드 후 재렌더(#3)에 사용
 
   /* ---------- 세션 ---------- */
 
@@ -51,7 +52,15 @@
 
   /* ---------- 화면 전환 ---------- */
 
+  // 충돌 리로드 후 현재 화면을 그 자리에서 다시 그림(#3) — 곡 목록/성가대/편집 화면만 해당
+  function refreshCurrent() {
+    if (currentScreen === 'songs' && typeof Songs !== 'undefined') Songs.render();
+    else if (currentScreen === 'choir' && typeof Choir !== 'undefined') Choir.render();
+    else if (currentScreen === 'setorder' && typeof SetOrder !== 'undefined') SetOrder.render();
+  }
+
   function show(name) {
+    currentScreen = name;
     Object.entries(screens).forEach(([k, el]) => { el.hidden = (k !== name); });
     // 로그아웃 버튼을 현재 화면 상단바로 이동 → 어느 화면에서든 우측 상단에 노출 (버튼은 하나만 유지)
     const lo = $('#btn-logout'), cur = screens[name];
@@ -366,7 +375,7 @@
 
   /* ---------- 시작 ---------- */
 
-  window.KZ = { show, role: () => currentRole };
+  window.KZ = { show, role: () => currentRole, refresh: refreshCurrent };
   Songs.init();
   Choir.init();
   Review.init();

@@ -416,6 +416,27 @@ input{font-family:inherit;}
 }
 .song-warn{margin:10px 0 0; font-size:13px; color:#8A6D1F; background:var(--ui-warn-bg); padding:8px 10px; border-radius:8px;}
 .song-ok{margin:10px 0 0; font-size:13px; font-weight:700; color:var(--ui-gold); background:var(--ui-gold-soft); padding:8px 10px; border-radius:8px;}
+.song-meta{margin:6px 0 0; font-size:12px; color:var(--ui-sub);}
+
+/* 저장 충돌(#3 동시편집) — 고정 배너 + 내 입력 보관 패널 */
+#conflict-host{position:fixed; top:0; left:0; right:0; z-index:1000; display:flex; flex-direction:column; align-items:center; gap:8px; padding:10px; box-sizing:border-box;}
+#conflict-host[hidden]{display:none;}
+.conflict-card{width:100%; max-width:520px; box-sizing:border-box; background:var(--ui-card); border:1px solid var(--ui-line); border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.18); padding:14px 16px;}
+.conflict-warn{background:var(--ui-warn-bg);}
+.conflict-title{display:block; font-size:15px; font-weight:700; color:var(--ui-ink);}
+.conflict-msg{margin:4px 0 0; font-size:13.5px; color:var(--ui-ink); line-height:1.5;}
+.conflict-sub{margin:4px 0 0; font-size:12px; color:var(--ui-sub); line-height:1.5;}
+.conflict-btn{margin-top:12px; width:100%;}
+.conflict-mine{margin-top:12px; border-top:1px solid var(--ui-line); padding-top:10px;}
+.conflict-mine>summary{cursor:pointer; font-size:13px; font-weight:700; color:var(--ui-gold); list-style:none;}
+.conflict-mine>summary::-webkit-details-marker{display:none;}
+.conflict-mine-lyrics{margin-top:8px; background:var(--ui-bg); border-radius:8px; padding:8px 10px; max-height:40vh; overflow:auto; font-size:13px; line-height:1.55;}
+.conflict-mine-label{font-size:11px; font-weight:700; color:var(--ui-sub); margin:8px 0 2px;}
+.conflict-mine-label:first-child{margin-top:0;}
+.conflict-mine-line{padding:1px 4px; border-radius:4px;}
+.conflict-copy{margin-top:10px;}
+/* 다른 사람/내가 바꾼 가사 줄 — 노란 하이라이트(편집 화면 + 보관 패널 공용) */
+.line-row.line-changed,.conflict-mine-line.line-changed{background:#FBE7A0; border-radius:6px;}
 
 /* 여러 장 업로드 용도 선택 시트 */
 .sheet-overlay{

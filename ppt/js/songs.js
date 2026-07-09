@@ -17,72 +17,119 @@ const SongStore = (function () {
 
   function key() { return 'kzppt_songs_' + role; }
 
+  // 서버 row → 곡 객체 (load·reloadSong 공용 — 매핑 단일화)
+  function mapRow(row) {
+    return {
+      id: row.id,
+      name: row.name,
+      role: row.role,          // 관리자 홈에서 역할별 곡 수 집계용
+      status: row.status,
+      blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks, crop}
+      crop: row.blocks ? !!row.blocks.crop : false,
+      cropReason: row.blocks ? (row.blocks.cropReason || '') : '',
+      order: row.ord || [],
+      arrange: row.arrange || null,   // 세트 편곡(회차·×N·간주·메모) — D29
+      key: row.song_key || '',        // 곡 키
+      songType: row.song_type || 'choir',  // 성가대(choir) / 특송(special) — 성가대 섹션 전용
+      performer: row.song_performer || '',  // 특송 이름/팀 (성가대는 빈 값)
+      images: row.images || [],   // storage 경로
+      warnDark: row.warn_dark,
+      updatedAt: row.updated_at || null   // 마지막 수정 시각(#3 동시편집 표시·충돌감지 기준)
+    };
+  }
+
+  function isServerId(id) { return String(id).length === 36; }
+
+  // 저장 payload = 서버로 보내는 곡 내용 전부. 더티 판정 서명(_sig)도 "이걸" 그대로 직렬화해서 뽑는다
+  // → 필드가 늘어도(성가대/특송 등) 자동 포함되어 "바뀐 곡"을 오판(누락)할 여지가 없음
+  function payloadOf(s, position) {
+    return {
+      id: isServerId(s.id) ? s.id : undefined,
+      role: s.role,                 // 곡 소속(praise/choir) — 관리자·본부장 대리 저장 시 서버 라우팅용(#2)
+      name: s.name,
+      position: position,
+      status: s.status,
+      blocks: s.blocks ? { version: 1, blocks: s.blocks, crop: !!s.crop, cropReason: s.cropReason || '' } : null,
+      ord: s.order,
+      arrange: s.arrange || null,   // 세트 편곡 (D29)
+      songKey: s.key || '',
+      songType: s.songType === 'special' ? 'special' : 'choir',   // 성가대/특송
+      performer: s.performer || '',   // 특송 이름/팀
+      images: s.images || [],
+      warnDark: !!s.warnDark
+    };
+  }
+
+  // 충돌 비교·보관용 내용 스냅샷 — 사용자가 실제로 편집하는 필드만(A→C·A→B diff용)
+  function contentClone(s) {
+    return JSON.parse(JSON.stringify({
+      name: s.name || '', key: s.key || '', performer: s.performer || '',
+      songType: s.songType || 'choir', status: s.status || '',
+      blocks: s.blocks || null, order: s.order || [], arrange: s.arrange || null
+    }));
+  }
+
+  // 저장 성공(또는 로드) 시점 = "지금 이 곡은 서버와 같다"고 기록 → 이후 편집만 dirty로 잡힘
+  function markSaved(s, position) {
+    s._sig = JSON.stringify(payloadOf(s, position));
+    s._base = contentClone(s);
+  }
+
   async function load(r) {
     role = r;
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
       week = w;
-      songs = (w.songs || [])
-        .sort((a, b) => a.position - b.position)
-        .map(row => ({
-          id: row.id,
-          name: row.name,
-          role: row.role,          // 관리자 홈에서 역할별 곡 수 집계용
-          status: row.status,
-          blocks: row.blocks ? row.blocks.blocks : null, // D7: {version, blocks, crop}
-          crop: row.blocks ? !!row.blocks.crop : false,
-          cropReason: row.blocks ? (row.blocks.cropReason || '') : '',
-          order: row.ord || [],
-          arrange: row.arrange || null,   // 세트 편곡(회차·×N·간주·메모) — D29
-          key: row.song_key || '',        // 곡 키
-          songType: row.song_type || 'choir',  // 성가대(choir) / 특송(special) — 성가대 섹션 전용
-          performer: row.song_performer || '',  // 특송 이름/팀 (성가대는 빈 값)
-          images: row.images || [],   // storage 경로
-          warnDark: row.warn_dark,
-          updatedAt: row.updated_at || null   // 마지막 수정 시각(#3 동시편집 표시·충돌감지 기준)
-        }));
+      songs = (w.songs || []).sort((a, b) => a.position - b.position).map(mapRow);
+      songs.forEach((s, i) => markSaved(s, i));   // 로드 직후 = 서버와 동일(아직 dirty 아님 → 전체 재저장 안 함)
     } else {
       try { songs = JSON.parse(localStorage.getItem(key())) || []; }
       catch (e) { songs = []; }
     }
   }
 
-  function isServerId(id) { return String(id).length === 36; }
-
   async function pushOne(s, position) {
-    const r = await API.call('saveSong', {
-      // 저장 충돌 감지(#3)는 아직 미활성 — baseUpdatedAt 미전송 시 서버가 검사 스킵(=기존 last-write-wins).
-      // 409 처리·리로드 UX를 실서버로 테스트한 뒤 켤 것(핵심 저장 경로 보호).
-      song: {
-        id: isServerId(s.id) ? s.id : undefined,
-        role: s.role,                 // 곡 소속(praise/choir) — 관리자·본부장 대리 저장 시 서버 라우팅용(#2)
-        name: s.name,
-        position,
-        status: s.status,
-        blocks: s.blocks ? { version: 1, blocks: s.blocks, crop: !!s.crop, cropReason: s.cropReason || '' } : null,
-        ord: s.order,
-        arrange: s.arrange || null,   // 세트 편곡 (D29) — null=아직 편곡 안 함(순서에서 자동 시드)
-        songKey: s.key || '',
-        songType: s.songType === 'special' ? 'special' : 'choir',   // 성가대/특송
-        performer: s.performer || '',   // 특송 이름/팀
-        images: s.images || [],
-        warnDark: !!s.warnDark
-      }
-    });
+    const payload = payloadOf(s, position);
+    const body = { song: payload };
+    // 기존 곡(서버 id 있음)만 충돌 검사 — 내가 불러온 시점(updatedAt) 이후 남이 저장했으면 서버가 409 반환.
+    // 신규 곡(insert)·최초 저장은 baseUpdatedAt 없음 → 검사 안 함.
+    if (payload.id && s.updatedAt) body.baseUpdatedAt = s.updatedAt;
+    const r = await API.call('saveSong', body);
     if (r.updatedAt) s.updatedAt = r.updatedAt;   // 저장 성공 시 기준 시각 갱신(다음 충돌감지용)
     if (r.id && r.id !== s.id) {
       imgCache[r.id] = imgCache[s.id];
       delete imgCache[s.id];
       s.id = r.id;
     }
+    markSaved(s, position);   // 새 기준점(_sig·_base) 갱신 — 이 시점이 "서버와 같다"
+  }
+
+  // 충돌 곡만 서버 최신본으로 교체(그 곡만 — 다른 곡의 진행 중 작업은 건드리지 않음).
+  // 반환 { before:A(내가 불러왔던 원본), after:C(방금 받은 최신본) } → Conflict가 A→C·A→B diff 계산
+  async function reloadSong(id) {
+    const s = songs.find(x => x.id === id);
+    if (!s) return null;
+    const before = s._base ? JSON.parse(JSON.stringify(s._base)) : contentClone(s);
+    const w = await API.call('getWeek');
+    week = w;
+    const row = (w.songs || []).find(r => r.id === id);
+    if (!row) return null;
+    Object.assign(s, mapRow(row));   // 동일 객체에 최신 내용 덮어씀(펼침 상태 등 식별자 유지)
+    markSaved(s, songs.indexOf(s));  // 최신본 = 새 기준점(updatedAt도 최신 → 이후 저장 가능)
+    return { before: before, after: contentClone(s) };
   }
 
   async function pushAll() {
     for (let i = 0; i < songs.length; i++) {
       const s = songs[i];
-      if (s.status === 'extracting' || s._pushing) continue;  // 최초 저장(pushNow) 진행 중이면 중복 insert 방지
+      if (s.status === 'extracting' || s._pushing) continue;      // 최초 저장(pushNow) 진행 중이면 중복 insert 방지
+      if (window.Conflict && Conflict.isPaused(s.id)) continue;   // 충돌 대기 중 = 저장 멈춤(남의 최신본 덮지 않음)
+      if (s._sig === JSON.stringify(payloadOf(s, i))) continue;   // 안 바뀐 곡은 건너뜀(더티 추적 — 남의 곡 헛충돌·낭비 방지)
       try { await pushOne(s, i); }
-      catch (e) { /* 네트워크 오류 — 다음 저장에서 재시도 */ }
+      catch (e) {
+        if (e && e.status === 409 && window.Conflict) { Conflict.onConflict(s); continue; }  // 충돌 — 삼키지 말고 표면화
+        /* 네트워크 오류 — 다음 저장에서 재시도 */
+      }
     }
   }
 
@@ -106,6 +153,8 @@ const SongStore = (function () {
       week.sectionDone[role] = !!val;
     },
     pushNow: async (s) => { if (CONFIG.USE_SERVER) { try { await pushOne(s, songs.indexOf(s)); } catch (e) {} } },
+    reloadSong,           // 충돌 곡만 최신본으로 교체 (#3, Conflict 모듈이 사용)
+    contentClone,         // 내용 스냅샷(충돌 비교·보관용)
     all: () => songs,
     get: (id) => songs.find(s => s.id === id),
     add: (song) => { songs.push(song); if (!CONFIG.USE_SERVER) save(); },
@@ -459,6 +508,14 @@ const Songs = (function () {
       st.textContent = STATUS[song.status] || song.status;
       head.append(name, st);
       card.appendChild(head);
+
+      // 마지막 수정 시각 — 동시 편집 시 "누가 방금 만졌나" 감 잡기용 (#3, 시간만)
+      if (song.updatedAt) {
+        const meta = document.createElement('p');
+        meta.className = 'song-meta';
+        meta.textContent = '마지막 수정: ' + relTime(song.updatedAt);
+        card.appendChild(meta);
+      }
 
       if (song.warnDark) {
         const warn = document.createElement('p');

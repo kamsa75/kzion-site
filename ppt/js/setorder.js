@@ -552,6 +552,8 @@ const SetOrder = (function () {
   function lineNode(song, block, li) {
     const line = block.lines[li];
     const row = document.createElement('div'); row.className = 'line-row';
+    // 충돌 리로드 후: 다른 사람이 바꾼 가사 줄 노란 하이라이트 (#3, A→C)
+    if (window.Conflict && Conflict.lineChanged(song.id, block.id || block.label, line.text)) row.classList.add('line-changed');
     const textEl = document.createElement('div'); textEl.className = 'line-text';
     line.text.split(' ').forEach((w, wi) => {              // 저신뢰 단어 노란 하이라이트(원본 대조)
       if (wi > 0) textEl.appendChild(document.createTextNode(' '));

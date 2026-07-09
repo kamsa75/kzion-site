@@ -146,6 +146,8 @@ const Choir = (function () {
     const line = block.lines[li];
     const row = document.createElement('div');
     row.className = 'line-row';
+    // 충돌 리로드 후: 다른 사람이 바꾼 가사 줄 노란 하이라이트 (#3, A→C)
+    if (window.Conflict && Conflict.lineChanged(song.id, block.id || block.label, line.text)) row.classList.add('line-changed');
     const textEl = document.createElement('div');
     textEl.className = 'line-text';
     textEl.textContent = line.text;
@@ -302,6 +304,14 @@ const Choir = (function () {
     del.addEventListener('click', removeSong);
     head.appendChild(del);
     card.appendChild(head);
+
+    // 마지막 수정 시각 — 동시 편집 시 "누가 방금 만졌나" 감 잡기용 (#3, 시간만)
+    if (song.updatedAt) {
+      const meta = document.createElement('p');
+      meta.className = 'song-meta';
+      meta.textContent = '마지막 수정: ' + relTime(song.updatedAt);
+      card.appendChild(meta);
+    }
 
     // 타입 선택 (성가대 / 특송) — 곡마다 지정. 기본 성가대
     const typeRow = document.createElement('div');
