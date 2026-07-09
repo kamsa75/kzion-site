@@ -312,17 +312,23 @@
         }
         actions.appendChild(btn);
         card.appendChild(actions);
-      } else if (role === 'owner') {
-        // 어드민(본부장)은 검토·오류 확인용으로 각 섹션 화면에 직접 들어갈 수 있음(조회 위주 — 저장 권한은 담당자)
-        const actions = document.createElement('div');
-        actions.className = 'sec-actions';
-        const btn = document.createElement('button');
-        btn.className = 'btn btn-outline';
-        if (sec.owner === 'pastor') { btn.textContent = '목사님 화면 열기'; btn.addEventListener('click', () => Pastor.open()); }
-        else if (sec.owner === 'praise') { btn.textContent = '찬양팀 화면 열기'; btn.addEventListener('click', () => Songs.open()); }
-        else if (sec.owner === 'choir') { btn.textContent = '성가대 화면 열기'; btn.addEventListener('click', () => Choir.open()); }
-        actions.appendChild(btn);
-        card.appendChild(actions);
+      } else if (role === 'owner' || role === 'admin') {
+        // 본부장(owner)·위임 관리자(admin)는 각 섹션 화면에 직접 들어가 대리편집(#2, 서버 saveSong이 admin·owner 허용).
+        // 단 목사님 섹션 저장은 서버가 owner만 허용 → admin에겐 목사님 입구 미노출.
+        let text = null, fn = null;
+        if (sec.owner === 'praise') { text = '찬양팀 화면 열기'; fn = () => Songs.open(); }
+        else if (sec.owner === 'choir') { text = '성가대 화면 열기'; fn = () => Choir.open(); }
+        else if (sec.owner === 'pastor' && role === 'owner') { text = '목사님 화면 열기'; fn = () => Pastor.open(); }
+        if (text) {
+          const actions = document.createElement('div');
+          actions.className = 'sec-actions';
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-outline';
+          btn.textContent = text;
+          btn.addEventListener('click', fn);
+          actions.appendChild(btn);
+          card.appendChild(actions);
+        }
       }
 
       list.appendChild(card);

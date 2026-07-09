@@ -485,7 +485,7 @@ const Songs = (function () {
 
   function render() {
     const role = KZ.role();
-    $('#songs-title').textContent = (role === 'owner' ? '찬양팀' : MOCK.roles[role].label) + ' — 곡 준비';
+    $('#songs-title').textContent = ((role === 'owner' || role === 'admin') ? '찬양팀' : MOCK.roles[role].label) + ' — 곡 준비';
     renderDone();
     const list = $('#songs-list');
     list.innerHTML = '';
