@@ -37,7 +37,8 @@ const SongStore = (function () {
           key: row.song_key || '',        // 곡 키
           songType: row.song_type || 'choir',  // 성가대(choir) / 특송(special) — 성가대 섹션 전용
           images: row.images || [],   // storage 경로
-          warnDark: row.warn_dark
+          warnDark: row.warn_dark,
+          updatedAt: row.updated_at || null   // 마지막 수정 시각(#3 동시편집 표시·충돌감지 기준)
         }));
     } else {
       try { songs = JSON.parse(localStorage.getItem(key())) || []; }
@@ -49,8 +50,11 @@ const SongStore = (function () {
 
   async function pushOne(s, position) {
     const r = await API.call('saveSong', {
+      // 저장 충돌 감지(#3)는 아직 미활성 — baseUpdatedAt 미전송 시 서버가 검사 스킵(=기존 last-write-wins).
+      // 409 처리·리로드 UX를 실서버로 테스트한 뒤 켤 것(핵심 저장 경로 보호).
       song: {
         id: isServerId(s.id) ? s.id : undefined,
+        role: s.role,                 // 곡 소속(praise/choir) — 관리자·본부장 대리 저장 시 서버 라우팅용(#2)
         name: s.name,
         position,
         status: s.status,
@@ -63,6 +67,7 @@ const SongStore = (function () {
         warnDark: !!s.warnDark
       }
     });
+    if (r.updatedAt) s.updatedAt = r.updatedAt;   // 저장 성공 시 기준 시각 갱신(다음 충돌감지용)
     if (r.id && r.id !== s.id) {
       imgCache[r.id] = imgCache[s.id];
       delete imgCache[s.id];
@@ -605,7 +610,7 @@ const Songs = (function () {
   async function createPasteSong() {
     const song = {
       id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
-      name: '', status: 'review',
+      name: '', status: 'review', role: 'praise',   // 찬양팀 곡(관리자·본부장 대리 생성 시 서버 라우팅용)
       blocks: [], order: [], images: [], warnDark: false, extractError: null
     };
     const tempId = song.id;
@@ -622,7 +627,7 @@ const Songs = (function () {
   async function createSong(files) {
     const song = {
       id: 's' + Date.now() + Math.random().toString(36).slice(2, 6),
-      name: '', status: 'extracting',
+      name: '', status: 'extracting', role: 'praise',   // 찬양팀 곡(관리자·본부장 대리 생성 대응)
       blocks: null, order: [], images: [], warnDark: false
     };
     SongStore.add(song);
