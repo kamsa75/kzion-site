@@ -447,11 +447,14 @@ const Generate = (function () {
         if (bg) s.addImage({ data: bg, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'cover', w: 13.33, h: 7.5 } });
         if (sl.caption) {
           if (sl.dash) {
-            // 사도신경: 가운데 골드 캡션 + 양옆 골드 대시(얇은 선)
-            const capY = 0.26, lineY = capY + 0.3, half = (sl.caption.length * 0.34);
-            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.6, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 26, bold: true, color: C.gold, charSpacing: 6 });
-            s.addShape(pptx.ShapeType.line, { x: 6.665 - half - 0.75, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
-            s.addShape(pptx.ShapeType.line, { x: 6.665 + half + 0.15, y: lineY, w: 0.6, h: 0, line: { color: C.gold, width: 1.5, transparency: 28 } });
+            // 사도신경: 가운데 골드 캡션(32pt) + 양옆 골드 대시
+            //   ⚠ 대시는 '얇은 사각형'으로 그림. 높이 0 선(addShape line, h:0)은 PowerPoint
+            //   'unreadable content' 경고를 유발하므로 폐기(유효한 OOXML 도형만 사용).
+            const capY = 0.26, lineY = capY + 0.30, half = (sl.caption.length * 0.42); // 32pt 기준 반너비
+            s.addText(sl.caption, { x: 0.8, y: capY, w: 11.73, h: 0.6, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 32, bold: true, color: C.gold, charSpacing: 6 });
+            const dW = 0.6, dH = 0.024; // 가로 막대(높이 0.024in ≈ 선 두께)
+            s.addShape(pptx.ShapeType.rect, { x: 6.665 - half - 0.75, y: lineY - dH / 2, w: dW, h: dH, fill: { color: C.gold, transparency: 28 }, line: { type: 'none' } });
+            s.addShape(pptx.ShapeType.rect, { x: 6.665 + half + 0.15, y: lineY - dH / 2, w: dW, h: dH, fill: { color: C.gold, transparency: 28 }, line: { type: 'none' } });
           } else if (sl.fit) {
             // 성경 본문: 가운데 골드 캡션(참조 구절) — 본문 위쪽 정렬과 안 겹치게 상단
             s.addText(sl.caption, { x: 0.8, y: 0.05, w: 11.73, h: 0.42, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 18, bold: true, color: C.gold, charSpacing: 3 });
@@ -484,7 +487,7 @@ const Generate = (function () {
             const cfs = fitTextPt(plainCreed, 13.0, 6.11, 1.25, 56);   // 폰트는 6.11 기준으로 계산, 박스는 6.6으로 여유 → PP 렌더 차이 흡수
             dopts.align = 'center'; dopts.x = 0.05; dopts.w = 13.23; dopts.y = 0.6; dopts.h = 6.6;   // 박스 높이 6.6·위치 약간 위로
             dopts.lineSpacingMultiple = 1.25;   // 줄간격 좁게(보기 좋게)
-            dopts.fontSize = cfs ? Math.max(12, cfs * 0.96) : 36;   // 박스에 확실히 들어가는 크기 + fit:'shrink' 이중 안전
+            dopts.fontSize = cfs ? Math.max(12, Math.min(32, cfs * 0.96)) : 32;   // 흰 본문 32pt 상한(길면 축소) — 골드 캡션과 크기 통일
           }
           // 성경 본문: 상·하 여백 0.52in(≈50px@720) + 위쪽 정렬 + 글자 6cqh(≈32pt)
           else { dopts.align = 'left'; dopts.valign = 'top'; dopts.x = 0.6; dopts.w = 12.13; dopts.y = 0.52; dopts.h = 6.46; dopts.fontSize = 32; }

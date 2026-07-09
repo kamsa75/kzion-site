@@ -209,8 +209,8 @@ function fitDarkSlides(root) {
   (root || document).querySelectorAll('.slide--dark.is-fit .sl-body').forEach(function (b) {
     if (!b.clientHeight) return;
     var slide = b.closest('.slide--dark');
-    // 사도신경(is-dash)=크게 채움
-    var size = (slide && slide.classList.contains('is-dash')) ? 9.2 : 6;
+    // 사도신경(is-dash)=본문 32pt 상한(=5.93cqh, 다운로드와 동일). 길면 아래 while로 축소
+    var size = (slide && slide.classList.contains('is-dash')) ? 5.93 : 6;
     b.style.fontSize = size + 'cqh';
     var guard = 0;
     while (b.scrollHeight > b.clientHeight + 1 && size > 1.4 && guard < 80) {

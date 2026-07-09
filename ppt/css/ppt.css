@@ -267,6 +267,7 @@ input{font-family:inherit;}
   top:5cqh; letter-spacing:.3em; font-size:4.6cqh;
   display:flex; align-items:center; justify-content:center; gap:2.4cqw;
 }
+.slide--dark.is-fit.is-dash .sl-cap{ font-size:5.9cqh; }  /* 사도신경 캡션 32pt(=5.9cqh) */
 .slide--dark.is-dash .sl-cap::before,
 .slide--dark.is-dash .sl-cap::after{
   content:""; width:5cqw; height:0.34cqh; background:var(--sl-gold); opacity:.72; border-radius:2px;
