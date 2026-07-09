@@ -91,9 +91,12 @@
 
     if (!onGenerate) {
       const dl = document.createElement('button');
-      dl.className = 'btn btn-primary btn-sm';
+      dl.className = 'btn btn-primary btn-sm dl-btn';
       dl.textContent = '⬇ 받기';
       dl.title = '저장된 최신 상태로 전체 PPT 받기';
+      const dot = document.createElement('span');   // 신선도 점(미다운로드/변경됨) — #PPT 신선도
+      dot.className = 'dl-dot';
+      dl.appendChild(dot);
       dl.addEventListener('click', () => Generate.quickDownload(dl));
       nav.appendChild(dl);
     }
@@ -130,6 +133,37 @@
     if (!nav.children.length) return;   // 넣을 게 없으면(관리자·생성화면) 빈 nav 미부착
     const loBtn = bar.querySelector('#btn-logout');
     if (loBtn) bar.insertBefore(nav, loBtn); else bar.appendChild(nav);
+
+    // 신선도 점: 이미 불러온 주 데이터로 즉시 반영 + 서버 확인(가벼움: 화면이동·탭복귀 때)
+    if (window.PptFresh) {
+      const w = SongStore.week && SongStore.week();
+      if (w && w.weekId) PptFresh.refreshFromWeek(w);
+      updateDlIndicator();
+      maybeProbe();
+    }
+  }
+
+  // "⬇ 받기" 버튼의 점 상태 갱신 (none=미다운로드 / stale=변경됨 / fresh=숨김)
+  function updateDlIndicator() {
+    const dot = document.querySelector('.admin-nav .dl-btn .dl-dot');
+    if (!dot || !window.PptFresh) return;
+    const st = PptFresh.state();
+    dot.className = 'dl-dot' + (st === 'none' ? ' show none' : st === 'stale' ? ' show stale' : '');
+    const btn = dot.parentElement;
+    if (btn) btn.title = st === 'stale' ? '변경됨 — 최신본으로 다시 받으세요'
+      : st === 'none' ? '이번 주 아직 받지 않았어요 — 받기'
+      : '저장된 최신 상태로 전체 PPT 받기';
+  }
+
+  // 서버에 최신 버전 확인(관리자·owner만, 10초 이내 중복 호출 방지)
+  let lastProbe = 0;
+  function maybeProbe() {
+    if (currentRole !== 'admin' && currentRole !== 'owner') return;
+    if (!window.PptFresh) return;
+    const now = Date.now();
+    if (now - lastProbe < 10000) return;
+    lastProbe = now;
+    PptFresh.probe();
   }
   // ⋯ 관리 메뉴: 바깥 클릭 시 닫기 (1회 등록)
   document.addEventListener('click', () => {
@@ -376,6 +410,13 @@
   /* ---------- 시작 ---------- */
 
   window.KZ = { show, role: () => currentRole, refresh: refreshCurrent };
+
+  // PPT 신선도(#): 버전 갱신되면 점 다시 그림 + 탭 복귀 시 서버 확인
+  if (window.PptFresh) {
+    PptFresh.setNotify(updateDlIndicator);
+    window.addEventListener('focus', maybeProbe);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeProbe(); });
+  }
   Songs.init();
   Choir.init();
   Review.init();

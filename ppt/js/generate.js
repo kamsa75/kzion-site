@@ -16,6 +16,12 @@ const Generate = (function () {
 
   let items = [];   // [{ label, slide, missing, phase }]
   let weekId = '';
+  let lastWeek = null;   // 마지막 loadCtx의 getWeek 원본 — 다운로드 시점 버전 기록용(#PPT 신선도)
+
+  // 다운로드 성공 시 이 기기의 '받은 버전'을 기록 → 상단바 점 갱신
+  function noteDownloaded(wkId, weekRaw) {
+    if (window.PptFresh) PptFresh.markDownloaded(wkId, PptFresh.versionOf(weekRaw || {}));
+  }
 
   // 슬롯 → 예배 순서 단계 (미리보기 그룹핑용, D). 슬롯 id 기준
   const PHASE = {
@@ -225,7 +231,7 @@ const Generate = (function () {
     const settings = await loadSettings();
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
-      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets, settings };
+      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets, settings, _week: w };
     }
     let pastor = {}, praise = [], choir = [];
     try { pastor = JSON.parse(localStorage.getItem('kzppt_pastor') || '{}'); } catch (e) {}
@@ -540,6 +546,7 @@ const Generate = (function () {
     btn.disabled = true; const orig = btn.textContent; btn.textContent = '생성 중…';
     try {
       await buildPptx(items).writeFile({ fileName: '주일예배_' + weekId + '.pptx' });
+      noteDownloaded(weekId, lastWeek);   // 미리보기 화면에서 받은 것도 '받음'으로 기록
     } catch (e) {
       alert('PPTX 생성 중 문제가 생겼습니다: ' + (e.message || ''));
     } finally {
@@ -557,6 +564,7 @@ const Generate = (function () {
       const ctx = await loadCtx();
       const list = build(ctx);
       await buildPptx(list).writeFile({ fileName: '주일예배_' + ctx.weekId + '.pptx' });
+      noteDownloaded(ctx.weekId, ctx._week);   // 방금 받은 최신 버전을 '받음'으로 기록
     } catch (e) {
       alert('최신 PPT 생성 중 문제가 생겼습니다: ' + (e.message || ''));
     } finally {
@@ -573,6 +581,7 @@ const Generate = (function () {
     try { ctx = await loadCtx(); }
     catch (e) { alert('데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.'); KZ.show('home'); return; }
     weekId = ctx.weekId;
+    lastWeek = ctx._week || null;   // 이 화면에서 '받기' 시 이 시점 버전으로 기록(items도 이 시점 기준)
     items = build(ctx);
     renderPreview();
   }

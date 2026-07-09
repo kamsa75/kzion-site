@@ -438,6 +438,16 @@ input{font-family:inherit;}
 /* 다른 사람/내가 바꾼 가사 줄 — 노란 하이라이트(편집 화면 + 보관 패널 공용) */
 .line-row.line-changed,.conflict-mine-line.line-changed{background:#FBE7A0; border-radius:6px;}
 
+/* "⬇ 받기" 신선도 점 — none=미다운로드(골드 링) / stale=변경됨(골드 채움+펄스) */
+.dl-btn{position:relative; overflow:visible;}
+.dl-dot{display:none; position:absolute; top:-3px; right:-3px; width:10px; height:10px;
+  border-radius:50%; box-sizing:border-box; box-shadow:0 0 0 1.5px #fff;}
+.dl-dot.show{display:block;}
+.dl-dot.none{background:#fff; border:2.5px solid var(--ui-gold);}
+.dl-dot.stale{background:var(--ui-gold); animation:dl-pulse 1.6s ease-in-out infinite;}
+@keyframes dl-pulse{0%,100%{transform:scale(1); opacity:1;} 50%{transform:scale(1.4); opacity:.5;}}
+@media (prefers-reduced-motion:reduce){ .dl-dot.stale{animation:none;} }
+
 /* 여러 장 업로드 용도 선택 시트 */
 .sheet-overlay{
   position:fixed; inset:0; z-index:100; background:rgba(20,24,31,.45);
