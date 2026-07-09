@@ -29,8 +29,8 @@ const MOCK = {
       items: ['악보 업로드 2곡', '가사 검수 완료', '부르는 순서 지정 완료']
     },
     {
-      id: 'choir', name: '성가대', owner: 'choir', status: 'empty',
-      items: ['곡명 입력', '악보 업로드', '가사 검수', '부르는 순서 지정']
+      id: 'choir', name: '성가대 (특송)', owner: 'choir', status: 'empty',
+      items: ['곡마다 성가대/특송 선택', '곡명·가사 입력', '가사 검수']
     }
   ],
 

@@ -14,6 +14,7 @@ const Choir = (function () {
     return {
       id: 'c' + Date.now() + Math.floor(Math.random() * 1000),
       name: '', status: 'review', role: 'choir',
+      songType: 'choir',   // 'choir'=성가대(곡명+시온 성가대) / 'special'=특송(특송 : 이름)
       blocks: null, images: [], order: [], raw: ''
     };
   }
@@ -89,17 +90,34 @@ const Choir = (function () {
     return groups;
   }
 
-  // 찬양팀 검수와 동일한 밴드 슬라이드 필름 썸네일(그린 + 검정 밴드 2줄)
+  // 성가대/특송 = 그린 자막(밴드 없음). 필름 썸네일도 그린에 흰 가사 2줄
   function filmThumb(lines) {
     const t = document.createElement('div'); t.className = 'film-thumb';
-    const green = document.createElement('div'); green.className = 'film-green';
-    const band = document.createElement('div'); band.className = 'film-band';
+    const green = document.createElement('div'); green.className = 'film-green film-green-lyr';
     (lines || []).slice(0, 2).forEach(tx => {
       const d = document.createElement('div'); d.className = 'film-line'; d.textContent = tx;
-      band.appendChild(d);
+      green.appendChild(d);
     });
-    t.append(green, band);
+    t.appendChild(green);
     return t;
+  }
+
+  // 곡명 그린 자막 미리보기: 성가대=곡명+시온 성가대 / 특송='특송 : 이름'
+  function renderTitleSlide(song) {
+    const title = document.createElement('div');
+    title.className = 'choir-title-slide';
+    const special = (song.songType === 'special');
+    if (!song.name) {
+      title.classList.add('empty');
+      title.textContent = special ? '(특송 이름을 입력하세요)' : '(곡 제목을 입력하세요)';
+    } else if (special) {
+      title.textContent = '특송 : ' + song.name;
+    } else {
+      const nm = document.createElement('div'); nm.className = 'cts-name'; nm.textContent = song.name;
+      const sub = document.createElement('div'); sub.className = 'cts-sub'; sub.textContent = '시온 성가대';
+      title.append(nm, sub);
+    }
+    return title;
   }
 
   // 필름 썸네일 가사가 폭을 넘으면 축소(찬양팀 검수와 동일)
@@ -213,12 +231,8 @@ const Choir = (function () {
     hint.innerHTML = '<span class="tip-line tip-sub">줄 사이 ✂ 눌러 나눔/합침(밴드 2줄) · 줄을 눌러 수정</span>';
     el.appendChild(hint);
 
-    // 곡명 그린 자막 미리보기 (한 줄)
-    const title = document.createElement('div');
-    title.className = 'choir-title-slide';
-    title.textContent = song.name || '(곡 제목을 입력하세요)';
-    if (!song.name) title.classList.add('empty');
-    el.appendChild(title);
+    // 곡명 그린 자막 미리보기 (성가대=곡명+시온 성가대 / 특송=특송 : 이름)
+    el.appendChild(renderTitleSlide(song));
 
     song.blocks.forEach(block => {
       const bcard = document.createElement('div');
@@ -280,12 +294,31 @@ const Choir = (function () {
     head.appendChild(del);
     card.appendChild(head);
 
-    // 곡 제목
-    const tl = document.createElement('div'); tl.className = 'choir-lbl'; tl.textContent = '곡 제목';
+    const special = (song.songType === 'special');
+
+    // 타입 선택 (성가대 / 특송) — 곡마다 지정. 기본 성가대
+    const typeRow = document.createElement('div');
+    typeRow.className = 'choir-type';
+    [['choir', '성가대'], ['special', '특송']].forEach(([val, lab]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'choir-type-btn' + (special === (val === 'special') ? ' on' : '');
+      b.textContent = lab;
+      b.addEventListener('click', () => {
+        if (song.songType === val) return;
+        song.songType = val; SongStore.save(); SongStore.pushNow(song); render();
+      });
+      typeRow.appendChild(b);
+    });
+    card.appendChild(typeRow);
+
+    // 곡 제목 / 특송 이름
+    const tl = document.createElement('div'); tl.className = 'choir-lbl';
+    tl.textContent = special ? '특송 이름' : '곡 제목';
     card.appendChild(tl);
     const ti = document.createElement('input');
     ti.className = 'choir-title-input'; ti.type = 'text'; ti.value = song.name || '';
-    ti.placeholder = '곡 제목을 입력하세요';
+    ti.placeholder = special ? '예: 남성중창단, 유년부 특송' : '곡 제목을 입력하세요';
     card.appendChild(ti);
 
     // 가사
@@ -314,12 +347,12 @@ const Choir = (function () {
     delBottom.addEventListener('click', removeSong);
     card.appendChild(delBottom);
 
-    // 제목 입력 → 저장 + 곡명 자막 미리보기 갱신
+    // 제목 입력 → 저장 + 곡명 자막 미리보기 갱신(성가대=곡명+시온 성가대 / 특송=특송 : 이름)
     ti.addEventListener('input', () => {
       song.name = ti.value.trim();
       SongStore.save();
       const t = editor.querySelector('.choir-title-slide');
-      if (t) { t.textContent = song.name || '(곡 제목을 입력하세요)'; t.classList.toggle('empty', !song.name); }
+      if (t) t.replaceWith(renderTitleSlide(song));
     });
     ta.addEventListener('input', () => { song.raw = ta.value; });
     btn.addEventListener('click', () => tidy(song, ta, editor, btn));

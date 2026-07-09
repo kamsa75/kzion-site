@@ -159,13 +159,22 @@ const Generate = (function () {
         return out;
       }
       case 'choir_name': {
-        // 곡명 + 가사를 곡마다 함께 처리(특송 등 다곡 대응). choir_songs 슬롯은 건너뜀
+        // 곡마다: 성가대=곡명 그린(+시온 성가대) / 특송='특송 : 이름' 그린. 가사는 둘 다 그린 흰글씨 2줄(밴드 없음, D26 개편)
         const songs = ctx.songs.filter(s => getRole(s) === 'choir');
         if (!songs.length) return [{ label: '성가대 곡명', slide: { layout: 'green', text: '(성가대 곡 없음)' }, missing: true }];
         const out = [];
         songs.forEach(s => {
-          out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)' }, missing: !s.name });
-          bandFromBlocks(getBlocks(s), getOrder(s)).forEach(sl => out.push({ label: (s.name || '성가대 곡') + ' 가사', slide: sl }));
+          const special = (s.songType === 'special');
+          if (special) {
+            out.push({ label: '특송', slide: { layout: 'green', text: '특송 : ' + (s.name || '(이름 미입력)') }, missing: !s.name });
+          } else {
+            out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)', sub: '시온 성가대' }, missing: !s.name });
+          }
+          // 가사 = 그린 흰글씨 2줄(밴드 없음) — band 레이아웃 + noBand 플래그
+          bandFromBlocks(getBlocks(s), getOrder(s)).forEach(sl => {
+            sl.noBand = true;
+            out.push({ label: (s.name || (special ? '특송' : '성가대 곡')) + ' 가사', slide: sl });
+          });
         });
         return out;
       }
@@ -422,10 +431,14 @@ const Generate = (function () {
           addVerseCard(pptx, s, sl.ref, runs, false);
           break;
         }
-        // 찬송가 등 = 기존 크로마 밴드(초록 + 검정 밴드 + 흰 가사)
+        // 크로마 밴드형(초록 + 흰 가사). 밴드는 90% 불투명(살짝 아래 비침). noBand=성가대/특송은 밴드 없이 그린 자막
         s.background = { color: C.green };
-        s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band } });
-        s.addText((sl.lyrics || []).join('\n'), { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 34, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' });
+        if (!sl.noBand) {
+          s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band, transparency: 10 } });
+        }
+        const lyOpts = { x: 0.5, y: 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 34, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' };
+        if (sl.noBand) lyOpts.shadow = { type: 'outer', color: '000000', opacity: 0.5, blur: 4, offset: 2, angle: 90 }; // 밴드 없으면 그림자로 가독성
+        s.addText((sl.lyrics || []).join('\n'), lyOpts);
         break;
       }
       case 'dark': {

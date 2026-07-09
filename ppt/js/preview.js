@@ -51,7 +51,7 @@ function renderSlide(slide) {
         break;
       }
       const band = document.createElement('div');
-      band.className = 'sl-band';
+      band.className = 'sl-band' + (slide.noBand ? ' sl-band--plain' : ''); // noBand=성가대/특송(밴드 없이 그린 자막)
       const ly = document.createElement('div');
       ly.className = 'sl-lyrics';
       (slide.lyrics || []).slice(0, 2).forEach((line, i) => { // 2줄 고정 (지침 18번)
