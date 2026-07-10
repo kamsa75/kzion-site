@@ -260,7 +260,7 @@ const Generate = (function () {
       b.className = 'gen-warnbox';
       const labels = [...new Set(missing.map(i => i.label.replace(/\s*\(.*\)/, '')))];
       b.innerHTML = '<strong>아직 채워지지 않은 부분:</strong> ' + labels.join(' · ') +
-        '<br><span class="gen-warn-sub">회색 자리표시 슬라이드입니다. 이미지 업로드·미입력 항목은 채운 뒤 다시 생성하세요.</span>';
+        '<br><span class="gen-warn-sub">필요하다면, 채운 뒤 다시 생성하세요.</span>';
       warnBox.appendChild(b);
     }
 
