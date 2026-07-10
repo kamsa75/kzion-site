@@ -491,7 +491,8 @@ const Songs = (function () {
     list.innerHTML = '';
 
     // 이 화면은 찬양팀 전용 → praise 곡만(어드민은 getWeek로 전체를 받으므로 필터). 담당자는 서버가 이미 자기 곡만 반환
-    SongStore.all().filter(s => (s.role || 'praise') === 'praise').forEach(song => {
+    const praiseSongs = SongStore.all().filter(s => (s.role || 'praise') === 'praise');
+    praiseSongs.forEach(song => {
       const card = document.createElement('div');
       card.className = 'sec-card song-card';
 
@@ -603,9 +604,9 @@ const Songs = (function () {
       list.appendChild(card);
     });
 
-    // 기본 3곡 힌트 슬롯: 실제 곡이 3개 미만이면 빈 힌트 카드로 채운다.
-    // 힌트는 SongStore에 없는 안내용일 뿐이라 완료 판정과 무관(비워둬도 됨).
-    for (let i = SongStore.all().length; i < 3; i++) {
+    // 기본 3곡 힌트 슬롯: 찬양팀 곡이 3개 미만이면 빈 힌트 카드로 채운다.
+    // 전체(all)가 아닌 '찬양팀 곡 수' 기준 — 어드민은 성가대 곡까지 받으므로 all()로 세면 곡1이 밀린다.
+    for (let i = praiseSongs.length; i < 3; i++) {
       const hint = document.createElement('button');
       hint.type = 'button';
       hint.className = 'song-hint';
