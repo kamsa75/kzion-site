@@ -445,7 +445,7 @@ const Generate = (function () {
           s.addShape(pptx.ShapeType.rect, { x: 0, y: 6.0, w: 13.33, h: 1.5, fill: { color: C.band, transparency: 10 } });
         }
         // 성가대/특송(noBand)은 밴드가 없어 바닥에 붙으므로 위로 올려 하단 여백 확보(다른 슬라이드와 균형). 찬양팀 밴드는 y=6.0 유지
-        const lyOpts = { x: 0.5, y: sl.noBand ? 5.25 : 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 34, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' };
+        const lyOpts = { x: 0.5, y: sl.noBand ? 5.8 : 6.0, w: 12.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 34, bold: true, color: C.white, lineSpacingMultiple: 1.15, fit: 'shrink' };
         if (sl.noBand) lyOpts.shadow = { type: 'outer', color: '000000', opacity: 0.5, blur: 4, offset: 2, angle: 90 }; // 밴드 없으면 그림자로 가독성
         s.addText((sl.lyrics || []).join('\n'), lyOpts);
         break;

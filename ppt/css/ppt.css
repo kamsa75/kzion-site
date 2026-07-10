@@ -243,7 +243,7 @@ input{font-family:inherit;}
 }
 /* 성가대/특송 = 밴드 없이 그린 자막(흰 글씨 2줄 + 그림자로 가독성).
    검은 밴드(찬양팀)와 달리 바닥에 붙이지 않고 하단 여백을 둬 다른 슬라이드와 균형 */
-.slide--band .sl-band--plain{background:transparent; bottom:10cqh;}
+.slide--band .sl-band--plain{background:transparent; bottom:4cqh;}
 .slide--band .sl-band--plain .sl-lyrics{text-shadow:0 0.3cqh 1.5cqh rgba(0,0,0,.6);}
 .slide--band .sl-lyrics{
   text-align:center; color:var(--sl-white);
