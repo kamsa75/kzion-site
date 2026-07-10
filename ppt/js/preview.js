@@ -320,6 +320,9 @@ function setVcardParaRuns(para, txt) {
   });
 }
 
+// 절 번호 토큰인가? "1" "[1]" "12" "1." "1)" 등 (짧은 구절 절 번호가 페이지 끝에 홀로 남지 않게)
+function isVerseNum(w) { return /^\[?\d{1,3}\]?[.)]?$/.test(w); }
+
 // 실제 .slide--band > .vcard > .vcard-box > .vcard-para 를 화면 밖에 만들어, 각 페이지에 '2줄까지' 단어를 담는다.
 // 폰트·CSS가 그대로 적용되므로 미리보기·PPT의 카드 줄바꿈과 정확히 일치. (비율은 크기 무관 → 고정폭 프로브로 측정)
 function bandChunk2Lines(words) {
@@ -341,6 +344,11 @@ function bandChunk2Lines(words) {
     for (var j = i; j < n; j++) {
       if (fits(words.slice(i, j + 1).join(' '))) chosen = j; else break;
     }
+    // 절 번호가 페이지 끝에 홀로 남지 않게 → 번호(들)를 다음 페이지 첫머리로(뒤 구절과 함께).
+    // 다음 페이지는 그 번호부터 다시 2줄로 채워지므로 넘침 없음.
+    var e = chosen;
+    while (e > i && isVerseNum(words[e])) e--;
+    if (!isVerseNum(words[e])) chosen = e;           // 페이지에 본문이 남을 때만(전부 번호면 그대로 둠)
     pages.push(words.slice(i, chosen + 1).join(' '));
     i = chosen + 1;
   }
