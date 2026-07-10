@@ -216,14 +216,14 @@ input{font-family:inherit;}
 /* 그린 자막형 */
 .slide--green{background:var(--sl-chroma);}
 .slide--green .sl-text{
-  position:absolute; left:4cqw; right:4cqw; bottom:7cqh;
+  position:absolute; left:4cqw; right:4cqw; bottom:13cqh;
   text-align:center; color:var(--sl-white);
   font-size:8.9cqh; font-weight:800; line-height:1.3;
   text-shadow:0 0 1.2cqh rgba(0,0,0,.45);
 }
 .slide--green .sl-sub{
-  position:absolute; left:4cqw; right:4cqw; bottom:2.5cqh;
-  text-align:center; color:var(--sl-white); font-size:5cqh; font-weight:700;
+  position:absolute; left:4cqw; right:4cqw; bottom:3cqh;
+  text-align:center; color:var(--sl-white); font-size:6cqh; font-weight:700;
   text-shadow:0 0 1.2cqh rgba(0,0,0,.45); opacity:.95;
 }
 
@@ -893,13 +893,11 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .choir-tidy{margin-top:11px;}
 .choir-editor{margin-top:4px;}
 .choir-editor:empty{margin-top:0;}
-.choir-title-slide{background:var(--sl-chroma); color:var(--sl-white); text-align:center; font-weight:800;
-  font-size:16px; padding:15px 12px; border-radius:9px; margin:12px 0 12px;
-  word-break:keep-all; text-shadow:0 1px 2px rgba(0,0,0,.35);}
-.choir-title-slide.empty{opacity:.7; font-weight:700; font-size:15px;}
-.cts-name{font-size:17px; font-weight:800; line-height:1.2;}
-.cts-sub{font-size:12px; font-weight:700; opacity:.92; margin-top:4px;}
-.cts-sub.cts-warn{color:#FFE08A;}  /* 특송 이름/팀 미입력 — 부드러운 경고 */
+/* 성가대 곡명 썸네일 = 실제 그린 슬라이드 렌더(공용)를 감싸는 래퍼 */
+.choir-title-slide{max-width:360px; margin:12px 0;}
+.choir-title-slide .slide{border-radius:9px;}
+.choir-title-slide.is-empty .sl-text{opacity:.65; font-weight:700;}
+.choir-title-slide.is-warn .sl-sub{color:#FFE08A; opacity:1;}  /* 특송 이름/팀 미입력 — 부드러운 경고 */
 /* 특송 배지 */
 .choir-badge{display:inline-block; margin-left:8px; font-size:12px; font-weight:800;
   color:var(--ui-gold); background:var(--ui-gold-soft); padding:3px 10px; border-radius:999px;}

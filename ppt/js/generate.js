@@ -424,8 +424,8 @@ const Generate = (function () {
     switch (sl.layout) {
       case 'green': {
         s.background = { color: C.green };
-        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 4.2 : 4.7, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', fontFace: FONT, fontSize: 48, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
-        if (sl.sub) s.addText(sl.sub, { x: 0.5, y: 6.35, w: 12.33, h: 0.7, align: 'center', valign: 'top', fontFace: FONT, fontSize: 24, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
+        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 4.0 : 4.7, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', fontFace: FONT, fontSize: 48, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
+        if (sl.sub) s.addText(sl.sub, { x: 0.5, y: 6.4, w: 12.33, h: 0.8, align: 'center', valign: 'top', fontFace: FONT, fontSize: 32, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
         break;
       }
       case 'green_blank':

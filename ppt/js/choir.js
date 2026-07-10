@@ -107,20 +107,16 @@ const Choir = (function () {
   //   성가대 = 곡명(크게) + '시온 성가대'(작게)
   //   특송   = 곡명(크게) + '특송 · 이름/팀'(작게)
   function renderTitleSlide(song) {
-    const title = document.createElement('div');
-    title.className = 'choir-title-slide';
+    // 실제 그린 자막 슬라이드와 100% 동일한 공용 렌더(renderSlide)를 재사용 — 편집 썸네일 = 출력 일치
+    const wrap = document.createElement('div');
+    wrap.className = 'choir-title-slide';
     const special = (song.songType === 'special');
-    if (!song.name) {
-      title.classList.add('empty');
-      title.textContent = '(곡 제목을 입력하세요)';
-      return title;
-    }
-    const nm = document.createElement('div'); nm.className = 'cts-name'; nm.textContent = song.name;
-    const sub = document.createElement('div'); sub.className = 'cts-sub';
-    sub.textContent = special ? ('특송 · ' + (song.performer || '이름/팀 미입력')) : '시온 성가대';
-    if (special && !song.performer) sub.classList.add('cts-warn');
-    title.append(nm, sub);
-    return title;
+    const name = song.name || '';
+    const sub = special ? ('특송 · ' + (song.performer || '이름/팀 미입력')) : '시온 성가대';
+    if (!name) wrap.classList.add('is-empty');
+    if (special && name && !song.performer) wrap.classList.add('is-warn');
+    wrap.appendChild(renderSlide({ layout: 'green', text: name || '(곡 제목을 입력하세요)', sub: name ? sub : '' }));
+    return wrap;
   }
 
   // 필름 썸네일 가사가 폭을 넘으면 축소(찬양팀 검수와 동일)
