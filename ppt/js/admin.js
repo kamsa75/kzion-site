@@ -385,22 +385,34 @@ const PinAdmin = (function () {
       inp.autocomplete = 'new-password';
       inp.className = 'pin-input';
       inp.placeholder = '새 PIN (숫자 4~8자리)';
+      const eye = document.createElement('button');   // 오타 방지 — 내가 친 PIN을 눈으로 확인
+      eye.type = 'button';
+      eye.className = 'btn btn-ghost btn-sm pin-eye';
+      eye.textContent = '👁';
+      eye.title = '입력한 PIN 보기/숨기기';
+      eye.addEventListener('click', () => {
+        inp.type = (inp.type === 'password') ? 'text' : 'password';
+      });
       const btn = document.createElement('button');
       btn.className = 'btn btn-primary btn-sm pin-set';
       btn.textContent = '설정';
       const st = document.createElement('span');
       st.className = 'pin-status';
-      btn.addEventListener('click', () => setPin(r, inp, btn, st));
-      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') setPin(r, inp, btn, st); });
-      row.append(name, inp, btn, st);
+      btn.addEventListener('click', () => setPin(r, label, inp, btn, st));
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') setPin(r, label, inp, btn, st); });
+      row.append(name, inp, eye, btn, st);
       box.appendChild(row);
     });
   }
 
-  async function setPin(role, inp, btn, st) {
+  async function setPin(role, label, inp, btn, st) {
     const pin = (inp.value || '').trim();
     if (!/^\d{4,8}$/.test(pin)) { st.textContent = '숫자 4~8자리'; st.className = 'pin-status err'; return; }
-    if (role === 'owner' && !confirm('본부장(내) PIN을 바꿉니다. 다음 로그인부터 새 PIN을 써야 합니다. 계속할까요?')) return;
+    // 저장 전, 정확한 PIN을 눈으로 확인시킴(오타 방지). 확정 후엔 해시 저장돼 되돌아볼 수 없음
+    let msg = '‘' + label + '’ PIN을 다음 번호로 설정합니다:\n\n        ' + pin + '\n\n이 번호를 담당자에게 그대로 전달하세요.';
+    if (role === 'owner') msg += '\n\n※ 본부장(내) PIN이라 다음 로그인부터 이 번호를 써야 합니다.';
+    msg += '\n\n계속할까요?';
+    if (!confirm(msg)) return;
     const orig = btn.textContent;
     btn.disabled = true; btn.textContent = '설정 중…';
     st.textContent = ''; st.className = 'pin-status';
