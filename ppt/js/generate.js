@@ -444,8 +444,12 @@ const Generate = (function () {
     switch (sl.layout) {
       case 'green': {
         s.background = { color: C.green };
-        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 4.0 : 4.7, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', fontFace: FONT, fontSize: 48, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
-        if (sl.sub) s.addText(sl.sub, { x: 0.5, y: 6.4, w: 12.33, h: 0.8, align: 'center', valign: 'top', fontFace: FONT, fontSize: 32, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
+        // 미리보기(CSS)와 동일하게 바닥 기준 배치 — 큰글씨 바닥 6.525"(=13cqh), 작은글씨 바닥 7.275"(=3cqh).
+        //   기존엔 큰글씨가 위(bottom 6.0")에 떠서 작은글씨와 간격이 벌어져 보였음 → 큰글씨를 아래로 내림 (D36-b)
+        // 미리보기(CSS) 실측에 맞춤 — 큰글씨 바닥 ~6.52", 작은글씨 top ~6.59"(간격 촘촘 ~0.08").
+        //   기존엔 큰글씨가 위(바닥 6.0")에 떠서 간격이 벌어져 보였음 → 큰글씨를 아래로 내리고 작은글씨를 바로 밑에 붙임 (D36-b)
+        if (sl.text) s.addText(sl.text, { x: 0.5, y: sl.sub ? 4.525 : 4.7, w: 12.33, h: 2.0, align: 'center', valign: 'bottom', margin: 0, fontFace: FONT, fontSize: 48, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
+        if (sl.sub) s.addText(sl.sub, { x: 0.5, y: 6.59, w: 12.33, h: 0.8, align: 'center', valign: 'top', margin: 0, fontFace: FONT, fontSize: 32, bold: true, color: C.white, shadow: { type: 'outer', color: '000000', opacity: 0.45, blur: 3, offset: 2, angle: 90 } });
         break;
       }
       case 'green_blank':
