@@ -225,16 +225,17 @@
   //  · 완료 = 담당자가 '이번 주 준비 완료' 버튼을 누른 경우에만. 안 눌렀으면 내용 있으면 작성중·없으면 대기
   function sectionStatus(sec, role) {
     if (!CONFIG.USE_SERVER) return sec.status;   // 목/데모 모드는 샘플 상태 유지
+    const full = role === 'owner' || role === 'admin';   // 전체 열람 역할 = 본부장·위임 관리자(getWeek가 전체 데이터 반환)
     const w = SongStore.week && SongStore.week();
     if (sec.owner === 'praise' || sec.owner === 'choir') {
-      if (role !== 'owner' && role !== sec.owner) return null;   // 데이터 없음
+      if (!full && role !== sec.owner) return null;   // 데이터 없음
       const sd = (w && w.sectionDone) || {};
       if (sd[sec.owner]) return 'done';                          // 명시적 완료
       const list = SongStore.all().filter(s => (s.role || sec.owner) === sec.owner && hasSongContent(s));
       return list.length ? 'progress' : 'empty';
     }
     // pastor
-    if (role !== 'owner' && role !== 'pastor') return null;      // 데이터 없음
+    if (!full && role !== 'pastor') return null;      // 데이터 없음
     return pastorStatus(w && w.pastor && (w.pastor.data || w.pastor));
   }
 
