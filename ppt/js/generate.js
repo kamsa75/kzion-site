@@ -162,6 +162,17 @@ const Generate = (function () {
         arr.forEach(r => (typeof bandPages === 'function' ? bandPages(r) : []).forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl })));
         return out;
       }
+      case 'blessing': {
+        // 다음 세대를 향한 축복(고정, 합심기도 뒤) — 제목 그린 자막 1장 + 가사 크로마 밴드(2줄씩). 가사=settings.blessing_lyrics(관리자 문구 관리, A/B)
+        const out = [{ label: slot.title, slide: { layout: 'green', text: slot.title } }];
+        const raw = (ctx.settings.blessing_lyrics || '').trim();
+        if (!raw) { out.push({ label: slot.title + ' 가사', slide: { layout: 'band', lyrics: ['(축복송 가사 미입력)'] }, missing: true }); return out; }
+        raw.split(/\n\s*\n/).forEach((blk, i) => {   // 빈 줄 = 슬라이드 구분, 각 블록 2줄
+          const lines = blk.split('\n').map(x => x.trim()).filter(Boolean);
+          if (lines.length) out.push({ label: slot.title + ' 가사 ' + (i + 1), slide: { layout: 'band', lyrics: lines } });
+        });
+        return out;
+      }
       case 'praise_songs': {
         const songs = ctx.songs.filter(s => getRole(s) === 'praise');
         const out = [];
@@ -228,7 +239,7 @@ const Generate = (function () {
   }
 
   async function loadSettings() {
-    try { await SettingsStore.load(); return { creed_text: SettingsStore.get('creed_text'), praise_all_sub: SettingsStore.get('praise_all_sub') }; }
+    try { await SettingsStore.load(); return { creed_text: SettingsStore.get('creed_text'), praise_all_sub: SettingsStore.get('praise_all_sub'), blessing_lyrics: SettingsStore.get('blessing_lyrics') }; }
     catch (e) { return {}; }
   }
 

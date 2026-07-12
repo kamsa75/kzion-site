@@ -28,6 +28,7 @@ const SLOT_SOURCE = {
   sermon:          'sermon',           // 목사님 설교 제목 (설교자명 없음 D23) → 1장
   passage_long:    'passage_long',     // 목사님 긴 성경 본문 → 다크 자동분할 M장 (D24)
   reading_short:   'reading_short',    // 목사님 짧은 구절 → 밴드 (D24)
+  blessing:        'blessing',          // 다음 세대를 향한 축복(고정) → 제목 그린 1장 + 가사 밴드 N장 (settings.blessing_lyrics)
   prayer:          'prayer',           // 목사님 기도 담당자명 → 그린 1장 (D13)
   praise_songs:    'praise_songs',     // 찬양팀 곡 전체 → 곡별 부르는 순서만큼 밴드 확장
   choir_name:      'choir_name',       // 성가대 곡명 + "시온 성가대" → 그린 1장
@@ -50,6 +51,9 @@ const TEMPLATE = [
   { id: 'praise-songs', type: 'band',        title: '찬양팀 곡 가사',        section: 'praise', source: 'praise_songs',    removable: false },
   { id: 'live-2',       type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'pray-together',type: 'green',       title: '합심기도',             section: null,     source: 'fixed',           removable: false },
+  { id: 'bless-live-1', type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
+  { id: 'blessing',     type: 'band',        title: '다음 세대를 향한 축복', section: 'admin',  source: 'blessing',        removable: false, placeholder: '축복송 가사(관리자 문구 관리에서 입력·수정)' },
+  { id: 'bless-live-2', type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'hymn',         type: 'band',        title: '찬송가 가사',          section: 'pastor', source: 'hymn',            removable: false },
   { id: 'prayer',       type: 'green',       title: '기도',                 section: 'pastor', source: 'prayer',          removable: false },
   { id: 'choir-name',   type: 'green',       title: '성가대 곡명',          section: 'choir',  source: 'choir_name',      removable: false },
@@ -61,6 +65,7 @@ const TEMPLATE = [
   { id: 'news',         type: 'green',       title: '교회 소식',            section: null,     source: 'fixed',           removable: false },
   { id: 'sermon',       type: 'green',       title: '설교 제목',            section: 'pastor', source: 'sermon',          removable: false },
   { id: 'passage',      type: 'dark',        title: '성경 본문(긴 본문)',    section: 'pastor', source: 'passage_long',    removable: false, placeholder: '긴 본문(자동 분할)' },
+  { id: 'reading-live', type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'reading',      type: 'band',        title: '함께 읽는 구절(짧은)',  section: 'pastor', source: 'reading_short',   removable: true,  placeholder: '짧은 구절(없으면 생략)' },
   { id: 'live-5',       type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'closing-img',  type: 'score',       title: '폐회송 악보',          section: 'admin',  source: 'closing_images',  removable: false, placeholder: '폐회송 악보 이미지(관리자 교체)' },

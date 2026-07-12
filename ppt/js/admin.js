@@ -128,10 +128,11 @@ const Admin = (function () {
   /* ---------- 고정 문구 (B) ---------- */
   const setTimers = {}; // 키별 디바운스 (공유 타이머면 서로의 저장을 취소함)
   function renderSettings() {
-    const creed = $('#set-creed'), praise = $('#set-praise');
+    const creed = $('#set-creed'), praise = $('#set-praise'), bless = $('#set-blessing');
     if (creed.value !== SettingsStore.get('creed_text')) creed.value = SettingsStore.get('creed_text');
     if (praise.value !== SettingsStore.get('praise_all_sub')) praise.value = SettingsStore.get('praise_all_sub');
-    drawCreedPv(); drawPraisePv();
+    if (bless && bless.value !== SettingsStore.get('blessing_lyrics')) bless.value = SettingsStore.get('blessing_lyrics');
+    drawCreedPv(); drawPraisePv(); drawBlessingPv();
   }
   function drawCreedPv() {
     const box = $('#set-creed-pv'); box.innerHTML = '';
@@ -143,6 +144,17 @@ const Admin = (function () {
   function drawPraisePv() {
     const box = $('#set-praise-pv'); box.innerHTML = '';
     box.appendChild(renderSlide({ layout: 'green', text: '다함께 찬양', sub: $('#set-praise').value.trim() }));
+  }
+  // 축복송 가사 미리보기 — 제목 그린 1장 + 빈 줄로 나눈 블록마다 밴드 1장(2줄) (생성기 blessing 확장과 동일 규칙)
+  function drawBlessingPv() {
+    const box = $('#set-blessing-pv'); if (!box) return; box.innerHTML = '';
+    box.appendChild(renderSlide({ layout: 'green', text: '다음 세대를 향한 축복' }));
+    const raw = ($('#set-blessing').value || '').trim();
+    if (!raw) return;
+    raw.split(/\n\s*\n/).forEach(blk => {
+      const lines = blk.split('\n').map(x => x.trim()).filter(Boolean);
+      if (lines.length) box.appendChild(renderSlide({ layout: 'band', lyrics: lines }));
+    });
   }
   function saveSettingDebounced(key, value, redraw) {
     redraw();
@@ -330,6 +342,7 @@ const Admin = (function () {
     $('#btn-adm-ending').addEventListener('click', () => pick({ mode: 'single', key: 'ending' }));
     $('#set-creed').addEventListener('input', () => saveSettingDebounced('creed_text', $('#set-creed').value, drawCreedPv));
     $('#set-praise').addEventListener('input', () => saveSettingDebounced('praise_all_sub', $('#set-praise').value, drawPraisePv));
+    if ($('#set-blessing')) $('#set-blessing').addEventListener('input', () => saveSettingDebounced('blessing_lyrics', $('#set-blessing').value, drawBlessingPv));
     $('#btn-set-save').addEventListener('click', saveSettingsNow);
   }
 
@@ -341,6 +354,7 @@ const Admin = (function () {
     try {
       await SettingsStore.set('creed_text', $('#set-creed').value);
       await SettingsStore.set('praise_all_sub', $('#set-praise').value);
+      if ($('#set-blessing')) await SettingsStore.set('blessing_lyrics', $('#set-blessing').value);
       btn.textContent = '✓ 저장됨';
     } catch (e) {
       btn.textContent = '⚠ 저장 실패';
