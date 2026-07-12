@@ -56,26 +56,52 @@ const SongStore = (function () {
     if (m.song_key) song.key = m.song_key;                 // 곡 키
     song.status = 'review';                                // 불러온 것 = 검수 필요
   }
-  // 곡명 입력(blur) 시 과거 같은 곡 있으면 최근 1건 콘티·자막 자동채움 제안. 적용 시 true 반환(호출부가 재렌더).
-  //   SongStore 공개 API로 노출 → songs.js(검수)·setorder.js(세트) 두 제목 입력에서 공용 (D37)
-  async function maybeReuse(song) {
-    if (!CONFIG.USE_SERVER || (song.role || 'praise') !== 'praise') return false;
+  // 곡명 입력(blur) 시 과거 같은 곡 있으면 최근 1건을 '불러오기 제안' 상태(song._reuseOffer)로 표시. rerender=호출부 재렌더.
+  //   실제 불러오기·되돌리기는 reuseBanner 인라인 배너에서. songs.js(검수)·setorder.js(세트) 공용 (D37)
+  async function maybeReuse(song, rerender) {
+    if (!CONFIG.USE_SERVER || (song.role || 'praise') !== 'praise') return;
     const nm = (song.name || '').trim();
-    if (!nm || (song.blocks && song.blocks.length)) return false;   // 빈 곡에만(기존 작업 보호)
-    if (song._reuseAsked === nm) return false;                      // 같은 이름 재질문 방지
+    if (!nm || (song.blocks && song.blocks.length)) return;   // 빈 곡에만(기존 작업 보호)
+    if (song._reuseAsked === nm) return;                      // 같은 이름 재조회 방지
     song._reuseAsked = nm;
     let m = null;
     try { const r = await API.call('songLookup', { name: nm, role: 'praise' }); m = r && r.match; }
-    catch (e) { return false; }
-    if (!m || (song.blocks && song.blocks.length)) return false;    // 조회 사이 가사 생겼으면 중단
-    const first = reuseFirstLine(m);
-    const msg = '"' + m.name + '" — 지난번(' + (m.week_id || '지난 주') + ')에 부른 기록이 있어요.\n'
-      + (first ? '첫 줄: ' + first + '\n' : '')
-      + '\n그때 콘티·자막을 이번 곡에 불러올까요? (불러온 뒤 자유롭게 수정 가능)';
-    if (!confirm(msg)) return false;
-    applyReuse(song, m);
-    save();   // 디바운스 저장(최초 insert와 겹치는 즉시 pushNow 제거 — 경합 방지)
-    return true;
+    catch (e) { return; }
+    if (!m || (song.blocks && song.blocks.length)) return;    // 조회 사이 가사 생겼으면 중단
+    song._reuseOffer = m;
+    if (typeof rerender === 'function') rerender();
+  }
+  // 곡 카드용 인라인 배너 — 제안(불러오기/아니요) 또는 방금 불러옴(되돌리기/닫기). 없으면 null.
+  function reuseBanner(song, rerender) {
+    const rr = () => { if (typeof rerender === 'function') rerender(); };
+    const mkBtn = (cls, label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'reuse-btn ' + cls; b.textContent = label; b.addEventListener('click', fn); return b; };
+    if (song._reuseOffer) {
+      const m = song._reuseOffer;
+      const bar = document.createElement('div'); bar.className = 'reuse-bar';
+      const t = document.createElement('span'); t.className = 'reuse-txt';
+      const first = reuseFirstLine(m);
+      t.textContent = '지난번(' + (m.week_id || '') + ') "' + m.name + '" 콘티·자막이 있어요' + (first ? ' · ' + first : '');
+      bar.append(t,
+        mkBtn('reuse-yes', '불러오기', () => {
+          song._reuseUndo = { blocks: song.blocks, order: song.order, arrange: song.arrange, key: song.key, status: song.status };
+          applyReuse(song, m); song._reuseOffer = null; save(); rr();
+        }),
+        mkBtn('reuse-plain', '아니요', () => { song._reuseOffer = null; rr(); }));
+      return bar;
+    }
+    if (song._reuseUndo) {
+      const bar = document.createElement('div'); bar.className = 'reuse-bar reuse-done';
+      const t = document.createElement('span'); t.className = 'reuse-txt'; t.textContent = '✓ 지난 콘티·자막을 불러왔어요';
+      bar.append(t,
+        mkBtn('reuse-undo', '되돌리기', () => {
+          const u = song._reuseUndo;
+          song.blocks = u.blocks; song.order = u.order; song.arrange = u.arrange; song.key = u.key; song.status = u.status;
+          song._reuseUndo = null; song._reuseAsked = null; save(); rr();   // 되돌린 뒤 다시 제안 가능
+        }),
+        mkBtn('reuse-plain', '닫기', () => { song._reuseUndo = null; rr(); }));
+      return bar;
+    }
+    return null;
   }
 
   // 저장 payload = 서버로 보내는 곡 내용 전부. 더티 판정 서명(_sig)도 "이걸" 그대로 직렬화해서 뽑는다
@@ -182,7 +208,7 @@ const SongStore = (function () {
 
   return {
     load, save,
-    maybeReuse,           // 지난 곡 불러오기 — songs.js·setorder.js 공용 (D37)
+    maybeReuse, reuseBanner,   // 지난 곡 불러오기 — songs.js·setorder.js 공용 인라인 배너 (D37)
     week: () => week,
     isDone: () => !!(week && week.sectionDone && week.sectionDone[role]),   // 이번 주 이 섹션 완료?
     setDone: async (val) => {   // '이번 주 준비 완료' 토글 — 서버에 저장(작은 플래그)
@@ -543,12 +569,13 @@ const Songs = (function () {
       name.value = song.name || '';
       name.placeholder = role === 'choir' ? '곡명 입력 (필수)' : '곡명 (선택)';
       name.addEventListener('input', () => { song.name = name.value; SongStore.save(); });
-      name.addEventListener('change', () => { SongStore.maybeReuse(song).then(applied => { if (applied) render(); }); });   // 포커스 아웃 시 지난 곡 불러오기 제안
+      name.addEventListener('change', () => { SongStore.maybeReuse(song, render); });   // 포커스 아웃 시 지난 곡 불러오기 제안(인라인 배너)
       const st = document.createElement('span');
       st.className = 'status ' + (song.status === 'ordered' ? 'status-done' : song.status === 'review' ? 'status-progress' : 'status-empty');
       st.textContent = STATUS[song.status] || song.status;
       head.append(name, st);
       card.appendChild(head);
+      const rb = SongStore.reuseBanner(song, render); if (rb) card.appendChild(rb);   // 지난 곡 불러오기 배너 (D37)
 
       // 마지막 수정 시각 — 동시 편집 시 "누가 방금 만졌나" 감 잡기용 (#3, 시간만)
       if (song.updatedAt) {

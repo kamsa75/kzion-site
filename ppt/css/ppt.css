@@ -399,6 +399,17 @@ input{font-family:inherit;}
 .song-name-input::placeholder{font-weight:600; color:var(--ui-sub);}
 .song-name-input:hover{background:#F1EFE9;}
 .song-name-input:focus{border-color:var(--ui-gold); background:#fff;}
+
+/* 지난 곡 불러오기 인라인 배너 (D37) — 전체 얇은 테두리(좌측 색선·초록 금지 준수) */
+.reuse-bar{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:10px 0 2px; padding:8px 10px;
+  background:#F3EFE6; border:1px solid #E6DFCE; border-radius:8px; font-size:13px; color:var(--ui-ink);}
+.reuse-bar.reuse-done{background:#EEF2E7; border-color:#DCE4CF;}
+.reuse-txt{flex:1; min-width:150px; line-height:1.45; font-weight:600;}
+.reuse-btn{border:none; border-radius:7px; padding:7px 13px; font-size:13px; font-weight:800; cursor:pointer;
+  background:#E6DFCE; color:var(--ui-ink); font-family:inherit; -webkit-tap-highlight-color:transparent;}
+.reuse-btn.reuse-yes{background:#2F57C9; color:#fff;}
+.reuse-btn.reuse-undo{background:var(--ui-gold); color:#fff;}
+.reuse-btn:active{transform:scale(0.97);}
 .song-list{display:flex; flex-direction:column; gap:12px;}
 .song-hint{
   display:flex; flex-direction:column; align-items:center; gap:4px;

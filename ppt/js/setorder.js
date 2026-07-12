@@ -449,7 +449,7 @@ const SetOrder = (function () {
       const h = card.querySelector('.so-title'); if (h) h.textContent = song.name || '제목 미정';
     });
     // 포커스 아웃 시 지난 곡 불러오기 제안 (붙여넣기 흐름은 이 세트 화면으로 들어옴 — D37)
-    ti.addEventListener('change', () => { SongStore.maybeReuse(song).then(applied => { if (applied) render(); }); });
+    ti.addEventListener('change', () => { SongStore.maybeReuse(song, render); });
     f1.append(tl, ti);
 
     const f2 = document.createElement('div'); f2.className = 'so-field';
@@ -462,6 +462,7 @@ const SetOrder = (function () {
 
     info.append(f1, f2);
     card.appendChild(info);
+    const rb = SongStore.reuseBanner(song, render); if (rb) card.appendChild(rb);   // 지난 곡 불러오기 배너 (D37)
 
     if ((song.blocks || []).length) {
       renderArrange(song, card);     // 편곡 (담기·파트·×N)

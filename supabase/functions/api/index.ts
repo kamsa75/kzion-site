@@ -353,13 +353,15 @@ Deno.serve(async (req) => {
       const found = (list || []).find((r: Record<string, unknown>) =>
         r.week_id !== cur && norm(String(r.name || "")) === q);
       if (!found) return json({ match: null });
-      // 2단계: 매칭된 그 1건의 내용만 조회
+      // 2단계: 매칭된 그 1건의 내용만 조회. 내용(가사·순서·편곡) 없는 빈 곡이면 무시(제목만 있고 버려진 곡 방지)
       const { data: full } = await db
         .from("songs")
         .select("name, blocks, ord, arrange, song_key, week_id")
         .eq("id", found.id as string)
         .maybeSingle();
-      return json({ match: full || null });
+      const f = full as Record<string, unknown> | null;
+      const has = f && (f.blocks || (Array.isArray(f.ord) && (f.ord as unknown[]).length) || f.arrange);
+      return json({ match: has ? f : null });
     }
 
     // 이미지 업로드용 서명 URL 발급 (지침 5번 — 키는 서버에만). 담당자 + 관리자·본부장(대리 편집)
