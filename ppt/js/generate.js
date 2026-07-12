@@ -13,6 +13,7 @@ const Generate = (function () {
   // 슬라이드 색 토큰 — ppt.css --sl-* 와 동일 (지침 16번)
   const C = { green: '70AD47', band: '000000', dark: '14181F', warm: 'F5F2EA', white: 'FFFFFF', gold: 'C9A66B' };
   const FONT = 'Pretendard';
+  const FONT_BLACK = 'Pretendard Black';   // 성경 본문 카드 전용(방송 PC 설치됨) — 더 두꺼운 웨이트
 
   let items = [];   // [{ label, slide, missing, phase }]
   let weekId = '';
@@ -37,6 +38,10 @@ const Generate = (function () {
   function getRole(s) { return s.role; }
   function getBlocks(s) { return Array.isArray(s.blocks) ? s.blocks : ((s.blocks && s.blocks.blocks) || []); }
   function getOrder(s) { return s.order || s.ord || []; }
+  // 특송 필드도 서버 원본(snake_case) / 클라 목데이터(camelCase) 양쪽에서 읽는다
+  //   — getWeek 원본행은 song_type/song_performer, 목데이터는 songType/performer (B1 회귀 수정)
+  function getSongType(s) { return s.songType || s.song_type || 'choir'; }
+  function getPerformer(s) { return s.performer || s.song_performer || ''; }
 
   // breaks 기준 2줄 슬라이드 묶기 (review.js blockSlides와 동일)
   // breaks로 1차 묶고, 밴드=2줄이라 3줄+는 2줄씩 자동 분할 (가사 유실·밴드 넘침 방지, 2026-07-06)
@@ -170,11 +175,12 @@ const Generate = (function () {
         if (!songs.length) return [{ label: '성가대 곡명', slide: { layout: 'green', text: '(성가대 곡 없음)' }, missing: true }];
         const out = [];
         songs.forEach(s => {
-          const special = (s.songType === 'special');
+          const special = (getSongType(s) === 'special');
           if (special) {
             // 특송 = 곡명(크게) + '특송 · 이름/팀'(작게) — 성가대와 평행 구조
-            const who = s.performer ? ('특송 · ' + s.performer) : '특송';
-            out.push({ label: '특송', slide: { layout: 'green', text: s.name || '(곡 제목 미입력)', sub: who }, missing: !s.name || !s.performer });
+            const perf = getPerformer(s);
+            const who = perf ? ('특송 · ' + perf) : '특송';
+            out.push({ label: '특송', slide: { layout: 'green', text: s.name || '(곡 제목 미입력)', sub: who }, missing: !s.name || !perf });
           } else {
             out.push({ label: '성가대 곡명', slide: { layout: 'green', text: s.name || '(곡명 미입력)', sub: '시온 성가대' }, missing: !s.name });
           }
@@ -403,18 +409,21 @@ const Generate = (function () {
     const textW = W - padX * 2, textH = cardH - padTop - padBot;
     const plainTxt = runs.map(r => r.text).join('');
     // 긴 본문=넉넉 안전여백(폭95%·높이90%), 짧은 구절=실측 폰트 29(bandPages 2줄과 일치, 미리보기와 동일 줄바꿈)
+    // 본문 33pt 고정(최소 33pt·Pretendard Black·줄간격 1.2, 2026-07-12 본부장님 확정).
+    //   분할(passagePages·bandPages)이 33pt 기준으로 카드에 맞게 나눠주므로 정상 케이스는 33pt 그대로.
+    //   극단적으로 넘칠 때만 fitTextPt/fit:shrink가 안전장치로 살짝 축소(사실상 안 걸림).
     const measured = (typeof fitTextPt === 'function')
-      ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.5, 30)
-              : fitTextPt(plainTxt, textW, textH, 1.5, 29))
-      : null;
-    const bodyFs = measured ? Math.max(10, measured) : (full ? 30 : 29);
-    s.addText(runs, { x: X + padX, y: cardY + padTop, w: textW, h: textH, align: 'left', valign: 'top', fontFace: FONT, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.5, margin: 0, fit: 'shrink' });
-    // 구절칩(파란 알약, 카드 윗선에 절반 걸침)
+      ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.3, 33)
+              : fitTextPt(plainTxt, textW, textH, 1.3, 33))
+      : 33;
+    const bodyFs = measured ? Math.max(10, measured) : 33;
+    s.addText(runs, { x: X + padX, y: cardY + padTop, w: textW, h: textH, align: 'left', valign: 'top', fontFace: FONT_BLACK, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.3, margin: 0, fit: 'shrink' });
+    // 구절칩(파란 알약, 카드 윗선에 절반 걸침) — 33pt로 키우고 알약도 확대
     if (ref) {
-      const chipFs = 22, chipH = 0.52, chipW = emWidth(ref) * chipFs / 72 + 0.42;
-      const chipX = X + 0.32, chipY = cardY - 0.26;
-      s.addShape(pptx.ShapeType.roundRect, { x: chipX, y: chipY, w: chipW, h: chipH, rectRadius: 0.26, fill: { color: CARD.chip }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.25, blur: 4, offset: 2, angle: 90 } });
-      s.addText(ref, { x: chipX, y: chipY, w: chipW, h: chipH, align: 'center', valign: 'middle', fontFace: FONT, fontSize: chipFs, bold: true, color: 'FFFFFF' });
+      const chipFs = 33, chipH = 0.72, chipW = emWidth(ref) * chipFs / 72 + 0.5;
+      const chipX = X + 0.32, chipY = cardY - chipH / 2;
+      s.addShape(pptx.ShapeType.roundRect, { x: chipX, y: chipY, w: chipW, h: chipH, rectRadius: 0.36, fill: { color: CARD.chip }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.25, blur: 4, offset: 2, angle: 90 } });
+      s.addText(ref, { x: chipX, y: chipY, w: chipW, h: chipH, align: 'center', valign: 'middle', fontFace: FONT_BLACK, fontSize: chipFs, bold: true, color: 'FFFFFF' });
     }
   }
 

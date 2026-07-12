@@ -238,8 +238,8 @@ function fitVCardFull(root) {
    절 번호([n] 또는 'n ')를 인식해 절 단위로 페이지 분할, 없으면 글자수로 분할.
    각 페이지는 fit:true(가운데·자동축소)로 잘림 없이 한 화면에 맞춤.
    ============================================================ */
-var PASSAGE_CHARS = 400;   // 다크 1장 목표 글자수(위쪽정렬·6cqh 한 화면을 채운 뒤 분할)
-var PASSAGE_MAXV = 12;     // 1장 최대 절 수
+var PASSAGE_CHARS = 230;   // 긴 본문 카드 1장 목표 글자수 (33pt/6.11cqh·줄간격1.3에 맞춤 — 2026-07-12)
+var PASSAGE_MAXV = 8;      // 1장 최대 절 수 (33pt에 맞게 12→8)
 function passagePages(text, ref) {
   text = (text || '').trim();
   if (!text) return [];
