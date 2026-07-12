@@ -424,14 +424,14 @@ const Generate = (function () {
     //   분할(passagePages·bandPages)이 33pt 기준으로 카드에 맞게 나눠주므로 정상 케이스는 33pt 그대로.
     //   극단적으로 넘칠 때만 fitTextPt/fit:shrink가 안전장치로 살짝 축소(사실상 안 걸림).
     const measured = (typeof fitTextPt === 'function')
-      ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.3, 33)
-              : fitTextPt(plainTxt, textW, textH, 1.3, 33))
-      : 33;
-    const bodyFs = measured ? Math.max(10, measured) : 33;
+      ? (full ? fitTextPt(plainTxt, textW * 0.95, textH * 0.9, 1.3, 34)
+              : fitTextPt(plainTxt, textW, textH, 1.3, 34))
+      : 34;
+    const bodyFs = measured ? Math.max(10, measured) : 34;
     s.addText(runs, { x: X + padX, y: cardY + padTop, w: textW, h: textH, align: 'left', valign: 'top', fontFace: FONT_BLACK, fontSize: bodyFs, bold: true, color: CARD.ink, lineSpacingMultiple: 1.3, margin: 0, fit: 'shrink' });
     // 구절칩(파란 알약, 카드 윗선에 절반 걸침) — 33pt로 키우고 알약도 확대
     if (ref) {
-      const chipFs = 33, chipH = 0.72, chipW = emWidth(ref) * chipFs / 72 + 0.5;
+      const chipFs = 34, chipH = 0.74, chipW = emWidth(ref) * chipFs / 72 + 0.5;
       const chipX = X + 0.32, chipY = cardY - chipH / 2;
       s.addShape(pptx.ShapeType.roundRect, { x: chipX, y: chipY, w: chipW, h: chipH, rectRadius: 0.36, fill: { color: CARD.chip }, line: { type: 'none' }, shadow: { type: 'outer', color: '000000', opacity: 0.25, blur: 4, offset: 2, angle: 90 } });
       s.addText(ref, { x: chipX, y: chipY, w: chipW, h: chipH, align: 'center', valign: 'middle', fontFace: FONT_BLACK, fontSize: chipFs, bold: true, color: 'FFFFFF' });

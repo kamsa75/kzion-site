@@ -252,20 +252,20 @@ input{font-family:inherit;}
 }
 /* 성경 구절 카드 — 하단 플로팅 흰 카드 + 블루 구절칩 + 골드 절번호(짧은 '함께 읽는 구절') */
 .vcard{position:absolute; left:2.6cqw; right:2.6cqw; bottom:6cqh;}
-.vcard-chip{display:inline-block; margin-left:2.4cqw; font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.11cqh; color:#fff;
+.vcard-chip{display:inline-block; margin-left:2.4cqw; font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.30cqh; color:#fff;
   background:#1e3a6b; padding:.9cqh 2cqw; border-radius:99px; position:relative; z-index:1;
   box-shadow:0 .4cqh 1cqh rgba(0,0,0,.25); white-space:nowrap;}
 .vcard-box{margin-top:-3.4cqh; border-radius:2.4cqh; padding:5cqh 2.25cqw 3.2cqh;
   background:linear-gradient(180deg,#ffffff 0%,#eef2f8 100%); color:#17233f;
   box-shadow:0 1.2cqh 3.4cqh rgba(0,0,0,.32);}
-.vcard-para{font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.11cqh; line-height:1.3; text-align:left; word-break:keep-all;}
+.vcard-para{font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.30cqh; line-height:1.3; text-align:left; word-break:keep-all;}
 .vcard-box .sl-vnum{color:#b0801f; font-weight:800; margin-right:.15em;}
 /* 긴 성경 본문 카드 — 화면 거의 가득 채우는 큰 카드(같은 팔레트, 여러 절 줄바꿈) */
 .vcard.is-full{left:2.6cqw; right:2.6cqw; top:9cqh; bottom:6cqh; display:flex; flex-direction:column;}
 .vcard.is-full .vcard-chip{align-self:flex-start;} /* 짧은 본문처럼 글자 길이만큼만(막대 늘림 방지) */
 .vcard.is-full .vcard-box{flex:1; margin-top:-3.4cqh; overflow:hidden; display:flex; align-items:flex-start;
   padding:5.5cqh 2.25cqw 3.5cqh;}
-.vcard.is-full .vcard-body{font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.11cqh; line-height:1.3; text-align:left;
+.vcard.is-full .vcard-body{font-weight:900; font-family:"Pretendard Black",Pretendard,"Apple SD Gothic Neo",sans-serif; font-size:6.30cqh; line-height:1.3; text-align:left;
   word-break:keep-all; white-space:pre-wrap;}
 .vcard.is-full .vcard-body .sl-vnum{color:#b0801f; font-weight:800; font-size:.82em; margin-right:.1em;}
 
