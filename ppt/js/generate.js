@@ -158,7 +158,8 @@ const Generate = (function () {
       }
       case 'reading_short': {
         const arr = (p.readings || []).filter(x => (x || '').trim());
-        const out = [];
+        if (!arr.length) return [];   // 짧은 구절 없으면 앞 그린스크린도 생략(고아 방지, D36)
+        const out = [{ label: '빈 그린스크린(라이브)', slide: { layout: 'green_blank' } }];   // 짧은 구절 앞 라이브 슬롯
         arr.forEach(r => (typeof bandPages === 'function' ? bandPages(r) : []).forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl })));
         return out;
       }

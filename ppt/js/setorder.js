@@ -448,6 +448,8 @@ const SetOrder = (function () {
       song.name = ti.value.trim(); SongStore.save();
       const h = card.querySelector('.so-title'); if (h) h.textContent = song.name || '제목 미정';
     });
+    // 포커스 아웃 시 지난 곡 불러오기 제안 (붙여넣기 흐름은 이 세트 화면으로 들어옴 — D37)
+    ti.addEventListener('change', () => { SongStore.maybeReuse(song).then(applied => { if (applied) render(); }); });
     f1.append(tl, ti);
 
     const f2 = document.createElement('div'); f2.className = 'so-field';

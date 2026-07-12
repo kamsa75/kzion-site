@@ -65,7 +65,6 @@ const TEMPLATE = [
   { id: 'news',         type: 'green',       title: '교회 소식',            section: null,     source: 'fixed',           removable: false },
   { id: 'sermon',       type: 'green',       title: '설교 제목',            section: 'pastor', source: 'sermon',          removable: false },
   { id: 'passage',      type: 'dark',        title: '성경 본문(긴 본문)',    section: 'pastor', source: 'passage_long',    removable: false, placeholder: '긴 본문(자동 분할)' },
-  { id: 'reading-live', type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'reading',      type: 'band',        title: '함께 읽는 구절(짧은)',  section: 'pastor', source: 'reading_short',   removable: true,  placeholder: '짧은 구절(없으면 생략)' },
   { id: 'live-5',       type: 'green_blank', title: '빈 그린스크린(라이브)', section: null,     source: 'fixed',           removable: false },
   { id: 'closing-img',  type: 'score',       title: '폐회송 악보',          section: 'admin',  source: 'closing_images',  removable: false, placeholder: '폐회송 악보 이미지(관리자 교체)' },

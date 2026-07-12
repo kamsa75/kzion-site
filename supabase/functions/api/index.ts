@@ -344,16 +344,22 @@ Deno.serve(async (req) => {
       const target = (role === "praise" || role === "choir") ? role : String(body.role || "");
       if (target !== "praise" && target !== "choir") return json({ match: null });
       const cur = currentWeekId();
-      const { data } = await db
+      // 1단계: 가벼운 목록(id·name·week_id)만 받아 정규화 매칭으로 '가장 최근 1건' 찾기 (가사 대량 전송 회피)
+      const { data: list } = await db
         .from("songs")
-        .select("name, blocks, ord, arrange, song_key, week_id")
+        .select("id, name, week_id")
         .eq("role", target)
         .order("week_id", { ascending: false });
-      const hit = (data || []).find((r: Record<string, unknown>) =>
-        r.week_id !== cur &&
-        norm(String(r.name || "")) === q &&
-        (r.blocks || (Array.isArray(r.ord) && (r.ord as unknown[]).length)));
-      return json({ match: hit || null });
+      const found = (list || []).find((r: Record<string, unknown>) =>
+        r.week_id !== cur && norm(String(r.name || "")) === q);
+      if (!found) return json({ match: null });
+      // 2단계: 매칭된 그 1건의 내용만 조회
+      const { data: full } = await db
+        .from("songs")
+        .select("name, blocks, ord, arrange, song_key, week_id")
+        .eq("id", found.id as string)
+        .maybeSingle();
+      return json({ match: full || null });
     }
 
     // 이미지 업로드용 서명 URL 발급 (지침 5번 — 키는 서버에만). 담당자 + 관리자·본부장(대리 편집)
