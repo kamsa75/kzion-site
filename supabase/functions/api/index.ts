@@ -333,6 +333,29 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // 지난 곡 불러오기 — 곡명으로 과거 '가장 최근 1건'의 콘티·자막 반환 (설계 2026-07-12).
+    //   정규화(공백·기호 무시)로 매칭, 이번 주 제외, 내용(blocks) 있는 것만. 버전 목록 없이 최신 1건.
+    case "songLookup": {
+      if (role !== "praise" && role !== "choir" && role !== "admin" && role !== "owner")
+        return json({ error: "권한 없음" }, 403);
+      const norm = (x: string) => x.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, "");
+      const q = norm(String(body.name || ""));
+      if (!q) return json({ match: null });
+      const target = (role === "praise" || role === "choir") ? role : String(body.role || "");
+      if (target !== "praise" && target !== "choir") return json({ match: null });
+      const cur = currentWeekId();
+      const { data } = await db
+        .from("songs")
+        .select("name, blocks, ord, arrange, song_key, week_id")
+        .eq("role", target)
+        .order("week_id", { ascending: false });
+      const hit = (data || []).find((r: Record<string, unknown>) =>
+        r.week_id !== cur &&
+        norm(String(r.name || "")) === q &&
+        (r.blocks || (Array.isArray(r.ord) && (r.ord as unknown[]).length)));
+      return json({ match: hit || null });
+    }
+
     // 이미지 업로드용 서명 URL 발급 (지침 5번 — 키는 서버에만). 담당자 + 관리자·본부장(대리 편집)
     case "uploadUrl": {
       // 저장 경로용 섹션: 담당자는 자기 역할, 관리자·본부장은 지정받은 섹션(없으면 misc)

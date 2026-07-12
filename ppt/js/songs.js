@@ -40,6 +40,44 @@ const SongStore = (function () {
 
   function isServerId(id) { return String(id).length === 36; }
 
+  /* ---------- 지난 곡 불러오기 (설계 2026-07-12) ----------
+     찬양팀이 곡 제목을 입력하고 칸을 벗어나면(blur), 같은 곡의 과거 기록이 있으면
+     '가장 최근 콘티·자막 1건'만 자동 채움을 제안. 목적=반복 타이핑 회피(버전 목록 없음).
+     - 아직 가사가 없는 곡에만 제안(기존 작업 덮지 않음), 서버 조회(songLookup) 필요.
+     - 불러오기=원본 복제(비파괴). 자동채움 후 첫 줄로 '이 곡 맞나' 눈 확인. */
+  function reuseFirstLine(m) {
+    try { const b = m && m.blocks && m.blocks.blocks; return (b && b[0] && b[0].lines && b[0].lines[0] && b[0].lines[0].text) || ''; }
+    catch (e) { return ''; }
+  }
+  function applyReuse(song, m) {
+    song.blocks = (m.blocks && m.blocks.blocks) || null;   // 자막(가사 블록)
+    song.order = m.ord || [];                              // 부르는 순서
+    song.arrange = m.arrange || null;                      // 세트 편곡(콘티)
+    if (m.song_key) song.key = m.song_key;                 // 곡 키
+    song.status = 'review';                                // 불러온 것 = 검수 필요
+  }
+  async function maybeOfferReuse(song) {
+    if (!CONFIG.USE_SERVER || role !== 'praise') return;   // 서버 조회 + 찬양팀만
+    const nm = (song.name || '').trim();
+    if (!nm) return;
+    if (song.blocks && song.blocks.length) return;         // 이미 가사 있음 — 덮지 않음
+    if (song._reuseAsked === nm) return;                   // 같은 이름 재질문 방지
+    song._reuseAsked = nm;
+    let m = null;
+    try { const r = await API.call('songLookup', { name: nm, role: 'praise' }); m = r && r.match; }
+    catch (e) { return; }
+    if (!m || (song.blocks && song.blocks.length)) return; // 조회 사이 가사 생겼으면 중단
+    const first = reuseFirstLine(m);
+    const msg = '"' + m.name + '" — 지난번(' + (m.week_id || '지난 주') + ')에 부른 기록이 있어요.\n'
+      + (first ? '첫 줄: ' + first + '\n' : '')
+      + '\n그때 콘티·자막을 이번 곡에 불러올까요? (불러온 뒤 자유롭게 수정 가능)';
+    if (!confirm(msg)) return;
+    applyReuse(song, m);
+    SongStore.save();
+    SongStore.pushNow(song);
+    render();
+  }
+
   // 저장 payload = 서버로 보내는 곡 내용 전부. 더티 판정 서명(_sig)도 "이걸" 그대로 직렬화해서 뽑는다
   // → 필드가 늘어도(성가대/특송 등) 자동 포함되어 "바뀐 곡"을 오판(누락)할 여지가 없음
   function payloadOf(s, position) {
@@ -504,6 +542,7 @@ const Songs = (function () {
       name.value = song.name || '';
       name.placeholder = role === 'choir' ? '곡명 입력 (필수)' : '곡명 (선택)';
       name.addEventListener('input', () => { song.name = name.value; SongStore.save(); });
+      name.addEventListener('change', () => { maybeOfferReuse(song); });   // 포커스 아웃 시 지난 곡 불러오기 제안
       const st = document.createElement('span');
       st.className = 'status ' + (song.status === 'ordered' ? 'status-done' : song.status === 'review' ? 'status-progress' : 'status-empty');
       st.textContent = STATUS[song.status] || song.status;
