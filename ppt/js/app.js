@@ -20,6 +20,7 @@
     review: $('#screen-review'),
     setorder: $('#screen-setorder'),
     admin: $('#screen-admin'),
+    pinmgr: $('#screen-pinmgr'),
     generate: $('#screen-generate'),
     preview: $('#screen-preview')
   };
@@ -111,6 +112,7 @@
       menu.className = 'admin-menu'; menu.hidden = true;
       [['PPT 미리보기 · 생성', () => Generate.open()],
        ['이미지 · 문구 관리', () => Admin.open()],
+       ['담당자 PIN 관리', () => PinAdmin.open()],
        ['슬라이드 디자인 미리보기', () => { renderPreview(); show('preview'); }]
       ].forEach(([label, fn]) => {
         const mi = document.createElement('button');
@@ -429,6 +431,7 @@
   Review.init();
   SetOrder.init();
   Admin.init();
+  PinAdmin.init();
   Generate.init();
 
   const session = getSession();

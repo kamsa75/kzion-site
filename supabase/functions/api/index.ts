@@ -454,6 +454,19 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 담당자 PIN 설정·변경 (owner 전용). PIN 평문은 로그·응답에 남기지 않음 (지침 10)
+    case "setPin": {
+      if (role !== "owner") return json({ error: "권한 없음" }, 403);
+      const target = String(body.role || "");
+      if (!["pastor", "praise", "choir", "admin", "owner"].includes(target))
+        return json({ error: "알 수 없는 역할" }, 400);
+      const pin = String(body.pin || "");
+      if (!/^\d{4,8}$/.test(pin)) return json({ error: "PIN은 숫자 4~8자리로 설정해 주세요" }, 400);
+      const { error } = await db.rpc("set_pin", { r: target, p: pin });
+      if (error) return json({ error: "PIN 저장 실패(set_pin 함수가 배포됐는지 확인)" }, 500);
+      return json({ ok: true });
+    }
+
     default:
       return json({ error: "알 수 없는 요청: " + action }, 400);
   }

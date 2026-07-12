@@ -918,6 +918,16 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .choir-del-bottom{display:block; margin:14px auto 0; font-size:13px; color:var(--ui-sub);
   border:1px solid var(--ui-line); border-radius:10px; padding:8px 16px;}
 
+/* ---------- 담당자 PIN 관리 (owner) ---------- */
+.pin-mgr-list{display:flex; flex-direction:column; gap:10px;}
+.pin-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.pin-role{flex:0 0 108px; font-weight:800; color:var(--ui-ink); font-size:14px;}
+.pin-input{flex:1 1 160px; min-width:120px; padding:9px 12px; border:1px solid var(--ui-line);
+  border-radius:10px; font:inherit; font-weight:700; letter-spacing:2px; background:var(--ui-card); color:var(--ui-ink);}
+.pin-status{flex:0 0 auto; font-size:13px; font-weight:700; min-width:64px;}
+.pin-status.ok{color:#1a7f37;}
+.pin-status.err{color:#c0392b;}
+
 /* ---------- 데스크톱 보정 ---------- */
 @media(min-width:700px){
   .pin-title{font-size:32px;}

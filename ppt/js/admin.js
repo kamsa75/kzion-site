@@ -350,3 +350,76 @@ const Admin = (function () {
 
   return { init, open };
 })();
+
+/* ============================================================
+   담당자 PIN 관리 (본부장 owner 전용) — 2026-07-11
+   - owner가 화면에서 역할별 PIN(숫자 4~8자리)을 설정 → 서버 setPin → DB에 bcrypt 저장
+   - 서버가 owner 권한 재검증. PIN 평문은 DOM·로그에 남기지 않음(성공 즉시 입력칸 비움)
+   ============================================================ */
+const PinAdmin = (function () {
+  const $ = (sel) => document.querySelector(sel);
+  const ROLES = [
+    ['pastor', '목사님'], ['praise', '찬양팀'], ['choir', '성가대'],
+    ['admin', '위임 관리자'], ['owner', '본부장 (내 PIN)']
+  ];
+
+  function open() {
+    if (KZ.role() !== 'owner') { alert('본부장만 접근할 수 있습니다.'); return; }
+    render();
+    KZ.show('pinmgr');
+  }
+
+  function render() {
+    const box = $('#pin-mgr-list');
+    box.innerHTML = '';
+    ROLES.forEach(([r, label]) => {
+      const row = document.createElement('div');
+      row.className = 'pin-row';
+      const name = document.createElement('span');
+      name.className = 'pin-role';
+      name.textContent = label;
+      const inp = document.createElement('input');
+      inp.type = 'password';
+      inp.inputMode = 'numeric';
+      inp.maxLength = 8;
+      inp.autocomplete = 'new-password';
+      inp.className = 'pin-input';
+      inp.placeholder = '새 PIN (숫자 4~8자리)';
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-primary btn-sm pin-set';
+      btn.textContent = '설정';
+      const st = document.createElement('span');
+      st.className = 'pin-status';
+      btn.addEventListener('click', () => setPin(r, inp, btn, st));
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') setPin(r, inp, btn, st); });
+      row.append(name, inp, btn, st);
+      box.appendChild(row);
+    });
+  }
+
+  async function setPin(role, inp, btn, st) {
+    const pin = (inp.value || '').trim();
+    if (!/^\d{4,8}$/.test(pin)) { st.textContent = '숫자 4~8자리'; st.className = 'pin-status err'; return; }
+    if (role === 'owner' && !confirm('본부장(내) PIN을 바꿉니다. 다음 로그인부터 새 PIN을 써야 합니다. 계속할까요?')) return;
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = '설정 중…';
+    st.textContent = ''; st.className = 'pin-status';
+    try {
+      await API.call('setPin', { role, pin });
+      inp.value = '';                       // 평문 PIN을 DOM에 남기지 않음
+      st.textContent = '✓ 변경됨'; st.className = 'pin-status ok';
+      setTimeout(() => { if (st.classList.contains('ok')) { st.textContent = ''; st.className = 'pin-status'; } }, 4000);
+    } catch (e) {
+      st.textContent = '⚠ ' + (e.message || '실패'); st.className = 'pin-status err';
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+  }
+
+  function init() {
+    const b = $('#btn-pin-back');
+    if (b) b.addEventListener('click', () => KZ.show('home'));
+  }
+
+  return { init, open };
+})();

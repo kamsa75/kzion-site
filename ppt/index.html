@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=64">
+<link rel="stylesheet" href="css/ppt.css?v=65">
 </head>
 <body>
 
@@ -287,6 +287,25 @@
     </main>
   </section>
 
+  <!-- 담당자 PIN 관리 (본부장 owner 전용) -->
+  <section id="screen-pinmgr" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-pin-back" class="btn btn-ghost">← 홈</button>
+        <span class="topbar-title">담당자 PIN 관리</span>
+      </div>
+      <span id="pin-mgr-busy" class="save-note"></span>
+    </header>
+    <main class="main">
+      <div class="adm-section">
+        <h2>PIN 설정 · 변경</h2>
+        <p class="adm-desc">각 담당자에게 줄 PIN(숫자 4~8자리)을 설정합니다. 현재 값은 보안상 화면에 표시되지 않으며, 새 값을 입력해 <b>설정</b>을 누르면 즉시 바뀝니다. 설정한 PIN은 담당자에게 직접 전달하세요.</p>
+        <div id="pin-mgr-list" class="pin-mgr-list"></div>
+        <p class="adm-desc" style="margin-top:10px">※ 이 기능이 동작하려면 <code>setpin.sql</code> 실행 + Edge Function <code>api</code> 재배포가 되어 있어야 합니다.</p>
+      </div>
+    </main>
+  </section>
+
   <!-- PPT 미리보기 · 생성 (관리자 — 5단계 ③) -->
   <section id="screen-generate" class="screen" hidden>
     <header class="topbar">
@@ -329,12 +348,12 @@
 <script src="js/songs.js?v=31"></script>
 <script src="js/review.js?v=11"></script>
 <script src="js/pastor.js?v=20"></script>
-<script src="js/admin.js?v=5"></script>
+<script src="js/admin.js?v=6"></script>
 <script src="js/generate.js?v=46"></script>
 <script src="js/setorder.js?v=24"></script>
 <script src="js/choir.js?v=17"></script>
 <script src="js/freshness.js?v=1"></script>
 <script src="js/conflict.js?v=1"></script>
-<script src="js/app.js?v=26"></script>
+<script src="js/app.js?v=27"></script>
 </body>
 </html>
