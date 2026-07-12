@@ -730,9 +730,8 @@ const SetOrder = (function () {
         song.raw = text;
         btn.disabled = true; btn.textContent = '생성 중…';
         try {
-          const r = CONFIG.USE_SERVER ? await API.call('extractText', { text })
-            : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
-          Songs.applyExtract(song, r);
+          // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음
+          Songs.applyExtract(song, Songs.pasteToBlocks(text));
           if (!(song.blocks || []).length) {                       // 결과가 비면 입력 보존 + 안내(사라짐 방지)
             btn.disabled = false; btn.textContent = '슬라이드 생성하기';
             alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 시도해 주세요.');

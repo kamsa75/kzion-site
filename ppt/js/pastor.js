@@ -356,25 +356,16 @@ const Pastor = (function () {
     const btn = $('#btn-hymn-parse');
     btn.disabled = true; btn.textContent = '생성 중…';
     try {
-      const r = CONFIG.USE_SERVER
-        ? await API.call('extractText', { text })
-        : (function () { // 목: 빈 줄=블록, '후렴' 시작 문단=후렴
-            const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-            let vn = 0;
-            const blocks = (paras.length ? paras : [text]).map((p, i) => {
-              const isChorus = /^\s*(후렴|\(후렴\)|렴)\b/.test(p) || /^\s*후렴/.test(p);
-              const body = p.replace(/^\s*(후렴|\(후렴\)|렴)\s*[:：)]?\s*\n?/, '');
-              const lines = body.split('\n').map(t => t.trim()).filter(Boolean).map(t => ({ text: t, low: [] }));
-              const breaks = []; for (let j = 0; j < lines.length - 1; j++) breaks.push((j + 1) % 2 === 0);
-              return { id: 'h' + (i + 1), type: isChorus ? 'chorus' : 'verse', label: isChorus ? '후렴' : (++vn) + '절', lines, breaks };
-            });
-            return { blocks };
-          })();
-      applyHymnExtract(r);
+      // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음. 빈 줄=블록, 첫 줄 라벨(후렴 등) 인식.
+      applyHymnExtract(Songs.pasteToBlocks(text));
+      if (!(data.hymn.blocks || []).length) {
+        alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 눌러 주세요.');
+        return;
+      }
       renderHymnPreview();
       save();
     } catch (e) {
-      alert('가사를 정리하지 못했습니다: ' + (e.message || '') + '\n네트워크를 확인하거나 잠시 후 다시 시도해 주세요.');
+      alert('가사를 정리하지 못했습니다: ' + (e.message || '') + '\n다시 시도해 주세요.');
     } finally {
       btn.disabled = false; btn.textContent = '슬라이드 생성하기';
     }

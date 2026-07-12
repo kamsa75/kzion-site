@@ -818,7 +818,51 @@ const Songs = (function () {
     return b;
   }
 
+  // ── 가사 붙여넣기 = 로컬 규칙 분할(AI 미사용) ──────────────────────────
+  // 붙여넣은 글자는 이미 확정이므로 모델 재출력이 불필요 → 저작권 거부가 원천적으로 발생하지 않음.
+  // 규칙: 빈 줄 = 블록 경계 / 첫 줄이 라벨 형태면 라벨로 분리 / 없으면 절 자동 번호 / 2줄씩 슬라이드.
+  const LABEL_RE = /^\(?\s*(후렴|후렴\s*\d+|렴|간주|브릿지|bridge|pre-?chorus|prec|chorus|verse|intro|outro|v\s*\d+|c\s*\d*|b\s*\d*|\d+\s*절|절\s*\d+|\d+)\s*\)?\s*[.:：)]?\s*$/i;
+  function labelType(label) {
+    const s = String(label || '').toLowerCase();
+    if (/후렴|렴|chorus/.test(label) || /^\(?\s*c\s*\d*\s*\)?$/.test(s) || /pre-?chorus|prec/.test(s)) return 'chorus';
+    if (/브릿지|bridge/.test(label) || /^\(?\s*b\s*\d*\s*\)?$/.test(s)) return 'bridge';
+    return 'verse';
+  }
+  function pasteToBlocks(text) {
+    const chunks = String(text || '').split(/\n\s*\n+/).map(c => c.trim()).filter(Boolean);
+    const src = chunks.length ? chunks : (String(text || '').trim() ? [String(text).trim()] : []);
+    let vn = 0;
+    const blocks = [];
+    src.forEach((chunk, ci) => {
+      const rows = chunk.split('\n').map(r => r.trim()).filter(Boolean);
+      if (!rows.length) return;
+      let label = '', body = rows;
+      if (rows.length >= 2 && LABEL_RE.test(rows[0])) {         // 첫 줄이 라벨이면 분리
+        label = rows[0].replace(/[.:：)]\s*$/, '').trim();
+        body = rows.slice(1);
+      }
+      if (!body.length) return;
+      const type = label ? labelType(label) : 'verse';
+      if (!label) label = (++vn) + '절';                        // 라벨 없으면 절 자동 번호
+      else if (type === 'verse' && !/\D/.test(label)) label = label + '절'; // "2" → "2절"
+      blocks.push({ id: 'b' + (ci + 1), type, label, lines: body.map(t => ({ text: t, low: [] })), breaks: twoLineBreaks(body.length) });
+    });
+    return { version: 1, title: '', crop: false, crop_reason: '', blocks };
+  }
+
+  // 이미지 추출 결과가 저작권 거부문을 정상 블록인 척 담아 오는 경우 차단(2026-07-11)
+  const REFUSAL_RE = /저작권|가사 전문|제공할 수 없|요약해 드릴|간단히 요약|can't provide|cannot provide/;
+  function looksLikeRefusal(blocks) {
+    return (blocks || []).some(b => (b.lines || []).some(l => REFUSAL_RE.test(l.text || '')));
+  }
+
   function applyExtract(song, r) {
+    if (looksLikeRefusal(r && r.blocks)) {    // 거부문이 가사로 둔갑 → 저장 거절
+      song.blocks = song.blocks || [];
+      song.status = 'review';
+      song.extractError = '자동 추출이 거부됐어요. 가사를 직접 붙여넣어 주세요.';
+      return;
+    }
     song.blocks = (r.blocks || []).map((b, i) => ({
       id: b.id || ('b' + (i + 1)),
       type: b.type || 'verse',
@@ -875,5 +919,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, twoLineBreaks, renderPdf, isPdf };
+  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, twoLineBreaks, pasteToBlocks, renderPdf, isPdf };
 })();

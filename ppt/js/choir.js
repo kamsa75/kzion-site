@@ -20,53 +20,24 @@ const Choir = (function () {
     };
   }
 
-  /* ---------- 가사 정리 ---------- */
-
-  // 목(서버 미사용) 분할: 빈 줄=블록 경계, 2줄마다 슬라이드 나눔
-  function mockSplit(text) {
-    const paras = text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-    const src = paras.length ? paras : [text.trim()];
-    const blocks = src.map((p, i) => {
-      const lines = p.split('\n').map(t => t.trim()).filter(Boolean).map(t => ({ text: t, low: [] }));
-      const breaks = [];
-      for (let j = 0; j < lines.length - 1; j++) breaks.push((j + 1) % 2 === 0);
-      return { id: 'b' + (i + 1), type: 'verse', label: (i + 1) + '절', lines, breaks };
-    });
-    return { blocks };
-  }
+  /* ---------- 가사 정리 (로컬 규칙 분할, Songs.pasteToBlocks) ---------- */
 
   async function tidy(song, textarea, editorEl, btn) {
     const text = textarea.value.trim();
     if (!text) { alert('먼저 가사를 입력해 주세요.'); return; }
     song.raw = text;
     btn.disabled = true; btn.textContent = '✨ 만드는 중…';
-    let usedFallback = false, serverErr = '';
     try {
-      let r = null;
-      if (CONFIG.USE_SERVER) {
-        // AI 추출 — 실패/지연(45초)이면 로컬 기본 분할로라도 만들어 성가대가 막히지 않게
-        try {
-          r = await Promise.race([
-            API.call('extractText', { text }),
-            new Promise((_, rej) => setTimeout(() => rej(new Error('시간 초과')), 45000))
-          ]);
-        } catch (e) { serverErr = e.message || ''; r = null; }
-      } else {
-        r = mockSplit(text);
-      }
-      if (r) Songs.applyExtract(song, r);
-      if (!song.blocks || !song.blocks.length) { // AI 결과 없음/실패 → 로컬 기본 분할(빈 줄=블록, 2줄씩)
-        Songs.applyExtract(song, mockSplit(text));
-        usedFallback = CONFIG.USE_SERVER;
+      // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음, 즉시. 빈 줄=블록, 첫 줄 라벨 인식, 2줄씩.
+      Songs.applyExtract(song, Songs.pasteToBlocks(text));
+      if (!song.blocks || !song.blocks.length) {
+        alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 눌러 주세요.');
+        return;
       }
       SongStore.save(); SongStore.pushNow(song);
       renderEditor(song, editorEl);
-      if (usedFallback) {
-        alert('자동 정리(AI)가 안 돼서 기본 분할로 만들었어요' + (serverErr ? '\n(' + serverErr + ')' : '') +
-          '\n절 사이를 빈 줄로 띄우고 다시 누르면 더 정확합니다.');
-      }
     } catch (e) {
-      alert('만들지 못했습니다: ' + (e.message || '네트워크를 확인해 주세요.'));
+      alert('만들지 못했습니다: ' + (e.message || '다시 시도해 주세요.'));
     } finally {
       btn.disabled = false;
       btn.textContent = (song.blocks && song.blocks.length) ? '✨ 다시 슬라이드로 만들기' : '✨ 슬라이드로 만들기';

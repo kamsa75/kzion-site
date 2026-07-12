@@ -217,10 +217,13 @@ const Review = (function () {
         if (!text) return;
         btn.disabled = true; btn.textContent = '생성 중…';
         try {
-          const r = CONFIG.USE_SERVER
-            ? await API.call('extractText', { text })
-            : { blocks: [{ id: 'b1', type: 'verse', label: '1절', lines: text.split('\n').filter(Boolean).map(t => ({ text: t, low: [] })), breaks: [] }] };
-          Songs.applyExtract(s, r);
+          // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음
+          Songs.applyExtract(s, Songs.pasteToBlocks(text));
+          if (!(s.blocks || []).length) {
+            btn.disabled = false; btn.textContent = '슬라이드 생성하기';
+            alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 시도해 주세요.');
+            return;
+          }
           SongStore.save(); SongStore.pushNow(s);
           renderLyricsTab(); fitLines($('#tab-lyrics'));
         } catch (e) {
