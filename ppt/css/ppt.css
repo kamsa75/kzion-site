@@ -919,7 +919,8 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
 .choir-type-btn{background:var(--ui-card); color:var(--ui-sub); border:none; padding:8px 20px;
   font:inherit; font-weight:700; font-size:13px; cursor:pointer;}
 .choir-type-btn + .choir-type-btn{border-left:1px solid var(--ui-line);}
-.choir-type-btn.on{background:var(--ui-gold-soft); color:var(--ui-gold);}
+.choir-type-btn.on{background:var(--ui-gold); color:#fff; font-weight:800;}
+.choir-type-btn.on::before{content:"\2713  ";}   /* ✓ — 선택 상태 또렷하게 (성가대 토글 전용) */
 
 /* 성가대/특송 가사 필름 썸네일 = 그린 자막(밴드 없음) */
 .film-green-lyr{height:auto; min-height:76px; display:flex; flex-direction:column;
