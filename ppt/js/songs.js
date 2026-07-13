@@ -56,20 +56,33 @@ const SongStore = (function () {
     if (m.song_key) song.key = m.song_key;                 // 곡 키
     song.status = 'review';                                // 불러온 것 = 검수 필요
   }
-  // 곡명 입력(blur) 시 과거 같은 곡 있으면 최근 1건을 '불러오기 제안' 상태(song._reuseOffer)로 표시. rerender=호출부 재렌더.
+  // 곡명 입력 중(디바운스) 같은 곡 있으면 최근 1건을 '불러오기 제안'(song._reuseOffer)으로 표시. rerender=배너 갱신 콜백.
   //   실제 불러오기·되돌리기는 reuseBanner 인라인 배너에서. songs.js(검수)·setorder.js(세트) 공용 (D37)
+  let reuseTimer = null;
+  function maybeReuseDebounced(song, rerender) {   // 타이핑 멈춘 뒤 조회(실시간에 가깝게 + 같은 이름 재입력도 감지)
+    clearTimeout(reuseTimer);
+    reuseTimer = setTimeout(() => { maybeReuse(song, rerender); }, 500);
+  }
   async function maybeReuse(song, rerender) {
+    const rr = () => { if (typeof rerender === 'function') rerender(); };
     if (!CONFIG.USE_SERVER || (song.role || 'praise') !== 'praise') return;
     const nm = (song.name || '').trim();
-    if (!nm || (song.blocks && song.blocks.length)) return;   // 빈 곡에만(기존 작업 보호)
-    if (song._reuseAsked === nm) return;                      // 같은 이름 재조회 방지
+    if (!nm || (song.blocks && song.blocks.length)) {   // 빈 이름·이미 가사 있음 → 제안 안 함(있던 제안은 정리)
+      song._reuseAsked = nm;
+      if (song._reuseOffer) { song._reuseOffer = null; rr(); }
+      return;
+    }
+    if (song._reuseAsked === nm) return;                // 같은 이름 = 이미 처리(중복 조회·중복 배너 방지)
     song._reuseAsked = nm;
+    const hadOffer = !!song._reuseOffer;
+    song._reuseOffer = null;                            // 이름이 바뀌었으니 이전 제안 무효화
     let m = null;
     try { const r = await API.call('songLookup', { name: nm, role: 'praise' }); m = r && r.match; }
-    catch (e) { return; }
-    if (!m || (song.blocks && song.blocks.length)) return;    // 조회 사이 가사 생겼으면 중단
+    catch (e) { if (hadOffer) rr(); return; }
+    if ((song.name || '').trim() !== nm) return;        // 응답 오는 사이 이름 바뀌면 이 결과는 폐기
+    if (!m || (song.blocks && song.blocks.length)) { if (hadOffer) rr(); return; }
     song._reuseOffer = m;
-    if (typeof rerender === 'function') rerender();
+    rr();
   }
   // 곡 카드용 인라인 배너 — 제안(불러오기/아니요) 또는 방금 불러옴(되돌리기/닫기). 없으면 null.
   function reuseBanner(song, rerender) {
@@ -208,7 +221,7 @@ const SongStore = (function () {
 
   return {
     load, save,
-    maybeReuse, reuseBanner,   // 지난 곡 불러오기 — songs.js·setorder.js 공용 인라인 배너 (D37)
+    maybeReuseDebounced, reuseBanner,   // 지난 곡 불러오기 — songs.js·setorder.js 공용 인라인 배너 (D37)
     week: () => week,
     isDone: () => !!(week && week.sectionDone && week.sectionDone[role]),   // 이번 주 이 섹션 완료?
     setDone: async (val) => {   // '이번 주 준비 완료' 토글 — 서버에 저장(작은 플래그)
@@ -568,14 +581,19 @@ const Songs = (function () {
       name.type = 'text';
       name.value = song.name || '';
       name.placeholder = role === 'choir' ? '곡명 입력 (필수)' : '곡명 (선택)';
-      name.addEventListener('input', () => { song.name = name.value; SongStore.save(); });
-      name.addEventListener('change', () => { SongStore.maybeReuse(song, render); });   // 포커스 아웃 시 지난 곡 불러오기 제안(인라인 배너)
+      // 지난 곡 불러오기 배너를 '카드 통째 재렌더 없이' 갈아끼움 → 타이핑 중 입력 포커스 유지 (D37)
+      const refreshReuse = () => {
+        if (!card.isConnected) return;
+        const old = card.querySelector(':scope > .reuse-bar'); if (old) old.remove();
+        const b = SongStore.reuseBanner(song, render); if (b) head.insertAdjacentElement('afterend', b);
+      };
+      name.addEventListener('input', () => { song.name = name.value; SongStore.save(); SongStore.maybeReuseDebounced(song, refreshReuse); });   // 타이핑 멈추면 지난 곡 제안
       const st = document.createElement('span');
       st.className = 'status ' + (song.status === 'ordered' ? 'status-done' : song.status === 'review' ? 'status-progress' : 'status-empty');
       st.textContent = STATUS[song.status] || song.status;
       head.append(name, st);
       card.appendChild(head);
-      const rb = SongStore.reuseBanner(song, render); if (rb) card.appendChild(rb);   // 지난 곡 불러오기 배너 (D37)
+      refreshReuse();   // 기존 제안/불러옴 상태 반영 (D37)
 
       // 마지막 수정 시각 — 동시 편집 시 "누가 방금 만졌나" 감 잡기용 (#3, 시간만)
       if (song.updatedAt) {

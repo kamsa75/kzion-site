@@ -444,12 +444,17 @@ const SetOrder = (function () {
     const ti = document.createElement('input');
     ti.className = 'so-title-input'; ti.type = 'text'; ti.placeholder = '곡 제목';
     ti.value = song.name || '';
+    // 지난 곡 불러오기 배너를 '카드 통째 재렌더 없이' 갈아끼움 → 타이핑 중 제목 입력 포커스 유지 (D37)
+    const refreshReuse = () => {
+      if (!card.isConnected) return;
+      const old = card.querySelector(':scope > .reuse-bar'); if (old) old.remove();
+      const b = SongStore.reuseBanner(song, render); if (b) info.insertAdjacentElement('afterend', b);
+    };
     ti.addEventListener('input', () => {
       song.name = ti.value.trim(); SongStore.save();
       const h = card.querySelector('.so-title'); if (h) h.textContent = song.name || '제목 미정';
+      SongStore.maybeReuseDebounced(song, refreshReuse);   // 타이핑 멈추면 지난 곡 제안 (붙여넣기 흐름=이 화면)
     });
-    // 포커스 아웃 시 지난 곡 불러오기 제안 (붙여넣기 흐름은 이 세트 화면으로 들어옴 — D37)
-    ti.addEventListener('change', () => { SongStore.maybeReuse(song, render); });
     f1.append(tl, ti);
 
     const f2 = document.createElement('div'); f2.className = 'so-field';
@@ -462,7 +467,7 @@ const SetOrder = (function () {
 
     info.append(f1, f2);
     card.appendChild(info);
-    const rb = SongStore.reuseBanner(song, render); if (rb) card.appendChild(rb);   // 지난 곡 불러오기 배너 (D37)
+    refreshReuse();   // 기존 제안/불러옴 상태 반영 (D37)
 
     if ((song.blocks || []).length) {
       renderArrange(song, card);     // 편곡 (담기·파트·×N)
