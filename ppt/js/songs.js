@@ -88,6 +88,8 @@ const SongStore = (function () {
   function reuseBanner(song, rerender) {
     const rr = () => { if (typeof rerender === 'function') rerender(); };
     const mkBtn = (cls, label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'reuse-btn ' + cls; b.textContent = label; b.addEventListener('click', fn); return b; };
+    // 가사가 이미 생겼으면(붙여넣기·추출 등) 제안은 무효 → 배너 숨기고 정리(덮어쓰기 방지)
+    if (song._reuseOffer && song.blocks && song.blocks.length) song._reuseOffer = null;
     if (song._reuseOffer) {
       const m = song._reuseOffer;
       const bar = document.createElement('div'); bar.className = 'reuse-bar';
@@ -96,6 +98,7 @@ const SongStore = (function () {
       t.textContent = '지난번(' + (m.week_id || '') + ') "' + m.name + '" 콘티·자막이 있어요' + (first ? ' · ' + first : '');
       bar.append(t,
         mkBtn('reuse-yes', '불러오기', () => {
+          if (song.blocks && song.blocks.length) { song._reuseOffer = null; rr(); return; }   // 사이 가사 생겼으면 덮어쓰지 않음
           song._reuseUndo = { blocks: song.blocks, order: song.order, arrange: song.arrange, key: song.key, status: song.status };
           applyReuse(song, m); song._reuseOffer = null; save(); rr();
         }),
