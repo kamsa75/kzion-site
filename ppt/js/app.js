@@ -63,6 +63,8 @@
   function show(name) {
     currentScreen = name;
     Object.entries(screens).forEach(([k, el]) => { el.hidden = (k !== name); });
+    // 홈으로 복귀할 때마다 곡 수·상태를 다시 계산(곡 목록에서 추가/삭제 후 '등록된 곡 없음' stale 방지)
+    if (name === 'home' && currentRole) renderHome(currentRole);
     // 로그아웃 버튼을 현재 화면 상단바로 이동 → 어느 화면에서든 우측 상단에 노출 (버튼은 하나만 유지)
     const lo = $('#btn-logout'), cur = screens[name];
     if (lo && cur && name !== 'pin') {

@@ -913,10 +913,22 @@ const Songs = (function () {
     if (/브릿지|bridge/.test(label) || /^\(?\s*b\s*\d*\s*\)?$/.test(s)) return 'bridge';
     return 'verse';
   }
+  // 명시 라벨 없던 블록(_auto)만: 가사 내용이 2번 이상 반복되면 '후렴', 고유하면 순서대로 1절·2절…
+  //   → 후렴을 안 적어도 자동 인식(AI 미사용, 저작권 문제 없음). 명시 라벨('후렴' 등)은 그대로 존중. (D33 복원)
+  function autoLabelBlocks(blocks) {
+    const sig = b => (b.lines || []).map(l => (l.text || '').replace(/\s+/g, '').toLowerCase()).join('\n');
+    const count = {};
+    blocks.forEach(b => { if (b._auto) { const s = sig(b); if (s) count[s] = (count[s] || 0) + 1; } });
+    let vn = 0;
+    blocks.forEach(b => {
+      if (!b._auto) return;
+      if (count[sig(b)] >= 2) { b.type = 'chorus'; b.label = '후렴'; }   // 반복 = 후렴
+      else { b.type = 'verse'; b.label = (++vn) + '절'; }                 // 고유 = 절(문서 순서대로)
+    });
+  }
   function pasteToBlocks(text) {
     const chunks = String(text || '').split(/\n\s*\n+/).map(c => c.trim()).filter(Boolean);
     const src = chunks.length ? chunks : (String(text || '').trim() ? [String(text).trim()] : []);
-    let vn = 0;
     const blocks = [];
     src.forEach((chunk, ci) => {
       const rows = chunk.split('\n').map(r => r.trim()).filter(Boolean);
@@ -927,11 +939,13 @@ const Songs = (function () {
         body = rows.slice(1);
       }
       if (!body.length) return;
+      const auto = !label;                                      // 라벨 없이 들어온 블록 = 자동 분류 대상
       const type = label ? labelType(label) : 'verse';
-      if (!label) label = (++vn) + '절';                        // 라벨 없으면 절 자동 번호
-      else if (type === 'verse' && !/\D/.test(label)) label = label + '절'; // "2" → "2절"
-      blocks.push({ id: 'b' + (ci + 1), type, label, lines: body.map(t => ({ text: t, low: [] })), breaks: twoLineBreaks(body.length) });
+      if (label && type === 'verse' && !/\D/.test(label)) label = label + '절'; // "2" → "2절"
+      blocks.push({ id: 'b' + (ci + 1), type, label, _auto: auto, lines: body.map(t => ({ text: t, low: [] })), breaks: twoLineBreaks(body.length) });
     });
+    autoLabelBlocks(blocks);                                    // 반복 블록 → 후렴, 나머지 → 절 번호
+    blocks.forEach(b => { delete b._auto; });                   // 내부 플래그 제거(저장 데이터 오염 방지)
     return { version: 1, title: '', crop: false, crop_reason: '', blocks };
   }
 
