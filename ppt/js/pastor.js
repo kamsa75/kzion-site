@@ -349,6 +349,17 @@ const Pastor = (function () {
     data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(매 절 뒤 후렴) 재설정
   }
 
+  // 절 번호 표기 정리(D38): "(1) 가사"·"[1] 가사"·"1. 가사"·"1) 가사"를 → 빈 줄 + "1절" 라벨 줄 + 가사로 변환.
+  //   숫자는 자막에 안 나오고, 절 경계·라벨(1절·2절)로만 쓰임. 숫자만 있는 줄("1.")도 라벨 줄로.
+  function stripHymnVerseNums(text) {
+    return String(text || '').split('\n').map(line => {
+      const m = line.match(/^\s*(?:\((\d{1,2})\)|\[(\d{1,2})\]|(\d{1,2})\s*[.．)])\s*(.*)$/);
+      if (!m) return line;
+      const n = m[1] || m[2] || m[3], rest = (m[4] || '').trim();
+      return rest ? ('\n' + n + '절\n' + rest) : ('\n' + n + '절');
+    }).join('\n');
+  }
+
   async function parseHymn() {
     const text = $('#hymn-input').value.trim();
     data.hymn.raw = text;
@@ -357,7 +368,7 @@ const Pastor = (function () {
     btn.disabled = true; btn.textContent = '생성 중…';
     try {
       // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음. 빈 줄=블록, 첫 줄 라벨(후렴 등) 인식.
-      applyHymnExtract(Songs.pasteToBlocks(text));
+      applyHymnExtract(Songs.pasteToBlocks(stripHymnVerseNums(text)));
       if (!(data.hymn.blocks || []).length) {
         alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 눌러 주세요.');
         return;

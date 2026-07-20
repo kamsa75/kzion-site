@@ -28,9 +28,11 @@ const Generate = (function () {
   const PHASE = {
     thumbnail: '여는 순서', call: '여는 순서', creed: '여는 순서', 'praise-all': '여는 순서',
     'live-1': '여는 순서', 'praise-songs': '여는 순서', 'live-2': '여는 순서', 'pray-together': '여는 순서',
-    hymn: '찬양과 기도', prayer: '찬양과 기도', 'choir-name': '찬양과 기도', 'choir-songs': '찬양과 기도',
+    'bless-live-1': '여는 순서', blessing: '여는 순서', 'bless-live-2': '여는 순서',
+    hymn: '찬양과 기도', 'prayer-live-1': '찬양과 기도', prayer: '찬양과 기도', 'prayer-live-2': '찬양과 기도',
+    'choir-name': '찬양과 기도', 'choir-songs': '찬양과 기도',
     'live-3': '찬양과 기도', offering: '찬양과 기도', 'offering-img': '찬양과 기도', 'live-4': '찬양과 기도',
-    news: '말씀', sermon: '말씀', passage: '말씀', reading: '말씀',
+    news: '말씀', 'news-live': '말씀', sermon: '말씀', passage: '말씀', reading: '말씀',
     'live-5': '마침', 'closing-img': '마침', benediction: '마침', ending: '마침'
   };
 
@@ -158,9 +160,15 @@ const Generate = (function () {
       }
       case 'reading_short': {
         const arr = (p.readings || []).filter(x => (x || '').trim());
-        if (!arr.length) return [];   // 짧은 구절 없으면 앞 그린스크린도 생략(고아 방지, D36)
-        const out = [{ label: '빈 그린스크린(라이브)', slide: { layout: 'green_blank' } }];   // 짧은 구절 앞 라이브 슬롯
-        arr.forEach(r => (typeof bandPages === 'function' ? bandPages(r) : []).forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl })));
+        if (!arr.length) return [];   // 짧은 구절 없으면 그린스크린도 생략(고아 방지, D36)
+        // 각 구절 앞마다 라이브 그린 1장(구절 단위 — 한 구절이 카드 여러 장으로 나뉘어도 그린은 앞에 1장, D38)
+        const out = [];
+        arr.forEach(r => {
+          const pages = (typeof bandPages === 'function' ? bandPages(r) : []);
+          if (!pages.length) return;   // 내용 못 만든 구절은 그린도 안 넣음(고아 방지)
+          out.push({ label: '빈 그린스크린(라이브)', slide: { layout: 'green_blank' } });
+          pages.forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl }));
+        });
         return out;
       }
       case 'blessing': {
