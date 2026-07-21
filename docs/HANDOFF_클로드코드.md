@@ -30,7 +30,8 @@
    getRotations, overrideRotation(mode: skip|shift), getAnnualEvents, confirmPrint
 3. **PPT 쪽 수정 1건**: 목사님 입력 화면(ppt/js/pastor.js)에 찬송가 장 번호 필드 추가.
    숫자만 입력받고 표시할 때 "장" 자동 접미사, 1~645 검증. pastor_inputs.data에 hymn_no로 저장.
-4. **주보 화면**: /bulletin 폴더 신설. 컨셉 락 §10의 3~6단계 순서로.
+4. **주보 화면**: **`/bt`** 폴더 신설 (2026-07-21 확정 — v1의 `/bulletin`에서 변경).
+   컨셉 락 §10의 3~6단계 순서로.
    - 트라이폴드 인쇄: @page size 14in 8.5in (legal landscape), 6패널 CSS,
      현행 주보 디자인 복제(주보.pdf 참조)
    - dragsort.js 등 기존 ppt/js 모듈 재사용 가능
