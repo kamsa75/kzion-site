@@ -13,12 +13,24 @@ const PE = (tag, cls, txt) => {
   return n;
 };
 
-// 두 글자 이름 자동 정렬 ("김정" → "김 정"). 7/19 주보·교회일람 표기 규칙(§8).
-function padTwoCharNames(text) {
-  if (!text) return '';
-  return String(text).trim().replace(/\s+/g, ' ').split(' ')
-    .map((t) => (/^[가-힣]{2}$/.test(t) ? t[0] + ' ' + t[1] : t))
-    .join(' ');
+// 이름 목록 렌더 (§8 표기 규칙) — 7/19 주보 배치 재현:
+//   · 이름과 이름 사이는 넓게 (요소 여백)
+//   · 두 글자 이름은 안쪽만 좁게 벌려 세 글자 이름과 폭을 맞춤 ("김정"→"김 정")
+// 입력은 띄어쓰기로 구분한 이름들. 각 이름을 span으로 그린다.
+function nameSpans(text) {
+  const frag = document.createDocumentFragment();
+  String(text).trim().split(/\s+/).filter(Boolean).forEach((t) => {
+    const span = PE('span', 'nm');
+    if (/^[가-힣]{2}$/.test(t)) {
+      span.classList.add('nm2');
+      span.appendChild(PE('span', 'nm2a', t[0]));
+      span.appendChild(PE('span', 'nm2b', t[1]));
+    } else {
+      span.textContent = t;
+    }
+    frag.appendChild(span);
+  });
+  return frag;
 }
 
 // ---------- 인쇄 게이트 (§6) ----------
@@ -224,7 +236,9 @@ function panelWeeklyInfo(S) {
       if (!txt) return;
       const r = PE('div', 'po-row');
       r.appendChild(PE('span', 'po-k', lab));
-      r.appendChild(PE('span', 'po-v', padTwoCharNames(txt)));
+      const val = PE('span', 'po-v');
+      val.appendChild(nameSpans(txt));
+      r.appendChild(val);
       ot.appendChild(r);
     });
   const tot = PE('div', 'po-row po-total');
