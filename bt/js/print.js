@@ -169,7 +169,7 @@ function panelNews(S) {
   autoNewsItems(S).forEach((a) => {
     n += 1;
     const item = PE('div', 'np-item');
-    const t = PE('div', 'np-t');
+    const t = PE('div', 'np-t np-plain');   // 자동 안내 본문은 일반 굵기(#3)
     t.appendChild(PE('span', 'np-num', n + '.'));
     t.appendChild(PE('span', null, ' ' + a.text));
     item.appendChild(t);

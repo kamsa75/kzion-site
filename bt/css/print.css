@@ -26,7 +26,7 @@
   padding:var(--panel-pad);
   display:flex; flex-direction:column;
   height:100%;
-  font-size:10.2pt; line-height:1.45; color:var(--ink);   /* #1 본문 확대 */
+  font-size:10.7pt; line-height:1.45; color:var(--ink);   /* 본문 확대(주보 전체 본문 상향) */
   overflow:hidden;
 }
 /* 이름 목록 공통(헌금·섬기는이들): 이름 사이 넓게 / 두 글자 안쪽 좁게 (#2) */
@@ -59,44 +59,45 @@
 .praise-empty{color:#aaa; font-size:8.5pt; text-align:center; border:1px dashed var(--line);
   width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:4px}
 .praise-img{max-width:100%; max-height:3.4in; object-fit:contain}
-.praise-text{font-size:9pt; line-height:1.6; white-space:pre-wrap}
+.praise-text{font-size:9.5pt; line-height:1.6; white-space:pre-wrap}
 .serve-box{border:1px solid var(--line); border-radius:5px; margin-top:6px; overflow:hidden}
 .serve-h{text-align:center; font-weight:800; font-size:10pt; color:#6e461f; background:var(--apricot);
   padding:4px; border-bottom:1px solid var(--apricot-line)}
-.serve-row{display:flex; justify-content:space-between; padding:4px 9px; font-size:9.5pt;
+.serve-row{display:flex; justify-content:space-between; padding:4px 9px; font-size:9.9pt;
   border-bottom:1px solid #f1ece2}
 .serve-row:last-child{border-bottom:none}
 .serve-k{font-weight:700}
-.p-addr{text-align:center; font-size:8.4pt; margin-top:6px; line-height:1.5; color:#333}
+.p-addr{text-align:center; font-size:8.7pt; margin-top:6px; line-height:1.5; color:#333}
 
 /* ── 교회소식 ── */
 .news-print{margin-top:2px}
 .np-item{margin-bottom:8px}
-.np-t{font-weight:800; font-size:10.4pt}
-.np-num{color:var(--ink)}
-.np-b{font-size:9.8pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#222}
+.np-t{font-weight:800; font-size:10.9pt}
+.np-t.np-plain{font-weight:normal}     /* 교회소식 본문(자동 안내)은 일반 굵기 */
+.np-num{color:var(--ink); font-weight:800}
+.np-b{font-size:10.3pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#222}
 
 /* ── 표(공용) ── */
-.p-grid{width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:4px}
+.p-grid{width:100%; border-collapse:collapse; font-size:9.4pt; margin-bottom:4px}
 .p-grid th, .p-grid td{border:1px solid var(--line); padding:3px 4px; text-align:center}
 .p-grid th{background:var(--apricot); font-weight:700; color:#6e461f}
 .p-grid .p-grid-rh{background:#FCF6EE; text-align:left; padding-left:6px; white-space:nowrap; font-weight:700}
 
 /* 토요새벽 */
 .p-sat{padding:2px 2px 0; margin-bottom:4px}
-.p-sat-when{text-align:right; font-size:8.4pt; color:#7a6f60; margin-bottom:3px}
-.p-sat-row{display:flex; gap:10px; font-size:9.5pt; padding:2.5px 2px; border-bottom:1px solid #f1ece2}
+.p-sat-when{text-align:right; font-size:8.7pt; color:#7a6f60; margin-bottom:3px}
+.p-sat-row{display:flex; gap:10px; font-size:9.9pt; padding:2.5px 2px; border-bottom:1px solid #f1ece2}
 .p-sat-row:last-child{border-bottom:none}
 .p-sat-k{font-weight:700; width:44px; flex:none}
 
 /* 행사계획 */
-.p-events{width:100%; border-collapse:collapse; font-size:9.2pt; margin-bottom:4px}
+.p-events{width:100%; border-collapse:collapse; font-size:9.6pt; margin-bottom:4px}
 .p-events td{border:1px solid var(--line); padding:3.5px 5px}
 .p-events tr:nth-child(even) td{background:#FCF8F2}
 .pe-date{font-weight:800; width:42px; text-align:center; color:var(--brown)}
 
 /* 지난주 헌금 */
-.p-offering{font-size:9.5pt}
+.p-offering{font-size:9.9pt}
 .po-row{display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #f1ece2; align-items:baseline}
 .po-k{font-weight:700; width:40px; flex:none}
 .po-v{flex:1; line-height:1.55}
@@ -136,8 +137,8 @@
 .cover-time{text-align:center; font-size:8.6pt; color:#555; margin-bottom:5px}
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘 → 아래 ※안내·섬기는이들이 바닥으로 */
 .cover-order{flex:1; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:5px; min-height:0}
-.co-row{display:grid; grid-template-columns:70px 1fr; gap:6px; padding:2.4px 0; font-size:9.6pt; align-items:baseline}
-.co-k{font-weight:800; text-align:justify}
+.co-row{display:grid; grid-template-columns:74px 1fr; gap:6px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}
+.co-k{font-weight:800; text-align:justify; text-align-last:justify; text-justify:inter-character}
 .co-star{color:var(--brown); margin-right:1px}
 .co-v{color:#222}
 .co-v-bold{font-weight:800; color:#111}
