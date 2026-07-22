@@ -90,8 +90,8 @@ function buildSheets(S) {
 
   // A면 (겉)
   const a = PE('div', 'sheet-page');
-  a.appendChild(panelSermonNote());
-  a.appendChild(panelSermonNote());
+  a.appendChild(panelSermonNote(S, 0));
+  a.appendChild(panelSermonNote(S, 1));
   a.appendChild(panelPraiseServe(S));
   root.appendChild(a);
 
@@ -110,13 +110,23 @@ function panelHeadBar(title) {
 }
 function panel(cls) { return PE('div', 'panel ' + (cls || '')); }
 
-// ── A-1·A-2 설교노트 (빈 양식 고정) ──
-function panelSermonNote() {
+// ── A-1·A-2 설교노트 — 제목 수정 가능 + 이미지·본문 선택(#3·#4). 비우면 손글씨용 빈 줄 ──
+function panelSermonNote(S, idx) {
   const p = panel('p-note');
-  p.appendChild(panelHeadBar('설교노트'));
-  const lines = PE('div', 'note-lines');
-  for (let i = 0; i < 22; i++) lines.appendChild(PE('div', 'note-line'));
-  p.appendChild(lines);
+  const np = ((S && S.bulletin && S.bulletin.notePanels) || [])[idx] || {};
+  p.appendChild(panelHeadBar((np.title && np.title.trim()) || '설교노트'));
+  const hasImg = !!np.image_data;
+  const hasText = !!(np.text && np.text.trim());
+  if (hasImg || hasText) {
+    const box = PE('div', 'note-content');
+    if (hasImg) { const img = PE('img', 'note-img'); img.src = np.image_data; box.appendChild(img); }
+    if (hasText) box.appendChild(PE('div', 'note-text', np.text));
+    p.appendChild(box);
+  } else {
+    const lines = PE('div', 'note-lines');
+    for (let i = 0; i < 22; i++) lines.appendChild(PE('div', 'note-line'));
+    p.appendChild(lines);
+  }
   return p;
 }
 
@@ -280,12 +290,12 @@ function panelWeeklyInfo(S) {
     g.appendChild(satBox);
   });
 
-  // 행사계획
+  // 행사계획 — 기본 4개 + 수동 추가/삭제(#2)
   group('행사계획', (g) => {
     const ev = PE('table', 'p-events');
-    (S.events || []).forEach((e) => {
+    bulletinEvents(S).forEach((e) => {
       const tr = PE('tr');
-      tr.appendChild(PE('td', 'pe-date', fmtMDKorean(e.display_week)));
+      tr.appendChild(PE('td', 'pe-date', e.dateText));
       tr.appendChild(PE('td', 'pe-label', e.label));
       ev.appendChild(tr);
     });
