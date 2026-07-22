@@ -13,6 +13,14 @@ const PE = (tag, cls, txt) => {
   return n;
 };
 
+// 두 글자 이름 자동 정렬 ("김정" → "김 정"). 7/19 주보·교회일람 표기 규칙(§8).
+function padTwoCharNames(text) {
+  if (!text) return '';
+  return String(text).trim().replace(/\s+/g, ' ').split(' ')
+    .map((t) => (/^[가-힣]{2}$/.test(t) ? t[0] + ' ' + t[1] : t))
+    .join(' ');
+}
+
 // ---------- 인쇄 게이트 (§6) ----------
 // 필수 빈칸 검사 → 빨강. 남아 있으면 인쇄 잠금(목사님 확인 체크로 해제).
 function printChecklist(S) {
@@ -43,36 +51,24 @@ function buildGate(S) {
   gate.innerHTML = '';
   const items = printChecklist(S);
   const missing = items.filter((i) => !i.ok);
+  // 인쇄 버튼은 항상 누를 수 있게 한다. 빈 항목은 경고만 표시하고,
+  // 누를 때 확인을 한 번 받는다(app.js doPrint). '왜 안 눌리지'를 없앤다.
+  window.__printMissing = missing.map((m) => m.label);
 
   const box = PE('div', 'gate-box');
   if (!missing.length) {
     box.classList.add('gate-ok');
     box.appendChild(PE('span', 'gate-ic', '✓'));
     box.appendChild(PE('span', null, '필수 항목이 모두 채워졌습니다. 인쇄할 수 있습니다.'));
-    setPrintEnabled(true);
   } else {
     box.classList.add('gate-warn');
     box.appendChild(PE('span', 'gate-ic', '!'));
     const wrap = PE('div', 'gate-list');
-    wrap.appendChild(PE('div', 'gate-title', '아직 비어 있는 항목이 있습니다'));
+    wrap.appendChild(PE('div', 'gate-title', '아직 비어 있는 항목이 있습니다 (그래도 인쇄는 됩니다)'));
     missing.forEach((m) => wrap.appendChild(PE('span', 'gate-chip', m.label)));
     box.appendChild(wrap);
-    setPrintEnabled(false);
-
-    // 확인하고 그냥 인쇄 (목사님이 의도적으로 비운 경우 — 체크로 해제)
-    const ov = PE('label', 'gate-override');
-    const cb = PE('input'); cb.type = 'checkbox';
-    cb.addEventListener('change', () => setPrintEnabled(cb.checked));
-    ov.appendChild(cb);
-    ov.appendChild(PE('span', null, ' 비어 있어도 이대로 인쇄합니다'));
-    box.appendChild(ov);
   }
   gate.appendChild(box);
-}
-
-function setPrintEnabled(on) {
-  const btn = document.getElementById('btn-do-print');
-  btn.disabled = !on;
 }
 
 // ---------- 6패널 ----------
@@ -220,12 +216,15 @@ function panelWeeklyInfo(S) {
   p.appendChild(panelHeadBar(`지난 주 헌금 (${prevW})`));
   const o = (S.bulletin && S.bulletin.offering) || {};
   const ot = PE('div', 'p-offering');
+  // 문자열(신규)·배열(구버전) 모두 허용 → 두 글자 이름 자동 정렬
+  const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
   [['감 사', o.thanks], ['십일조', o.tithe], ['주 정', o.weekly], ['선 교', o.mission]]
-    .forEach(([lab, arr]) => {
-      if (!arr || !arr.length) return;
+    .forEach(([lab, v]) => {
+      const txt = asStr(v).trim();
+      if (!txt) return;
       const r = PE('div', 'po-row');
       r.appendChild(PE('span', 'po-k', lab));
-      r.appendChild(PE('span', 'po-v', arr.join(' ')));
+      r.appendChild(PE('span', 'po-v', padTwoCharNames(txt)));
       ot.appendChild(r);
     });
   const tot = PE('div', 'po-row po-total');
