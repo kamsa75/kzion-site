@@ -114,6 +114,7 @@ function render() {
 
   body.appendChild(renderOrderCard(S));   // 설교·찬송·특송 등 인라인 편집 포함
   body.appendChild(renderServeCard(S));
+  body.appendChild(renderPraiseCard(S));  // 예배찬양 악보(이미지)·글
 
   // 3-2
   body.appendChild(renderNewsCard(S));
@@ -334,6 +335,105 @@ function renderNewsCard(S) {
   add.style.marginTop = '8px';
   add.addEventListener('click', () => { data.news.push({ title: '', body: '' }); paint(); queueSave(); });
   card.appendChild(add);
+  return card;
+}
+
+// ── 예배찬양 (A면 자유 패널 — 악보 이미지 또는 글) ──
+// 이미지는 서버 업로드 없이 클라이언트에서 리사이즈→data URL로 bulletin에 저장.
+function resizeImageToDataURL(file, maxW, quality) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxW / img.width);
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);   // 투명 PNG → 흰 배경
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(cv.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했습니다')); };
+    img.src = url;
+  });
+}
+
+function renderPraiseCard(S) {
+  const card = el('div', 'card');
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, '예배찬양 (악보)'));
+  card.appendChild(h);
+
+  const data = bd();
+  data.praise_panel = data.praise_panel || {};
+  const pp = data.praise_panel;
+  if (!pp.mode) pp.mode = 'image';
+
+  // 모드 토글 — 악보 이미지 / 글
+  const seg = el('div', 'seg');
+  const bImg = el('button', 'seg-btn' + (pp.mode === 'image' ? ' on' : ''), '악보 이미지');
+  const bTxt = el('button', 'seg-btn' + (pp.mode === 'text' ? ' on' : ''), '글');
+  seg.appendChild(bImg); seg.appendChild(bTxt);
+  card.appendChild(seg);
+
+  const wrap = el('div');
+  card.appendChild(wrap);
+
+  function paint() {
+    wrap.innerHTML = '';
+    if (pp.mode === 'text') {
+      const f = el('div', 'field');
+      f.appendChild(el('label', null, '예배찬양 글 (편지·안내 등)'));
+      const ta = el('textarea'); ta.rows = 6; ta.value = pp.text || '';
+      ta.placeholder = '이 패널에 넣을 글을 입력하세요';
+      ta.addEventListener('input', () => { pp.text = ta.value; queueSave(); });
+      f.appendChild(ta); wrap.appendChild(f);
+      return;
+    }
+    const cur = pp.image_data || pp.image_url || '';
+    if (cur) {
+      const prev = el('div', 'praise-preview');
+      const im = el('img'); im.src = cur; prev.appendChild(im);
+      wrap.appendChild(prev);
+    }
+    const pick = el('label', 'btn btn-line btn-wide', cur ? '악보 사진 다시 선택' : '＋ 악보 사진 업로드');
+    const inp = el('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+    inp.addEventListener('change', async () => {
+      const file = inp.files && inp.files[0]; if (!file) return;
+      pick.firstChild && (pick.childNodes[0].nodeValue = '처리 중…');
+      try {
+        pp.image_data = await resizeImageToDataURL(file, 1500, 0.85);
+        delete pp.image_url; delete pp.image_path;
+        queueSave(); paint();
+      } catch (e) { toast('이미지 처리 실패: ' + (e.message || '')); paint(); }
+    });
+    pick.appendChild(inp);
+    wrap.appendChild(pick);
+
+    if (cur) {
+      const del = el('button', 'btn btn-ghost btn-wide', '악보 지우기');
+      del.style.marginTop = '6px';
+      del.addEventListener('click', () => {
+        delete pp.image_data; delete pp.image_url; delete pp.image_path;
+        queueSave(); paint();
+      });
+      wrap.appendChild(del);
+    }
+    const hint = el('p', 'hint', '세로 악보 사진을 밝고 또렷하게. 자동으로 폭 1500px JPEG로 줄여 저장합니다.');
+    hint.style.margin = '8px 0 0';
+    wrap.appendChild(hint);
+  }
+
+  bImg.addEventListener('click', () => {
+    pp.mode = 'image'; bImg.classList.add('on'); bTxt.classList.remove('on'); queueSave(); paint();
+  });
+  bTxt.addEventListener('click', () => {
+    pp.mode = 'text'; bTxt.classList.add('on'); bImg.classList.remove('on'); queueSave(); paint();
+  });
+  paint();
   return card;
 }
 
