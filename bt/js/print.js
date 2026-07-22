@@ -249,7 +249,7 @@ function panelWeeklyInfo(S) {
   group('사랑의 나눔', (g) => {
     const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
-    love.forEach((r) => lhr.appendChild(PE('th', null, fmtMD(r.week))));
+    love.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
     lt.appendChild(lhr);
     [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
       const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
@@ -285,7 +285,7 @@ function panelWeeklyInfo(S) {
     const ev = PE('table', 'p-events');
     (S.events || []).forEach((e) => {
       const tr = PE('tr');
-      tr.appendChild(PE('td', 'pe-date', fmtMD(e.display_week)));
+      tr.appendChild(PE('td', 'pe-date', fmtMDKorean(e.display_week)));
       tr.appendChild(PE('td', 'pe-label', e.label));
       ev.appendChild(tr);
     });
@@ -388,7 +388,7 @@ function panelCover(S) {
   st.appendChild(hr);
   (S.serveWindow || []).forEach((r) => {
     const tr = PE('tr');
-    tr.appendChild(PE('th', 'p-grid-rh', fmtMD(r.week)));
+    tr.appendChild(PE('th', 'p-grid-rh', fmtMDKorean(r.week)));
     // 이름 사이 넓게 + 두 글자 정렬 (#2 — 헌금과 동일)
     [r.prayer, r.usher, r.offering].forEach((v) => {
       const td = PE('td', 'nm-cell');

@@ -28,7 +28,7 @@
 html,body{margin:0;padding:0}
 body{
   background:var(--ui-bg); color:var(--ui-ink);
-  font-family:'NanumSquareNeo',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;   /* 편집 UI는 원래 Pretendard(#8) */
   font-weight:500; line-height:1.5;
   -webkit-text-size-adjust:100%;
   -webkit-tap-highlight-color:transparent;
@@ -96,6 +96,11 @@ body{
 .week-vol{font-size:14px; font-weight:700; color:var(--ui-gold)}
 .week-auto{font-size:11px; color:var(--ui-sub); background:#fff;
   border:1px solid var(--ui-line); border-radius:999px; padding:2px 8px}
+.week-reset{margin-left:auto; font-family:inherit; font-size:12.5px; font-weight:700;
+  color:var(--ui-sub); background:#fff; border:1px solid var(--ui-line);
+  border-radius:999px; padding:5px 12px; cursor:pointer}
+.week-reset:active{filter:brightness(.96)}
+.week-reset:hover{border-color:var(--ui-gold); color:var(--ui-ink)}
 
 /* ---------- 카드 ---------- */
 .card{

@@ -19,6 +19,12 @@ function fmtMD(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${m}/${d}`;
 }
+// 'M월 D일' (인쇄 표 날짜용 — 사랑의나눔·행사계획·섬기는이들)
+function fmtMDKorean(iso) {
+  if (!iso) return '';
+  const [, m, d] = iso.split('-').map(Number);
+  return `${m}월 ${d}일`;
+}
 // n일 뒤 날짜 (UTC 정오 기준 — 서머타임 무관)
 function addDaysISO(iso, n) {
   const [y, m, d] = iso.split('-').map(Number);
