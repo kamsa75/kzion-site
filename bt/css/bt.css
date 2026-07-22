@@ -130,6 +130,16 @@ body{
 .order-label .star{color:var(--ui-gold); margin-right:2px}
 .order-detail{font-size:14px; color:var(--ui-sub)}
 .order-detail.filled{color:var(--ui-ink); font-weight:600}
+/* 인라인 편집 입력 */
+.order-input{
+  width:100%; font-family:inherit; font-size:14px; font-weight:600; color:var(--ui-ink);
+  border:1px solid transparent; border-radius:8px; padding:7px 9px; background:transparent;
+}
+.order-input::placeholder{color:var(--ui-sub); font-weight:500}
+.order-input:hover{background:#faf9f5}
+.order-input:focus{outline:none; background:#fff; border-color:var(--ui-gold)}
+.order-input.is-edited{color:var(--ui-gold-strong,#8A6D1E)}
+.order-row:has(.order-input:focus){background:#fffdf5; border-radius:9px}
 
 /* ---------- 4주 표 (예배를 섬기는 이들 · 사랑의 나눔) ---------- */
 .grid4{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}

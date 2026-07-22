@@ -324,42 +324,15 @@ function panelCover(S) {
   const time = PE('div', 'cover-time', (S.meta && S.meta.service_times && S.meta.service_times.sunday) || '오전10:45');
   p.appendChild(time);
 
-  const pastor = S.pastor || {};
-  const thisWeek = (S.serveWindow || [])[0] || {};
-  const prayer = pastor.prayer || thisWeek.prayer || '';
-  const hymn = (pastor.hymn && pastor.hymn.title) || '';
-  const closing = (S.meta && S.meta.closing_hymn && S.meta.closing_hymn.title) || '';
-  const offertory = (S.meta && S.meta.offertory_hymn && S.meta.offertory_hymn.title) || '';
-  const refs = [pastor.ref].concat(pastor.readings || []).filter(Boolean).join(' · ');
-  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
-  const pastorName = (staff.find((r) => r.label === '담임목사') || {}).value || '';
-  const benediction = (S.bulletin && S.bulletin.benediction) || pastorName;
-
-  const order = [
-    ['예배의 부름', '인도자', false],
-    ['신앙고백', '사도신경 · 다같이', false],
-    ['다함께 찬양', '(인도: 블레싱) · 다같이', false],
-    ['합심기도', '다같이', false],
-    ['축복', '다음 세대를 향한 축복 · 다같이', false],
-    ['찬송', hymn + ' · 다같이', false],
-    ['대표기도', prayer, false],
-    ['특송', (pastor.choir_name || '') + ' · 성가대', false],
-    ['봉헌', offertory + ' · 다같이', false],
-    ['교회소식', '인도자', false],
-    ['성경봉독', refs + ' · 다같이', false],
-    ['설교', pastor.title || '', false],
-    ['찬송', closing + ' · 다같이', true],
-    ['축도', benediction, true],
-  ];
   const ol = PE('div', 'cover-order');
-  order.forEach(([k, v, star]) => {
-    const r = PE('div', 'co-row');
+  buildOrderRows(S).forEach((r) => {   // app 편집과 동일한 값 (공용)
+    const row = PE('div', 'co-row');
     const kk = PE('span', 'co-k');
-    if (star) kk.appendChild(PE('span', 'co-star', '※'));
-    kk.appendChild(document.createTextNode(k));
-    r.appendChild(kk);
-    r.appendChild(PE('span', 'co-v', v));
-    ol.appendChild(r);
+    if (r.star) kk.appendChild(PE('span', 'co-star', '※'));
+    kk.appendChild(document.createTextNode(r.label));
+    row.appendChild(kk);
+    row.appendChild(PE('span', 'co-v', r.detail || ''));
+    ol.appendChild(row);
   });
   p.appendChild(ol);
 
