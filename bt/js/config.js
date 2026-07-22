@@ -158,3 +158,23 @@ function autoNewsItems(S) {
   });
   return items;
 }
+
+// 행사계획 목록 — 기본은 자동 4개(다가오는 순), 수동 숨김/추가 반영(#2)
+//   반환: [{ key, dateText, label }]
+function bulletinEvents(S) {
+  const b = S.bulletin || {};
+  const hidden = new Set(b.eventsHidden || []);
+  const auto = (S.events || []).slice(0, 4).map((e) => ({
+    key: 'auto|' + e.display_week + '|' + e.label,
+    dateText: fmtMDKorean(e.display_week),
+    label: e.label,
+    auto: true,
+  })).filter((e) => !hidden.has(e.key));
+  const added = (b.eventsAdded || []).map((e, i) => ({
+    key: 'man|' + i,
+    dateText: (e.date || '').trim(),
+    label: (e.label || '').trim(),
+    auto: false,
+  })).filter((e) => e.dateText || e.label);
+  return auto.concat(added);
+}

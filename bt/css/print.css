@@ -57,6 +57,10 @@
 /* ── 설교노트 ── */
 .p-note .note-lines{display:flex; flex-direction:column; gap:0; margin-top:6px; flex:1}
 .note-line{border-bottom:1px solid #d9d4c8; height:0.3in}
+/* 설교노트에 이미지·본문 넣을 때(#3·#4) */
+.note-content{flex:1; min-height:0; margin-top:6px; display:flex; flex-direction:column; gap:6px}
+.note-img{display:block; max-width:100%; max-height:6.6in; object-fit:contain; margin:0 auto; background:#fff}
+.note-text{font-size:10pt; line-height:1.6; white-space:pre-wrap; color:#111}
 
 /* ── 예배찬양 + 섬기는사람 + 주소 ── */
 .praise-free{flex:1; display:flex; align-items:center; justify-content:center; min-height:0; padding:4px 0}
@@ -157,7 +161,7 @@
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘(#5) → 아래 ※안내·섬기는이들이 바닥으로.
    마스트헤드·안내문·섬기는이들 표를 압축해 이 영역에 최대한 공간을 몰아줌 */
 .cover-order{flex:1; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:3px; min-height:0}
-.co-row{display:grid; grid-template-columns:74px 1fr; gap:14px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}   /* 순서명↔내용 간격 2배(#2) */
+.co-row{display:grid; grid-template-columns:74px 1fr; gap:21px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}   /* 순서명↔내용 간격(#2→0.5배 더) */
 .co-k{font-weight:800; display:flex; align-items:baseline}
 .co-lab{flex:1; text-align:justify; text-align-last:justify; text-justify:inter-character}   /* ※ 제외, 라벨만 양끝맞춤(#1) */
 .co-star{color:#111; flex:none; margin-right:2px}
@@ -169,9 +173,10 @@
   border:1px solid var(--sky-line); border-bottom:none; border-radius:5px 5px 0 0; padding:3px; margin-bottom:0}
 .cover-serve{margin-top:0; font-size:9pt; table-layout:fixed}
 .cover-serve td, .cover-serve th{padding:1.6px 5px}   /* 섬기는이들 표 압축 → 예배순서에 공간 확보(#5) */
-/* 날짜칸 좁게, 기도칸 넓게(#3) — 안내·봉헌위원은 나머지 자동 배분 */
-.cover-serve th:nth-child(1), .cover-serve td:nth-child(1){width:58px}
-.cover-serve th:nth-child(2), .cover-serve td:nth-child(2){width:23%}
+/* 날짜칸(양옆 여백↑)·기도칸(살짝↓) — 안내·봉헌위원은 나머지 자동 배분(#3·후속#1) */
+.cover-serve th:nth-child(1), .cover-serve td:nth-child(1){width:74px}
+.cover-serve th:nth-child(2), .cover-serve td:nth-child(2){width:20%}
+.cover-serve .p-grid-rh{padding-right:11px}   /* 날짜 우측 여백 */
 
 /* ---------- 인쇄 게이트 (화면 전용) ---------- */
 #print-gate{max-width:760px; margin:14px auto 0; padding:0 16px}

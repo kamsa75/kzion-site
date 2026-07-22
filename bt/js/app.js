@@ -126,6 +126,8 @@ function render() {
   body.appendChild(renderOrderCard(S));   // 설교·찬송·특송 등 인라인 편집 포함
   body.appendChild(renderServeCard(S));
   body.appendChild(renderPraiseCard(S));  // 예배찬양 악보(이미지)·글
+  body.appendChild(renderNotePanelCard(S, 0, '설교노트 (왼쪽)'));   // 제목·이미지·본문(#3·#4)
+  body.appendChild(renderNotePanelCard(S, 1, '설교노트 (오른쪽)'));
 
   // 3-2
   body.appendChild(renderNewsCard(S));
@@ -624,24 +626,122 @@ function renderEventsCard(S) {
   const card = el('div', 'card');
   const h = el('div', 'card-h');
   h.appendChild(el('h2', null, '행사 계획'));
-  h.appendChild(el('span', 'sub', '자동'));
+  h.appendChild(el('span', 'sub', '기본 4개 · 추가/삭제'));
   card.appendChild(h);
 
-  const list = el('div', 'event-list');
-  (S.events || []).forEach((e) => {
-    const row = el('div', 'event-row');
-    row.appendChild(el('div', 'event-date', fmtMD(e.display_week)));
-    row.appendChild(el('div', 'event-label', e.label));
-    list.appendChild(row);
+  const data = bd();
+  data.eventsHidden = Array.isArray(data.eventsHidden) ? data.eventsHidden : [];
+  data.eventsAdded = Array.isArray(data.eventsAdded) ? data.eventsAdded : [];
+
+  // 자동 4개 (다가오는 순) — ✕로 숨기기 / 되살리기
+  const auto = (S.events || []).slice(0, 4).map((e) => ({
+    key: 'auto|' + e.display_week + '|' + e.label, dateText: fmtMDKorean(e.display_week), label: e.label,
+  }));
+  const autoBox = el('div', 'ev-auto');
+  auto.forEach((a) => {
+    const hidden = data.eventsHidden.includes(a.key);
+    const row = el('div', 'ev-item' + (hidden ? ' is-hidden' : ''));
+    row.appendChild(el('span', 'ev-tag', '자동'));
+    row.appendChild(el('span', 'ev-date', a.dateText));
+    row.appendChild(el('span', 'ev-label', a.label));
+    const x = el('button', 'ev-x', hidden ? '되살리기' : '✕');
+    x.addEventListener('click', () => {
+      data.eventsHidden = hidden
+        ? data.eventsHidden.filter((k) => k !== a.key)
+        : data.eventsHidden.concat(a.key);
+      queueSave(); card.replaceWith(renderEventsCard(S));
+    });
+    row.appendChild(x);
+    autoBox.appendChild(row);
   });
-  if (!(S.events || []).length) {
-    list.appendChild(el('p', 'hint', '다가오는 행사가 없습니다.'));
+  if (auto.length) card.appendChild(autoBox);
+
+  // 수동 추가 목록
+  const list = el('div', 'ev-list');
+  function paint() {
+    list.innerHTML = '';
+    data.eventsAdded.forEach((item, i) => {
+      const row = el('div', 'ev-item ev-manual');
+      const d = el('input', 'ev-date-in'); d.type = 'text'; d.placeholder = '날짜(예: 9월 20일)'; d.value = item.date || '';
+      d.addEventListener('input', () => { item.date = d.value; queueSave(); });
+      const l = el('input', 'ev-label-in'); l.type = 'text'; l.placeholder = '행사 내용'; l.value = item.label || '';
+      l.addEventListener('input', () => { item.label = l.value; queueSave(); });
+      const del = el('button', 'ev-x', '✕');
+      del.addEventListener('click', () => { data.eventsAdded.splice(i, 1); paint(); queueSave(); });
+      row.appendChild(d); row.appendChild(l); row.appendChild(del);
+      list.appendChild(row);
+    });
   }
+  paint();
   card.appendChild(list);
 
-  const note = el('p', 'hint');
-  note.style.margin = '8px 0 0';
-  note.textContent = '연간 행사표에서 자동으로 가져옵니다. 수정은 다음 단계(설정)에서.';
+  const add = el('button', 'btn btn-line btn-wide', '＋ 행사 추가');
+  add.style.marginTop = '8px';
+  add.addEventListener('click', () => { data.eventsAdded.push({ date: '', label: '' }); paint(); queueSave(); });
+  card.appendChild(add);
+
+  const note = el('p', 'hint'); note.style.margin = '8px 0 0';
+  note.textContent = '연간 행사표에서 다가오는 4개를 자동 표시합니다. ✕로 숨기거나 직접 추가할 수 있어요.';
+  card.appendChild(note);
+  return card;
+}
+
+// ── 설교노트 패널 (A-1·A-2) — 제목 수정 + 이미지·본문 선택(#3·#4) ──
+function renderNotePanelCard(S, idx, label) {
+  const card = el('div', 'card');
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, label));
+  h.appendChild(el('span', 'sub', '제목·이미지·본문 선택'));
+  card.appendChild(h);
+
+  const data = bd();
+  data.notePanels = Array.isArray(data.notePanels) ? data.notePanels : [];
+  while (data.notePanels.length <= idx) data.notePanels.push({});
+  const np = data.notePanels[idx];
+
+  // 제목
+  const tf = el('div', 'field');
+  tf.appendChild(el('label', null, '제목'));
+  const ti = el('input'); ti.type = 'text'; ti.placeholder = '설교노트'; ti.value = np.title || '';
+  ti.addEventListener('input', () => { np.title = ti.value; queueSave(); });
+  tf.appendChild(ti); card.appendChild(tf);
+
+  // 이미지 (선택)
+  const wrap = el('div');
+  function paintImg() {
+    wrap.innerHTML = '';
+    if (np.image_data) {
+      const prev = el('div', 'praise-preview'); const im = el('img'); im.src = np.image_data;
+      prev.appendChild(im); wrap.appendChild(prev);
+    }
+    const pick = el('label', 'btn btn-line btn-wide', np.image_data ? '이미지 다시 선택' : '＋ 이미지 업로드 (선택)');
+    const inp = el('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.style.display = 'none';
+    inp.addEventListener('change', async () => {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      pick.childNodes[0] && (pick.childNodes[0].nodeValue = '처리 중…');
+      try { np.image_data = await resizeImageToDataURL(f, 1500, 0.85); queueSave(); paintImg(); }
+      catch (e) { toast('이미지 처리 실패: ' + (e.message || '')); paintImg(); }
+    });
+    pick.appendChild(inp); wrap.appendChild(pick);
+    if (np.image_data) {
+      const del = el('button', 'btn btn-ghost btn-wide', '이미지 지우기'); del.style.marginTop = '6px';
+      del.addEventListener('click', () => { delete np.image_data; queueSave(); paintImg(); });
+      wrap.appendChild(del);
+    }
+  }
+  paintImg(); card.appendChild(wrap);
+
+  // 본문 글 (선택)
+  const bf = el('div', 'field'); bf.style.marginTop = '10px';
+  bf.appendChild(el('label', null, '본문 글 (선택)'));
+  const ta = el('textarea'); ta.rows = 4;
+  ta.placeholder = '내용을 입력하면 빈 줄 대신 이 글이 인쇄됩니다';
+  ta.value = np.text || '';
+  ta.addEventListener('input', () => { np.text = ta.value; queueSave(); });
+  bf.appendChild(ta); card.appendChild(bf);
+
+  const note = el('p', 'hint'); note.style.margin = '4px 0 0';
+  note.textContent = '제목·이미지·본문을 모두 비우면 손글씨용 빈 줄로 인쇄됩니다.';
   card.appendChild(note);
   return card;
 }
