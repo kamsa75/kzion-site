@@ -24,7 +24,6 @@
 }
 .panel{
   padding:var(--panel-pad);
-  border-right:1px dashed var(--line);
   display:flex; flex-direction:column;
   height:100%;
   font-size:10.2pt; line-height:1.45; color:var(--ink);   /* #1 본문 확대 */
@@ -34,7 +33,6 @@
 .nm{display:inline-block; margin-right:0.85em}
 .nm:last-child{margin-right:0}
 .nm2 .nm2a{margin-right:0.26em}
-.panel:last-child{border-right:none}
 
 /* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
 .p-groups{flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0}
@@ -186,5 +184,4 @@
     transform:none!important;
   }
   .sheet-page:last-child{page-break-after:auto}
-  .panel{border-right:1px dashed #ccc}
 }
