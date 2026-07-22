@@ -25,10 +25,15 @@
   padding:var(--panel-pad);
   border-right:1px dashed var(--line);
   display:flex; flex-direction:column;
+  height:100%;
   font-size:9.2pt; line-height:1.4; color:var(--ink);
   overflow:hidden;
 }
 .panel:last-child{border-right:none}
+
+/* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
+.p-groups{flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0}
+.p-group{flex:none}
 
 /* 갈색 제목 바 (실물 주보의 그 바) */
 .p-headbar{
@@ -106,7 +111,8 @@
 .cover-volno{font-weight:800; color:var(--brown)}
 .cover-order-h{text-align:center; font-weight:800; font-size:11pt; margin:7px 0 1px}
 .cover-time{text-align:center; font-size:8pt; color:#555; margin-bottom:5px}
-.cover-order{margin-bottom:5px}
+/* 예배순서가 남은 세로를 채우며 줄간격을 넓힘 → 아래 ※안내·섬기는이들이 바닥으로 */
+.cover-order{flex:1; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:5px; min-height:0}
 .co-row{display:grid; grid-template-columns:66px 1fr; gap:6px; padding:1.6px 0; font-size:8.6pt; align-items:baseline}
 .co-k{font-weight:800; text-align:justify}
 .co-star{color:var(--brown); margin-right:1px}

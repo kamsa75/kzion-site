@@ -179,73 +179,87 @@ function panelNews(S) {
 }
 
 // ── B-2 사랑의나눔 · 토요새벽 · 행사계획 · 지난주헌금 ──
+// 4개 섹션을 그룹으로 묶어 패널 세로를 고르게 채운다(space-between).
 function panelWeeklyInfo(S) {
   const p = panel('p-info');
   p.appendChild(topMotto(S));
 
-  // 사랑의 나눔 (4주)
-  p.appendChild(panelHeadBar('사랑의 나눔'));
+  const groups = PE('div', 'p-groups');   // 남은 세로를 4개 섹션이 고르게 채움
+  p.appendChild(groups);
+  const group = (title, buildInner) => {
+    const g = PE('div', 'p-group');
+    g.appendChild(panelHeadBar(title));
+    buildInner(g);
+    groups.appendChild(g);
+  };
+
   const love = S.loveWindow || [];
-  const lt = PE('table', 'p-grid');
-  const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
-  love.forEach((r) => lhr.appendChild(PE('th', null, fmtMD(r.week))));
-  lt.appendChild(lhr);
-  [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
-    const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
-    love.forEach((r) => tr.appendChild(PE('td', null, r[k] || '')));
-    lt.appendChild(tr);
+
+  // 사랑의 나눔 (4주)
+  group('사랑의 나눔', (g) => {
+    const lt = PE('table', 'p-grid');
+    const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
+    love.forEach((r) => lhr.appendChild(PE('th', null, fmtMD(r.week))));
+    lt.appendChild(lhr);
+    [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
+      const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
+      love.forEach((r) => tr.appendChild(PE('td', null, r[k] || '')));
+      lt.appendChild(tr);
+    });
+    g.appendChild(lt);
   });
-  p.appendChild(lt);
 
   // 토요새벽예배
-  p.appendChild(panelHeadBar('토요새벽예배'));
-  const sat = (S.bulletin && S.bulletin.saturday) || {};
-  const satBox = PE('div', 'p-sat');
-  const st = (S.meta && S.meta.service_times && S.meta.service_times.saturday) || '토요일 오전 7시';
-  satBox.appendChild(PE('div', 'p-sat-when', sat.date ? `${sat.date} · ${st}` : st));
-  [['찬 송', sat.hymn || '다같이'], ['설 교', sat.sermon || ''], ['합심기도', sat.pray || '다같이']]
-    .forEach(([k, v]) => {
-      const r = PE('div', 'p-sat-row');
-      r.appendChild(PE('span', 'p-sat-k', k));
-      r.appendChild(PE('span', 'p-sat-v', v));
-      satBox.appendChild(r);
-    });
-  p.appendChild(satBox);
+  group('토요새벽예배', (g) => {
+    const sat = (S.bulletin && S.bulletin.saturday) || {};
+    const satBox = PE('div', 'p-sat');
+    const st = (S.meta && S.meta.service_times && S.meta.service_times.saturday) || '토요일 오전 7시';
+    satBox.appendChild(PE('div', 'p-sat-when', sat.date ? `${sat.date} · ${st}` : st));
+    [['찬 송', sat.hymn || '다같이'], ['설 교', sat.sermon || ''], ['합심기도', sat.pray || '다같이']]
+      .forEach(([k, v]) => {
+        const r = PE('div', 'p-sat-row');
+        r.appendChild(PE('span', 'p-sat-k', k));
+        r.appendChild(PE('span', 'p-sat-v', v));
+        satBox.appendChild(r);
+      });
+    g.appendChild(satBox);
+  });
 
   // 행사계획
-  p.appendChild(panelHeadBar('행사계획'));
-  const ev = PE('table', 'p-events');
-  (S.events || []).forEach((e) => {
-    const tr = PE('tr');
-    tr.appendChild(PE('td', 'pe-date', fmtMD(e.display_week)));
-    tr.appendChild(PE('td', 'pe-label', e.label));
-    ev.appendChild(tr);
+  group('행사계획', (g) => {
+    const ev = PE('table', 'p-events');
+    (S.events || []).forEach((e) => {
+      const tr = PE('tr');
+      tr.appendChild(PE('td', 'pe-date', fmtMD(e.display_week)));
+      tr.appendChild(PE('td', 'pe-label', e.label));
+      ev.appendChild(tr);
+    });
+    g.appendChild(ev);
   });
-  p.appendChild(ev);
 
   // 지난 주 헌금
   const prevW = love.length >= 2 ? fmtMD(love[love.length - 2].week) : '';
-  p.appendChild(panelHeadBar(`지난 주 헌금 (${prevW})`));
-  const o = (S.bulletin && S.bulletin.offering) || {};
-  const ot = PE('div', 'p-offering');
-  // 문자열(신규)·배열(구버전) 모두 허용 → 두 글자 이름 자동 정렬
-  const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
-  [['감 사', o.thanks], ['십일조', o.tithe], ['주 정', o.weekly], ['선 교', o.mission]]
-    .forEach(([lab, v]) => {
-      const txt = asStr(v).trim();
-      if (!txt) return;
-      const r = PE('div', 'po-row');
-      r.appendChild(PE('span', 'po-k', lab));
-      const val = PE('span', 'po-v');
-      val.appendChild(nameSpans(txt));
-      r.appendChild(val);
-      ot.appendChild(r);
-    });
-  const tot = PE('div', 'po-row po-total');
-  tot.appendChild(PE('span', 'po-k', '합 계'));
-  tot.appendChild(PE('span', 'po-v', o.total ? '$' + o.total : ''));
-  ot.appendChild(tot);
-  p.appendChild(ot);
+  group(`지난 주 헌금 (${prevW})`, (g) => {
+    const o = (S.bulletin && S.bulletin.offering) || {};
+    const ot = PE('div', 'p-offering');
+    const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
+    [['감 사', o.thanks], ['십일조', o.tithe], ['주 정', o.weekly], ['선 교', o.mission]]
+      .forEach(([lab, v]) => {
+        const txt = asStr(v).trim();
+        if (!txt) return;
+        const r = PE('div', 'po-row');
+        r.appendChild(PE('span', 'po-k', lab));
+        const val = PE('span', 'po-v');
+        val.appendChild(nameSpans(txt));
+        r.appendChild(val);
+        ot.appendChild(r);
+      });
+    const tot = PE('div', 'po-row po-total');
+    tot.appendChild(PE('span', 'po-k', '합 계'));
+    tot.appendChild(PE('span', 'po-v', o.total ? '$' + o.total : ''));
+    ot.appendChild(tot);
+    g.appendChild(ot);
+  });
   return p;
 }
 
