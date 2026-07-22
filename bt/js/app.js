@@ -112,8 +112,12 @@ function render() {
     body.appendChild(n);
   }
 
-  body.appendChild(renderOrderCard(S));
+  const oc = renderOrderCard(S); oc.dataset.card = 'order';
+  body.appendChild(oc);
   body.appendChild(renderServeCard(S));
+
+  // 3-5 설교·찬송·성경봉독 (PPT 공유)
+  body.appendChild(renderSermonCard(S));
 
   // 3-2
   body.appendChild(renderNewsCard(S));
@@ -168,6 +172,48 @@ async function doSave() {
 
 // bulletin.data 하위 경로 편의 접근
 function bd() { STATE.bulletin = STATE.bulletin || {}; return STATE.bulletin; }
+
+// ============================================================
+// PPT 공유 필드 저장 (savePastorShared — 병합 저장, B11)
+// ★ PPT가 아는 키만(title·ref·hymn.title) 보낸다. 새 키 금지.
+// ★ 서버가 pastor_inputs.data를 통째로 덮지 않고 지정 키만 병합.
+// ============================================================
+let sharedTimer = null;
+function queueShared() {
+  markSaving();
+  clearTimeout(sharedTimer);
+  sharedTimer = setTimeout(doShared, 700);
+}
+async function doShared() {
+  const p = STATE.pastor || {};
+  const patch = {
+    title: p.title || '',
+    ref: p.ref || '',
+    hymn: { title: (p.hymn && p.hymn.title) || '' },
+  };
+  try {
+    const r = await BT_API.call('savePastorShared', {
+      patch, baseUpdatedAt: STATE.pastorUpdatedAt || undefined,
+    });
+    STATE.pastorUpdatedAt = r.updatedAt;
+    markSaved();
+    refreshPreviews();     // 표지·예배순서 미리보기 갱신
+  } catch (err) {
+    if (err.conflict) {
+      $('#bt-saved').textContent = '';
+      toast('PPT 화면에서 먼저 저장했습니다. 새로고침하세요.');
+      return;
+    }
+    $('#bt-saved').textContent = '';
+    toast('저장 실패: ' + (err.message || ''));
+  }
+}
+// 공유 필드가 바뀌면 표지·예배순서 카드만 다시 그림(입력 포커스 잃지 않게 전체 render는 피함)
+function refreshPreviews() {
+  const S = STATE;
+  const oc = document.getElementById('bt-body').querySelector('[data-card="order"]');
+  if (oc) { const n = renderOrderCard(S); n.dataset.card = 'order'; oc.replaceWith(n); }
+}
 
 // ============================================================
 // 이름 고르기 (§8 — 타이핑 대신 명단 클릭). 헌금자·사랑의나눔 공용.
@@ -244,6 +290,56 @@ function namePicker(opts) {
 
   paintChips();
   return wrap;
+}
+
+// ── 설교·찬송·성경봉독 (PPT 공유 필드, B) ──
+function renderSermonCard(S) {
+  const card = el('div', 'card');
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, '설교 · 찬송'));
+  h.appendChild(el('span', 'badge-ppt', 'PPT와 공유'));
+  card.appendChild(h);
+
+  const p = STATE.pastor = STATE.pastor || {};
+  p.hymn = p.hymn || {};
+
+  // 텍스트 입력 필드 헬퍼 (공유 저장)
+  const addField = (label, hint, getVal, setVal) => {
+    const f = el('div', 'field');
+    const lab = el('label', null, label);
+    if (hint) { const s = el('span', 'hint', '  ' + hint); lab.appendChild(s); }
+    f.appendChild(lab);
+    const inp = el('input'); inp.type = 'text'; inp.value = getVal() || '';
+    inp.addEventListener('input', () => { setVal(inp.value); queueShared(); });
+    f.appendChild(inp);
+    card.appendChild(f);
+    return inp;
+  };
+
+  addField('설교 제목', '', () => p.title, (v) => { p.title = v; });
+  addField('설교 본문 (성경봉독)', '예: 마태복음 10:16', () => p.ref, (v) => { p.ref = v; });
+  addField('찬송 (번호 포함)', '예: 32장 만유의 주재', () => p.hymn.title, (v) => { p.hymn.title = v; });
+
+  // 축도 담당 (주보 전용 — PPT엔 없음). 기본값 = 담임목사
+  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+  const pastorName = (staff.find((r) => r.label === '담임목사') || {}).value || '';
+  const data = bd();
+  const bf = el('div', 'field');
+  const blab = el('label', null, '축도 담당');
+  blab.appendChild(el('span', 'hint', '  비우면 담임목사'));
+  bf.appendChild(blab);
+  const binp = el('input'); binp.type = 'text';
+  binp.placeholder = pastorName ? pastorName + ' (담임목사)' : '';
+  binp.value = data.benediction || '';
+  binp.addEventListener('input', () => { data.benediction = binp.value; queueSave(); });
+  bf.appendChild(binp);
+  card.appendChild(bf);
+
+  const note = el('p', 'hint');
+  note.style.margin = '4px 2px 0';
+  note.textContent = '이 값들은 PPT 화면과 함께 씁니다. 한쪽에서 고치면 양쪽에 반영됩니다.';
+  card.appendChild(note);
+  return card;
 }
 
 // ── 교회소식 (1·2·3 개별 입력창, 추가/삭제 — §9) ──
@@ -449,6 +545,9 @@ function renderOrderCard(S) {
   const hymnTitle = (pastor.hymn && pastor.hymn.title) || '';
   const closing = S.meta?.closing_hymn?.title || '';
   const sermon = pastor.title || '';
+  const staff = S.meta?.staff_panel?.rows || [];
+  const pastorName = (staff.find((r) => r.label === '담임목사') || {}).value || '';
+  const benediction = (S.bulletin && S.bulletin.benediction) || pastorName;
 
   // [문구, 상세, ※여부]
   const rows = [
@@ -465,7 +564,7 @@ function renderOrderCard(S) {
     ['성경봉독', joinPassages(pastor), false],
     ['설교', sermon, false],
     ['찬송', closing, true],
-    ['축도', '', true],
+    ['축도', benediction, true],
   ];
 
   const list = el('div', 'order-list');

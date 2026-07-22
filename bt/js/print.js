@@ -265,6 +265,9 @@ function panelCover(S) {
   const closing = (S.meta && S.meta.closing_hymn && S.meta.closing_hymn.title) || '';
   const offertory = (S.meta && S.meta.offertory_hymn && S.meta.offertory_hymn.title) || '';
   const refs = [pastor.ref].concat(pastor.readings || []).filter(Boolean).join(' · ');
+  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+  const pastorName = (staff.find((r) => r.label === '담임목사') || {}).value || '';
+  const benediction = (S.bulletin && S.bulletin.benediction) || pastorName;
 
   const order = [
     ['예배의 부름', '인도자', false],
@@ -280,7 +283,7 @@ function panelCover(S) {
     ['성경봉독', refs + ' · 다같이', false],
     ['설교', pastor.title || '', false],
     ['찬송', closing + ' · 다같이', true],
-    ['축도', '', true],
+    ['축도', benediction, true],
   ];
   const ol = PE('div', 'cover-order');
   order.forEach(([k, v, star]) => {
