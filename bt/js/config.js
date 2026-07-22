@@ -47,16 +47,22 @@ function orderTitleLabel(S, name) {
   return '';
 }
 // 특송/성가대 줄 — PPT 성가대 섹션(songs, role=choir) 값에서
-//   성가대: "곡명 · 성가대" / 특송: "곡명 · 특송 OOO"
+//   라벨이 이미 '특송'이므로 중복 없이: "곡명 · 성가대" 또는 "곡명 · OOO"
 function choirLine(S) {
   const songs = S.choirSongs || [];
   return songs.map((s) => {
     const nm = (s.name || '').trim();
     const perf = (s.song_performer || s.performer || '').trim();
     const special = (s.song_type || s.songType) === 'special';
-    const tail = special ? ('특송' + (perf ? ' ' + perf : '')) : '성가대';
+    const tail = special ? (perf || '특송') : '성가대';
     return nm ? nm + ' · ' + tail : tail;
   }).filter(Boolean).join(' / ');
+}
+// 그 주 토요일 날짜 'M월 D일' (weekId=일요일 → 전날 토요일, 주보 원본 표기)
+function saturdayOf(S) {
+  const sat = addDaysISO(S.weekId, -1);
+  const [, m, d] = sat.split('-').map(Number);
+  return `${m}월 ${d}일`;
 }
 function pastorNameOf(S) {
   const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
@@ -117,6 +123,7 @@ function autoNewsItems(S) {
   const thisWk = S.weekId;
   const nextWk = addDaysISO(thisWk, 7);
   const hidden = new Set(((S.bulletin && S.bulletin.autoNewsHidden)) || []);
+  const edits = (S.bulletin && S.bulletin.autoNewsEdits) || {};   // 사용자 수정·추가분(#5)
   (S.events || []).forEach((e) => {
     const sundayEvent = !e.event_date;   // 당일이 주일
     let text = null; let key = null;
@@ -132,7 +139,9 @@ function autoNewsItems(S) {
       text = `다음 주일(${fmtMD(e.display_week)})은 ${e.label}${pickJosa(e.label, '이', '가')} 있습니다`;
       key = 'next|' + e.display_week;
     }
-    if (text && !hidden.has(key)) items.push({ key, text });
+    if (!text || hidden.has(key)) return;
+    const shown = edits[key] !== undefined ? edits[key] : text;   // 수정본 우선
+    if (shown.trim()) items.push({ key, text: shown });
   });
   return items;
 }

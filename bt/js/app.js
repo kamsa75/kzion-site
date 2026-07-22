@@ -117,6 +117,7 @@ function render() {
 
   // 3-2
   body.appendChild(renderNewsCard(S));
+  body.appendChild(renderSaturdayCard(S));
   body.appendChild(renderOfferingCard(S));
   body.appendChild(renderLoveCard(S));
   body.appendChild(renderEventsCard(S));
@@ -255,14 +256,24 @@ function renderNewsCard(S) {
 
   const data = bd();
 
-  // 자동 안내 (연간 행사표 기반) — 읽기 전용, 필요 시 숨김
+  // 자동 안내 (연간 행사표 기반) — 미리 채워지되 그 자리에서 수정·추가 가능(#5)
   const auto = autoNewsItems(S);
   if (auto.length) {
+    data.autoNewsEdits = data.autoNewsEdits || {};
     const autoBox = el('div', 'autonews');
     auto.forEach((a) => {
       const row = el('div', 'autonews-item');
       row.appendChild(el('span', 'autonews-tag', '자동'));
-      row.appendChild(el('span', 'autonews-txt', a.text));
+      const ta = el('textarea', 'autonews-input');
+      ta.rows = 1;
+      ta.value = data.autoNewsEdits[a.key] !== undefined ? data.autoNewsEdits[a.key] : a.text;
+      const grow = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
+      ta.addEventListener('input', () => {
+        data.autoNewsEdits[a.key] = ta.value;   // 수정·추가분 저장
+        grow(); queueSave();
+      });
+      setTimeout(grow, 0);
+      row.appendChild(ta);
       const x = el('button', 'autonews-x', '✕');
       x.title = '이 자동 안내 숨기기';
       x.addEventListener('click', () => {
@@ -323,6 +334,49 @@ function renderNewsCard(S) {
   add.style.marginTop = '8px';
   add.addEventListener('click', () => { data.news.push({ title: '', body: '' }); paint(); queueSave(); });
   card.appendChild(add);
+  return card;
+}
+
+// ── 토요새벽예배 (#3 — 날짜 자동, 설교 본문·담당자 입력) ──
+function renderSaturdayCard(S) {
+  const card = el('div', 'card');
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, '토요새벽예배'));
+  card.appendChild(h);
+
+  const data = bd();
+  data.saturday = data.saturday || {};
+  const sat = data.saturday;
+  const pastorName = (S.meta?.staff_panel?.rows || []).find((r) => r.label === '담임목사')?.value || '';
+  const defPreacher = pastorName ? pastorName + ' 목사' : '';
+
+  // 날짜 (자동 · 수정 가능)
+  const df = el('div', 'field');
+  const dl = el('label', null, '날짜');
+  dl.appendChild(el('span', 'hint', '  자동: ' + saturdayOf(S) + ' (비우면 자동)'));
+  df.appendChild(dl);
+  const di = el('input'); di.type = 'text'; di.placeholder = saturdayOf(S) + ' 오전 7시';
+  di.value = sat.date || '';
+  di.addEventListener('input', () => { sat.date = di.value; queueSave(); });
+  df.appendChild(di); card.appendChild(df);
+
+  // 설교 본문
+  const sf = el('div', 'field');
+  sf.appendChild(el('label', null, '설교 본문'));
+  const si = el('input'); si.type = 'text'; si.placeholder = '예: 고린도후서 강해';
+  si.value = sat.sermon || '';
+  si.addEventListener('input', () => { sat.sermon = si.value; queueSave(); });
+  sf.appendChild(si); card.appendChild(sf);
+
+  // 설교 담당자 (기본 담임목사, 수정 가능)
+  const pf = el('div', 'field');
+  const pl = el('label', null, '설교 담당');
+  pl.appendChild(el('span', 'hint', '  비우면 ' + defPreacher));
+  pf.appendChild(pl);
+  const pi = el('input'); pi.type = 'text'; pi.placeholder = defPreacher;
+  pi.value = sat.preacher || '';
+  pi.addEventListener('input', () => { sat.preacher = pi.value; queueSave(); });
+  pf.appendChild(pi); card.appendChild(pf);
   return card;
 }
 

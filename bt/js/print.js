@@ -222,13 +222,18 @@ function panelWeeklyInfo(S) {
     g.appendChild(lt);
   });
 
-  // 토요새벽예배
+  // 토요새벽예배 (#3 — 날짜 자동, 설교 본문·담당자)
   group('토요새벽예배', (g) => {
     const sat = (S.bulletin && S.bulletin.saturday) || {};
     const satBox = PE('div', 'p-sat');
-    const st = (S.meta && S.meta.service_times && S.meta.service_times.saturday) || '토요일 오전 7시';
-    satBox.appendChild(PE('div', 'p-sat-when', sat.date ? `${sat.date} · ${st}` : st));
-    [['찬 송', sat.hymn || '다같이'], ['설 교', sat.sermon || ''], ['합심기도', sat.pray || '다같이']]
+    const date = (sat.date && sat.date.trim()) || (saturdayOf(S) + ' 오전 7시');
+    satBox.appendChild(PE('div', 'p-sat-when', date));
+    const pastorName = ((S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [])
+      .find((r) => r.label === '담임목사');
+    const defPreacher = pastorName ? pastorName.value + ' 목사' : '';
+    const preacher = (sat.preacher && sat.preacher.trim()) || defPreacher;
+    const sermonLine = [sat.sermon, preacher].filter((x) => x && x.trim()).join(' · ');
+    [['찬 송', sat.hymn || '다같이'], ['설 교', sermonLine], ['합심기도', sat.pray || '다같이']]
       .forEach(([k, v]) => {
         const r = PE('div', 'p-sat-row');
         r.appendChild(PE('span', 'p-sat-k', k));
@@ -354,9 +359,12 @@ function panelCover(S) {
   (S.serveWindow || []).forEach((r) => {
     const tr = PE('tr');
     tr.appendChild(PE('th', 'p-grid-rh', fmtMD(r.week)));
-    tr.appendChild(PE('td', null, r.prayer || ''));
-    tr.appendChild(PE('td', null, r.usher || ''));
-    tr.appendChild(PE('td', null, r.offering || ''));
+    // 이름 사이 넓게 + 두 글자 정렬 (#2 — 헌금과 동일)
+    [r.prayer, r.usher, r.offering].forEach((v) => {
+      const td = PE('td', 'nm-cell');
+      td.appendChild(nameSpans(v || ''));
+      tr.appendChild(td);
+    });
     st.appendChild(tr);
   });
   p.appendChild(st);
