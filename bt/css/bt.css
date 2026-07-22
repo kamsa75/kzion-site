@@ -1,0 +1,290 @@
+/* ============================================================
+   주보 엔진 UI — PPT(ppt.css)와 같은 톤. 자체 완결(별도 배포 격리).
+   ============================================================ */
+
+:root{
+  --ui-bg:#F7F6F2;
+  --ui-card:#FFFFFF;
+  --ui-ink:#22262C;
+  --ui-sub:#6E7278;
+  --ui-line:#E4E1D9;
+  --ui-gold:#B08D53;
+  --ui-gold-soft:#F4ECDF;
+  --ui-dark:#14181F;
+  --ui-danger:#C0392B;
+  --ui-ok:#3E7C4F;
+  --ui-warn-bg:#FBF3DA;
+  --ui-warn-ink:#8A6D1E;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ui-bg); color:var(--ui-ink);
+  font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  font-weight:500; line-height:1.5;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+}
+.screen{min-height:100dvh}
+[hidden]{display:none!important}
+
+/* ---------- 버튼 ---------- */
+.btn{
+  font-family:inherit; font-weight:700; font-size:15px;
+  border:1px solid transparent; border-radius:12px;
+  padding:11px 16px; cursor:pointer; -webkit-appearance:none;
+  transition:filter .12s, background .12s;
+}
+.btn:active{filter:brightness(.95)}
+.btn-primary{background:var(--ui-dark); color:#fff}
+.btn-ghost{background:transparent; color:var(--ui-sub); border-color:transparent}
+.btn-line{background:#fff; color:var(--ui-ink); border-color:var(--ui-line)}
+.btn-wide{width:100%}
+.btn:disabled{opacity:.45; cursor:default}
+
+/* ---------- PIN 입장 (PPT와 동일 톤) ---------- */
+.screen-pin{display:flex; align-items:center; justify-content:center; padding:24px}
+.pin-box{
+  width:100%; max-width:360px; background:var(--ui-card);
+  border:1px solid var(--ui-line); border-radius:20px;
+  padding:32px 26px; text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.05);
+}
+.pin-church{color:var(--ui-gold); font-weight:700; font-size:14px; margin:0 0 4px}
+.pin-title{font-size:22px; font-weight:800; margin:0 0 8px}
+.pin-desc{color:var(--ui-sub); font-size:14px; margin:0 0 20px}
+.pin-box input{
+  width:100%; font-family:inherit; font-size:20px; text-align:center;
+  letter-spacing:.3em; padding:13px; border:1px solid var(--ui-line);
+  border-radius:12px; margin-bottom:12px; background:#fff;
+}
+.pin-box input:focus{outline:2px solid var(--ui-gold); outline-offset:0}
+.pin-error{color:var(--ui-danger); font-size:13px; margin:0 0 12px}
+.pin-foot{color:var(--ui-sub); font-size:12px; margin:18px 0 0}
+
+/* ---------- 상단바 ---------- */
+.topbar{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; background:rgba(247,246,242,.92);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--ui-line);
+}
+.topbar-left{display:flex; align-items:center; gap:10px; min-width:0}
+.topbar-title{font-weight:800; font-size:16px}
+.role-chip{
+  font-size:12px; font-weight:700; color:var(--ui-gold);
+  background:var(--ui-gold-soft); padding:3px 9px; border-radius:999px;
+}
+.save-note{font-size:12px; color:var(--ui-ok); font-weight:600}
+
+.main{max-width:720px; margin:0 auto; padding:18px 16px 80px}
+
+/* ---------- 주차 헤더 ---------- */
+.week-head{
+  display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  padding:6px 2px 16px;
+}
+.week-date{font-size:22px; font-weight:800}
+.week-vol{font-size:14px; font-weight:700; color:var(--ui-gold)}
+.week-auto{font-size:11px; color:var(--ui-sub); background:#fff;
+  border:1px solid var(--ui-line); border-radius:999px; padding:2px 8px}
+
+/* ---------- 카드 ---------- */
+.card{
+  background:var(--ui-card); border:1px solid var(--ui-line);
+  border-radius:16px; padding:16px; margin-bottom:14px;
+}
+.card-h{display:flex; align-items:center; gap:8px; margin:0 0 12px}
+.card-h h2{font-size:15px; font-weight:800; margin:0}
+.card-h .sub{font-size:12px; color:var(--ui-sub); font-weight:500}
+.badge-ppt{font-size:11px; font-weight:700; color:#2f6db0;
+  background:#eaf2fb; border-radius:999px; padding:2px 8px}
+
+/* ---------- 입력 필드 ---------- */
+.field{margin-bottom:14px}
+.field > label{display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:var(--ui-ink)}
+.field .hint{font-size:12px; color:var(--ui-sub); font-weight:500}
+.field input[type=text], .field input[type=number], .field textarea, .field select{
+  width:100%; font-family:inherit; font-size:15px; font-weight:500;
+  padding:11px 12px; border:1px solid var(--ui-line); border-radius:12px;
+  background:#fff; color:var(--ui-ink);
+}
+.field input:focus, .field textarea:focus, .field select:focus{
+  outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent;
+}
+.field textarea{resize:vertical; min-height:60px; line-height:1.5}
+
+/* 지난주 값 경고 / PPT 연동 (§6-2) */
+.warn-old{border-color:var(--ui-danger)!important; background:#fdf2f0!important}
+.warn-msg{font-size:12px; color:var(--ui-danger); font-weight:600; margin-top:5px}
+
+/* ---------- 예배순서 ---------- */
+.order-list{display:flex; flex-direction:column; gap:2px}
+.order-row{
+  display:grid; grid-template-columns:104px 1fr; gap:10px; align-items:center;
+  padding:8px 6px; border-radius:9px;
+}
+.order-row + .order-row{border-top:1px solid #f0efe9}
+.order-label{font-weight:700; font-size:14px; color:var(--ui-ink)}
+.order-label .star{color:var(--ui-gold); margin-right:2px}
+.order-detail{font-size:14px; color:var(--ui-sub)}
+.order-detail.filled{color:var(--ui-ink); font-weight:600}
+
+/* ---------- 4주 표 (예배를 섬기는 이들 · 사랑의 나눔) ---------- */
+.grid4{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
+.grid4 th, .grid4 td{border:1px solid var(--ui-line); padding:7px 6px; text-align:center}
+.grid4 thead th{background:var(--ui-gold-soft); font-weight:700; color:var(--ui-ink)}
+.grid4 tbody th{background:#faf9f5; font-weight:700; text-align:left; padding-left:9px; white-space:nowrap}
+.grid4 td.thisweek{background:#fffdf5}
+.grid4 .manual-dot{color:var(--ui-gold); font-size:10px; margin-left:3px}
+
+/* ---------- 성찬식 선제 제안 배너 (§6-4) ---------- */
+.notice{
+  display:flex; gap:10px; align-items:flex-start;
+  background:var(--ui-warn-bg); border:1px solid #EBD9A6; color:var(--ui-warn-ink);
+  border-radius:12px; padding:12px 14px; margin-bottom:14px; font-size:13.5px; font-weight:600;
+}
+.notice .btn{padding:6px 12px; font-size:13px; margin-left:auto; flex:none}
+
+/* ---------- 로딩·토스트 ---------- */
+.center-note{text-align:center; color:var(--ui-sub); padding:60px 20px; font-size:14px}
+.toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  background:var(--ui-dark); color:#fff; font-size:14px; font-weight:600;
+  padding:11px 18px; border-radius:999px; z-index:100; opacity:0;
+  transition:opacity .2s, transform .2s; pointer-events:none;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
+
+/* ---------- 교회소식 ---------- */
+.news-list{display:flex; flex-direction:column; gap:10px}
+.news-item{display:grid; grid-template-columns:26px 1fr 28px; gap:8px; align-items:start}
+.news-num{
+  width:26px; height:26px; border-radius:8px; background:var(--ui-gold-soft);
+  color:var(--ui-gold); font-weight:800; font-size:13px;
+  display:flex; align-items:center; justify-content:center; margin-top:3px;
+}
+.news-fields{display:flex; flex-direction:column; gap:6px; min-width:0}
+.news-title, .news-body{
+  width:100%; font-family:inherit; font-size:14px; padding:9px 11px;
+  border:1px solid var(--ui-line); border-radius:10px; background:#fff;
+}
+.news-title{font-weight:700}
+.news-body{resize:vertical; line-height:1.5}
+.news-title:focus, .news-body:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
+.news-del{
+  border:none; background:transparent; color:var(--ui-sub); font-size:14px;
+  cursor:pointer; margin-top:6px; padding:4px;
+}
+.news-del:active{color:var(--ui-danger)}
+
+/* ---------- 이름 고르기 ---------- */
+.picker{border:1px solid var(--ui-line); border-radius:12px; padding:8px; background:#fff}
+.picker-chips{display:flex; flex-wrap:wrap; gap:6px; min-height:30px; align-items:center; padding:2px}
+.picker-empty{color:var(--ui-sub); font-size:13px; padding:2px 4px}
+.picker-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--ui-gold-soft); color:var(--ui-ink); font-weight:700; font-size:13px;
+  padding:5px 8px 5px 10px; border-radius:999px;
+}
+.picker-x{color:var(--ui-gold); font-size:11px; cursor:pointer; padding:0 1px}
+.picker-open{width:100%; margin-top:6px; padding:9px; font-size:14px}
+.picker-pool{margin-top:8px; border-top:1px solid var(--ui-line); padding-top:8px}
+.picker-search{
+  width:100%; font-family:inherit; font-size:14px; padding:8px 10px;
+  border:1px solid var(--ui-line); border-radius:9px; margin-bottom:8px;
+}
+.picker-search:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
+.picker-grid{display:flex; flex-wrap:wrap; gap:6px; max-height:200px; overflow-y:auto}
+.pool-name{
+  font-family:inherit; font-size:13px; font-weight:600;
+  padding:7px 11px; border:1px solid var(--ui-line); border-radius:999px;
+  background:#fff; color:var(--ui-ink); cursor:pointer;
+}
+.pool-name.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
+.pool-name:active{filter:brightness(.95)}
+
+.love-inputs{margin-top:12px; padding-top:12px; border-top:1px dashed var(--ui-line)}
+
+/* ---------- 행사계획 ---------- */
+.event-list{display:flex; flex-direction:column}
+.event-row{display:grid; grid-template-columns:52px 1fr; gap:10px; padding:7px 2px; align-items:baseline}
+.event-row + .event-row{border-top:1px solid #f0efe9}
+.event-date{font-weight:800; font-size:13px; color:var(--ui-gold)}
+.event-label{font-size:14px}
+
+/* ---------- 4주 표 탭 가능 셀 ---------- */
+.grid4 td.tap{cursor:pointer}
+.grid4 td.tap:active{background:var(--ui-gold-soft)}
+.lock-dot{font-size:10px; margin-left:3px; opacity:.7}
+
+/* ---------- 바텀시트 ---------- */
+.sheet{position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center}
+.sheet-back{position:absolute; inset:0; background:rgba(0,0,0,.35)}
+.sheet-box{
+  position:relative; width:100%; max-width:520px; background:#fff;
+  border-radius:20px 20px 0 0; padding:18px 18px 28px;
+  max-height:86dvh; overflow-y:auto;
+  box-shadow:0 -8px 30px rgba(0,0,0,.15);
+  animation:sheetUp .18s ease;
+}
+@keyframes sheetUp{from{transform:translateY(20px); opacity:.6} to{transform:none; opacity:1}}
+@media (min-width:560px){
+  .sheet{align-items:center}
+  .sheet-box{border-radius:20px; max-height:80dvh}
+}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+#sheet-title{font-weight:800; font-size:16px}
+.sheet-close{border:none; background:transparent; font-size:18px; color:var(--ui-sub); cursor:pointer; padding:4px 6px}
+.sheet-cur{font-size:14px; color:var(--ui-sub); margin:0 0 14px}
+.sheet-cur b{color:var(--ui-ink)}
+
+.sheet-opt{
+  display:flex; flex-direction:column; gap:3px; text-align:left; width:100%;
+  background:#fff; border:1px solid var(--ui-line); border-radius:14px;
+  padding:14px; margin-bottom:10px; cursor:pointer; font-family:inherit;
+}
+.sheet-opt:active{background:var(--ui-gold-soft)}
+.sheet-opt-t{font-weight:700; font-size:15px; color:var(--ui-ink)}
+.sheet-opt-d{font-size:12.5px; color:var(--ui-sub); line-height:1.45}
+
+.switch-row{display:flex; align-items:center; gap:8px; font-weight:500!important; font-size:13.5px}
+.switch-row input{width:18px; height:18px}
+
+/* ---------- 명단 관리 ---------- */
+.roster-title{
+  font-size:12px; font-weight:800; color:var(--ui-gold);
+  margin:14px 0 7px; padding-bottom:4px; border-bottom:1px solid var(--ui-line);
+}
+.roster-names{display:flex; flex-wrap:wrap; gap:7px}
+.roster-name{
+  font-family:inherit; font-size:14px; font-weight:600;
+  padding:8px 13px; border:1px solid var(--ui-line); border-radius:999px;
+  background:#fff; color:var(--ui-ink); cursor:pointer;
+}
+.roster-name:active{background:var(--ui-gold-soft)}
+.roster-name.off{color:var(--ui-sub); background:#f4f3ef}
+.roster-off-tag{font-size:10px; color:var(--ui-sub); margin-left:5px}
+
+/* ---------- 풀 편집 ---------- */
+.pool-edit{border:1px solid var(--ui-line); border-radius:14px; padding:12px; margin-bottom:12px}
+.pool-label{font-weight:800; font-size:14px; margin-bottom:9px}
+.pool-names{display:flex; flex-direction:column; gap:4px}
+.pool-item{display:grid; grid-template-columns:24px 1fr auto auto auto; gap:6px; align-items:center}
+.pool-idx{color:var(--ui-sub); font-size:12px; font-weight:700; text-align:center}
+.pool-nm{font-size:14px; font-weight:600}
+.pool-mv, .pool-rm{
+  border:1px solid var(--ui-line); background:#fff; border-radius:8px;
+  width:32px; height:32px; cursor:pointer; font-size:12px; color:var(--ui-ink);
+}
+.pool-mv:disabled{opacity:.3; cursor:default}
+.pool-rm{color:var(--ui-danger)}
+.pool-mv:active, .pool-rm:active{background:var(--ui-gold-soft)}
+.pool-add{margin-top:10px}
+.pool-add .btn{width:100%; padding:9px; font-size:13.5px}
+
+/* 데스크톱에서 살짝 넓게 */
+@media (min-width:640px){
+  .main{padding-top:22px}
+}

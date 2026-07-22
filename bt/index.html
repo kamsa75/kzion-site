@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>주보 만들기 · 시애틀 시온장로교회</title>
+<link rel="icon" href="../images/cropped-favicon-270x270.png">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="css/bt.css?v=4">
+<link rel="stylesheet" href="css/print.css?v=4">
+</head>
+<body>
+<div id="app">
+
+  <!-- PIN 입장 -->
+  <section id="screen-pin" class="screen screen-pin">
+    <div class="pin-box">
+      <p class="pin-church">시애틀 시온장로교회</p>
+      <h1 class="pin-title">주보 만들기</h1>
+      <p class="pin-desc">담당자용 페이지입니다. 전달받은 PIN을 입력하세요.</p>
+      <form id="pin-form" autocomplete="off">
+        <input id="pin-input" type="password" inputmode="numeric" pattern="[0-9]*"
+               maxlength="8" placeholder="PIN 입력" aria-label="PIN 입력">
+        <p id="pin-error" class="pin-error" hidden>PIN이 올바르지 않습니다. 다시 확인해 주세요.</p>
+        <button type="submit" class="btn btn-primary btn-wide">입장</button>
+      </form>
+      <p class="pin-foot">PIN을 모르시면 관리자에게 문의하세요.</p>
+    </div>
+  </section>
+
+  <!-- 주보 편집 -->
+  <section id="screen-bt" class="screen" hidden>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="btn-nav-back" class="btn btn-ghost" hidden>← 주보</button>
+        <span id="bt-heading" class="topbar-title">주보 만들기</span>
+        <span id="bt-role" class="role-chip"></span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center">
+        <span id="bt-saved" class="save-note"></span>
+        <button id="btn-roster" class="btn btn-ghost">명단·순서</button>
+        <button id="btn-print" class="btn btn-line">미리보기·인쇄</button>
+        <button id="btn-logout" class="btn btn-ghost">로그아웃</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <div id="bt-body">
+        <p class="center-note">불러오는 중…</p>
+      </div>
+    </main>
+  </section>
+
+  <!-- 인쇄 미리보기 (트라이폴드) -->
+  <section id="screen-print" class="screen" hidden>
+    <header class="topbar noprint">
+      <div class="topbar-left">
+        <button id="btn-print-back" class="btn btn-ghost">← 편집</button>
+        <span class="topbar-title">인쇄 미리보기</span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center">
+        <button id="btn-do-print" class="btn btn-primary">인쇄하기</button>
+      </div>
+    </header>
+    <div id="print-gate" class="noprint"></div>
+    <div id="print-root"></div>
+  </section>
+
+</div>
+
+<!-- 로테이션 개입 / 명단 편집 팝업 -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-back"></div>
+  <div class="sheet-box">
+    <div class="sheet-head">
+      <span id="sheet-title">제목</span>
+      <button id="sheet-close" class="sheet-close">✕</button>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/config.js?v=4"></script>
+<script src="js/api.js?v=4"></script>
+<script src="js/print.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
+</body>
+</html>

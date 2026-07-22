@@ -1,0 +1,154 @@
+/* ============================================================
+   주보 인쇄 (트라이폴드 6패널) — legal 14"×8.5" 가로
+   화면 미리보기 = 인쇄 결과 1:1. 별도 파일(편집 UI와 격리).
+   ============================================================ */
+
+/* 한 장 = legal 가로. 3패널 균등. */
+:root{
+  --pg-w:14in; --pg-h:8.5in;
+  --panel-pad:0.32in;
+  --ink:#1a1a1a; --brown:#7a4a1e; --brownbar:#e9dcc9;
+  --line:#c9c2b4;
+}
+
+#print-root{
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+  padding:20px 12px 60px; background:#e7e5df;
+}
+.sheet-page{
+  width:var(--pg-w); height:var(--pg-h);
+  background:#fff; box-shadow:0 4px 16px rgba(0,0,0,.18);
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  overflow:hidden;
+}
+.panel{
+  padding:var(--panel-pad);
+  border-right:1px dashed var(--line);
+  display:flex; flex-direction:column;
+  font-size:9.2pt; line-height:1.4; color:var(--ink);
+  overflow:hidden;
+}
+.panel:last-child{border-right:none}
+
+/* 갈색 제목 바 (실물 주보의 그 바) */
+.p-headbar{
+  text-align:center; font-weight:800; font-size:11pt; color:var(--ink);
+  border-top:2.5px solid var(--brown); border-bottom:2.5px solid var(--brown);
+  padding:3px 0; margin:8px 0 7px; letter-spacing:.02em;
+}
+.p-motto{
+  text-align:center; font-size:8pt; font-weight:700; color:var(--ink);
+  border:1px solid var(--brownbar); background:#fbf6ec;
+  padding:4px 6px; margin-bottom:4px; border-radius:2px;
+}
+
+/* ── 설교노트 ── */
+.p-note .note-lines{display:flex; flex-direction:column; gap:0; margin-top:6px; flex:1}
+.note-line{border-bottom:1px solid #d9d4c8; height:0.3in}
+
+/* ── 예배찬양 + 섬기는사람 + 주소 ── */
+.praise-free{flex:1; display:flex; align-items:center; justify-content:center; min-height:2.4in}
+.praise-empty{color:#aaa; font-size:8.5pt; text-align:center; border:1px dashed var(--line);
+  width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:4px}
+.praise-img{max-width:100%; max-height:3.4in; object-fit:contain}
+.praise-text{font-size:9pt; line-height:1.6; white-space:pre-wrap}
+.serve-box{border:1px solid var(--line); border-radius:3px; margin-top:6px}
+.serve-h{text-align:center; font-weight:800; font-size:9.5pt; background:var(--brownbar);
+  padding:3px; border-bottom:1px solid var(--line)}
+.serve-row{display:flex; justify-content:space-between; padding:3px 8px; font-size:8.5pt;
+  border-bottom:1px solid #eee}
+.serve-row:last-child{border-bottom:none}
+.serve-k{font-weight:700}
+.p-addr{text-align:center; font-size:7.5pt; margin-top:6px; line-height:1.5; color:#333}
+
+/* ── 교회소식 ── */
+.news-print{margin-top:2px}
+.np-item{margin-bottom:8px}
+.np-t{font-weight:800; font-size:9.4pt}
+.np-num{color:var(--ink)}
+.np-b{font-size:8.8pt; line-height:1.45; margin-top:2px; padding-left:12px; color:#222}
+
+/* ── 표(공용) ── */
+.p-grid{width:100%; border-collapse:collapse; font-size:8pt; margin-bottom:4px}
+.p-grid th, .p-grid td{border:1px solid var(--line); padding:2.5px 3px; text-align:center}
+.p-grid th{background:#f4efe6; font-weight:700}
+.p-grid .p-grid-rh{background:#faf7f1; text-align:left; padding-left:5px; white-space:nowrap}
+
+/* 토요새벽 */
+.p-sat{border:1px solid var(--line); border-radius:3px; padding:5px 7px; margin-bottom:4px}
+.p-sat-when{text-align:right; font-size:7.5pt; color:#555; margin-bottom:3px}
+.p-sat-row{display:flex; gap:8px; font-size:8.5pt; padding:1.5px 0}
+.p-sat-k{font-weight:700; width:44px; flex:none}
+
+/* 행사계획 */
+.p-events{width:100%; border-collapse:collapse; font-size:8.2pt; margin-bottom:4px}
+.p-events td{border:1px solid var(--line); padding:2.5px 4px}
+.pe-date{font-weight:800; width:42px; text-align:center; color:var(--brown)}
+
+/* 지난주 헌금 */
+.p-offering{font-size:8.3pt}
+.po-row{display:flex; gap:6px; padding:2px 0; border-bottom:1px solid #eee; align-items:baseline}
+.po-k{font-weight:700; width:40px; flex:none}
+.po-v{flex:1; line-height:1.4}
+.po-total{border-bottom:none; font-weight:800; margin-top:2px}
+
+/* ── 표지 ── */
+.p-cover{background:#fff}
+.cover-head{text-align:center; padding:4px 0 8px; border-bottom:2px solid var(--brown)}
+.cover-ribbon{font-family:Georgia,serif; font-style:italic; font-size:8pt; color:var(--brown)}
+.cover-name{font-size:15pt; font-weight:900; margin:3px 0 1px; letter-spacing:.01em}
+.cover-sub{font-size:8pt; color:#555}
+.cover-meta{display:flex; justify-content:space-between; font-size:7.5pt; margin-top:5px; color:#333}
+.cover-volno{font-weight:800; color:var(--brown)}
+.cover-order-h{text-align:center; font-weight:800; font-size:11pt; margin:7px 0 1px}
+.cover-time{text-align:center; font-size:8pt; color:#555; margin-bottom:5px}
+.cover-order{margin-bottom:5px}
+.co-row{display:grid; grid-template-columns:66px 1fr; gap:6px; padding:1.6px 0; font-size:8.6pt; align-items:baseline}
+.co-k{font-weight:800; text-align:justify}
+.co-star{color:var(--brown); margin-right:1px}
+.co-v{color:#222}
+.cover-note{font-size:7pt; color:#555; text-align:center; border-top:1px dotted var(--line);
+  padding-top:3px; margin-bottom:5px; line-height:1.5}
+.cover-serve-h{text-align:center; font-weight:800; font-size:9.5pt; background:var(--brownbar);
+  padding:3px; margin-bottom:0}
+.cover-serve{margin-top:0}
+
+/* ---------- 인쇄 게이트 (화면 전용) ---------- */
+#print-gate{max-width:760px; margin:14px auto 0; padding:0 16px}
+.gate-box{display:flex; gap:12px; align-items:flex-start; border-radius:12px; padding:14px 16px; font-size:14px}
+.gate-ok{background:#eef6ef; border:1px solid #bfe0c4; color:#2c6b3b; font-weight:600; align-items:center}
+.gate-warn{background:var(--ui-warn-bg,#FBF3DA); border:1px solid #EBD9A6; color:#8A6D1E}
+.gate-ic{font-weight:900; font-size:16px; width:22px; height:22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; flex:none; background:#fff}
+.gate-warn .gate-ic{background:#fff; color:#c99a1e}
+.gate-ok .gate-ic{background:#fff; color:#2c6b3b}
+.gate-list{flex:1}
+.gate-title{font-weight:800; margin-bottom:7px}
+.gate-chip{display:inline-block; background:#fff; border:1px solid #EBD9A6; border-radius:999px;
+  padding:3px 10px; margin:0 5px 5px 0; font-size:12.5px; font-weight:700}
+.gate-override{display:flex; align-items:center; gap:7px; margin-top:6px; font-size:13px; font-weight:600; cursor:pointer}
+.gate-override input{width:17px; height:17px}
+
+/* ---------- 화면에서 축소 보기 (모바일) ---------- */
+@media (max-width:900px){
+  .sheet-page{transform:scale(calc(360 / 1344)); transform-origin:top left;
+    margin-bottom:calc(-8.5in * (1 - 360/1344))}
+}
+
+/* ============================================================
+   인쇄 시 — 편집 UI 전부 숨기고 6패널만
+   ============================================================ */
+@media print{
+  @page{ size:14in 8.5in; margin:0; }
+  html,body{background:#fff!important}
+  .noprint, .topbar, #print-gate, #screen-pin, #screen-bt, #toast, #sheet{display:none!important}
+  #screen-print{display:block!important}
+  #print-root{padding:0; gap:0; background:#fff; display:block}
+  .sheet-page{
+    width:14in; height:8.5in; box-shadow:none; margin:0;
+    page-break-after:always; break-after:page;
+    transform:none!important;
+  }
+  .sheet-page:last-child{page-break-after:auto}
+  .panel{border-right:1px dashed #ccc}
+}
