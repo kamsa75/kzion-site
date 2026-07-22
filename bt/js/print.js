@@ -280,16 +280,42 @@ function panelWeeklyInfo(S) {
 function panelCover(S) {
   const p = panel('p-cover');
   const ci = (S.meta && S.meta.church_info) || {};
-  const motto = (S.meta && S.meta.motto) || {};
+  // 마스트헤드 브랜딩(고정) — 필요 시 meta.masthead로 덮어쓸 수 있게 기본값 제공
+  const mh = (S.meta && S.meta.masthead) || {};
+  const verse = mh.verse || '내게 복을 주어 내 이름을 창대하게 하리니 너는 복이 될지라 (창 12:1-3)';
+  const slogan = mh.slogan || '행복을 전하는 교회';
 
   const head = PE('div', 'cover-head');
-  head.appendChild(PE('div', 'cover-ribbon', 'You will be a BLESSING'));
-  head.appendChild(PE('div', 'cover-name', ci.name || '시애틀 시온장로교회'));
-  head.appendChild(PE('div', 'cover-sub', '행복을 전하는 교회'));
+
+  // 리본
+  const ribbon = PE('div', 'cover-ribbon');
+  ribbon.appendChild(PE('span', 'rib-wave', '〜'));
+  ribbon.appendChild(PE('span', 'rib-txt', 'You will be a BLESSING'));
+  ribbon.appendChild(PE('span', 'rib-wave', '〜'));
+  head.appendChild(ribbon);
+
+  // 로고 + 교회명
+  const brand = PE('div', 'cover-brand');
+  const logo = PE('img', 'cover-logo');
+  logo.src = '../images/cropped-favicon-270x270.png'; logo.alt = '';
+  brand.appendChild(logo);
+  const names = PE('div', 'cover-names');
+  names.appendChild(PE('div', 'cover-name', ci.name || '시애틀 시온장로교회'));
+  names.appendChild(PE('div', 'cover-en', ci.en || 'Korean Zion Presbyterian Church'));
+  brand.appendChild(names);
+  head.appendChild(brand);
+
+  // 슬로건 배지 + 성구
+  const line = PE('div', 'cover-slogan-line');
+  line.appendChild(PE('span', 'cover-badge', slogan));
+  line.appendChild(PE('span', 'cover-verse', verse));
+  head.appendChild(line);
+
+  // www · 권호 · 날짜 바
   const meta = PE('div', 'cover-meta');
   meta.appendChild(PE('span', null, ci.site || 'www.kzion.net'));
   meta.appendChild(PE('span', 'cover-volno', `제 ${S.vol}권 ${S.no}호`));
-  meta.appendChild(PE('span', null, fmtKDate(S.weekId)));
+  meta.appendChild(PE('span', 'cover-date', fmtKDate(S.weekId)));
   head.appendChild(meta);
   p.appendChild(head);
 
