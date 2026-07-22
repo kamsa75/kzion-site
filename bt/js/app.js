@@ -100,6 +100,10 @@ function render() {
   head.appendChild(el('span', 'week-date', fmtKDate(S.weekId)));
   head.appendChild(el('span', 'week-vol', `제 ${S.vol}권 ${S.no}호`));
   head.appendChild(el('span', 'week-auto', '자동 계산'));
+  const reset = el('button', 'week-reset', '↩ 이 주 되돌리기');
+  reset.title = '이 주에 직접 고친 내용을 지우고 자동값(원본)으로 되돌립니다';
+  reset.addEventListener('click', resetWeek);
+  head.appendChild(reset);
   body.appendChild(head);
 
   // ── 성찬식 자동삽입 (§6-4) — 예정 주간이면 설교 뒤에 자동 추가, 이번 주만 뺄 수 있음 ──
@@ -1051,6 +1055,28 @@ function backFromPrint() {
   $('#screen-print').hidden = true;
   $('#screen-bt').hidden = false;
 }
+// 이 주 되돌리기 — 직접 고친 내용(주보 입력 + 이 주 수동 로테이션)을 지우고 자동값으로 복귀(#9)
+async function resetWeek() {
+  const ok = confirm(
+    '이 주에 직접 고친 내용을 모두 지우고 자동 계산값(원본)으로 되돌립니다.\n\n'
+    + '· 예배순서에서 고친 값 · 교회소식 수정 · 성찬식 추가/뺌\n'
+    + '· 헌금 · 사랑의 나눔 · 토요새벽 · 예배찬양 등 직접 입력분\n'
+    + '· 이 주에 바꾼 담당자(기도·안내·봉헌위원)\n\n'
+    + '되돌릴까요?');
+  if (!ok) return;
+  try {
+    // 서버: 이 주 수동 로테이션 초기화 (액션 미배포 시 무시하고 진행)
+    try { await BT_API.call('resetRotations', {}); } catch (e) { /* resetRotations 미배포 등 */ }
+    // 클라: 주보 입력 통째 비움 → 자동값으로 복귀
+    await BT_API.call('saveBulletin', { data: {}, baseUpdatedAt: STATE.bulletinUpdatedAt || undefined });
+    toast('원본으로 되돌렸습니다');
+    await enter();   // 재조회 후 다시 그림
+  } catch (e) {
+    if (e.conflict) { toast('다른 기기에서 먼저 저장했습니다. 새로고침 후 다시 시도하세요.'); return; }
+    toast('되돌리기 실패: ' + (e.message || ''));
+  }
+}
+
 function doPrint() {
   const missing = window.__printMissing || [];
   if (missing.length) {

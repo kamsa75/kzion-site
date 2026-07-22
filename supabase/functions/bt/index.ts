@@ -557,6 +557,16 @@ Deno.serve(async (req) => {
       return json({ ok: true, printedAt: nowIso });
     }
 
+    // ---------- 이 주 수동 로테이션 초기화 (#9 되돌리기) ----------
+    // 이 주에 넣은 수동 배정(이번 주만·안내·사랑나눔·끼워넣기)만 삭제한다.
+    // 인쇄 확정(locked_at)된 것은 건드리지 않고, 앵커(당기기·봉헌 월지정)는 보존한다(로테이션 기준선 보호).
+    case "resetRotations": {
+      const { error } = await db.from("rotation_assignments")
+        .delete().eq("week_id", weekId).eq("is_manual", true).is("locked_at", null);
+      if (error) return json({ error: "로테이션 초기화 실패" }, 500);
+      return json({ ok: true });
+    }
+
     default:
       return json({ error: "알 수 없는 요청" }, 400);
   }
