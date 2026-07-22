@@ -121,6 +121,9 @@ body{
   outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent;
 }
 .field textarea{resize:vertical; min-height:60px; line-height:1.5}
+/* placeholder 또렷하게 — 채워야 할 칸이 잘 보이게(#2) */
+.field input::placeholder, .field textarea::placeholder,
+.news-title::placeholder, .news-body::placeholder{color:#9A8F78; font-weight:500}
 
 /* 지난주 값 경고 / PPT 연동 (§6-2) */
 .warn-old{border-color:var(--ui-danger)!important; background:#fdf2f0!important}
@@ -130,11 +133,12 @@ body{
 .order-list{display:flex; flex-direction:column; gap:2px}
 .order-row{
   display:grid; grid-template-columns:104px 1fr; gap:10px; align-items:center;
-  padding:8px 6px; border-radius:9px;
+  padding:12px 6px; border-radius:9px;
 }
 .order-row + .order-row{border-top:1px solid #f0efe9}
-.order-label{font-weight:700; font-size:14px; color:var(--ui-ink); text-align:justify; text-align-last:justify; text-justify:inter-character}
-.order-label .star{color:var(--ui-gold); margin-right:2px}
+.order-label{font-weight:700; font-size:14px; color:var(--ui-ink); display:flex; align-items:baseline}
+.order-label .star{color:var(--ui-gold); margin-right:2px; flex:none}
+.order-label .order-lab{flex:1; text-align:justify; text-align-last:justify; text-justify:inter-character}   /* ※ 제외, 라벨만 양끝맞춤(#1) */
 .order-detail{font-size:14px; color:var(--ui-sub)}
 .order-detail.filled{color:var(--ui-ink); font-weight:600}
 /* 인라인 편집 입력 */
@@ -142,9 +146,11 @@ body{
   width:100%; font-family:inherit; font-size:14px; font-weight:600; color:var(--ui-ink);
   border:1px solid transparent; border-radius:8px; padding:7px 9px; background:transparent;
 }
-.order-input::placeholder{color:var(--ui-sub); font-weight:500}
+.order-input::placeholder{color:#B08D53; font-weight:700}   /* "입력" 또렷하게(#2) */
+/* 아직 안 채운(빈) 칸은 옅은 경고색으로 눈에 띄게(#2) */
+.order-input:placeholder-shown{background:var(--ui-warn-bg); border-color:#E6D3A0}
 .order-input:hover{background:#faf9f5}
-.order-input:focus{outline:none; background:#fff; border-color:var(--ui-gold)}
+.order-input:focus, .order-input:placeholder-shown:focus{outline:none; background:#fff; border-color:var(--ui-gold)}
 .order-input.is-edited{color:var(--ui-gold-strong,#8A6D1E)}
 .order-input.order-bold{font-weight:800}
 .order-row:has(.order-input:focus){background:#fffdf5; border-radius:9px}
@@ -233,10 +239,10 @@ body{
 }
 .seg-btn.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
 .praise-preview{
-  border:1px solid var(--ui-line); border-radius:12px; background:#faf9f5;
+  border:1px solid var(--ui-line); border-radius:12px; background:#fff;
   padding:8px; margin-bottom:10px; text-align:center;
 }
-.praise-preview img{max-width:100%; max-height:340px; border-radius:6px}
+.praise-preview img{max-width:100%; max-height:460px; border-radius:6px}
 
 /* ---------- 이름 고르기 ---------- */
 .picker{border:1px solid var(--ui-line); border-radius:12px; padding:8px; background:#fff}

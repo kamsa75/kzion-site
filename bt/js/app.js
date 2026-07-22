@@ -102,12 +102,19 @@ function render() {
   head.appendChild(el('span', 'week-auto', '자동 계산'));
   body.appendChild(head);
 
-  // ── 성찬식 선제 제안 (§6-4) ──
+  // ── 성찬식 자동삽입 (§6-4) — 예정 주간이면 설교 뒤에 자동 추가, 이번 주만 뺄 수 있음 ──
   if (S.communionThisWeek) {
+    const hidden = !!bd().hideCommunion;
     const n = el('div', 'notice');
-    n.appendChild(el('span', null, '이번 주는 성찬식이 예정되어 있습니다. 예배순서에 넣을까요?'));
-    const b = el('button', 'btn btn-line', '순서에 추가');
-    b.disabled = true; b.title = '다음 단계에서 연결됩니다';
+    n.appendChild(el('span', null, hidden
+      ? '이번 주는 성찬식 예정 주간입니다 (지금은 순서에서 빠져 있어요).'
+      : '성찬식이 예배순서 「설교」 뒤에 자동 추가되었습니다.'));
+    const b = el('button', 'btn btn-line', hidden ? '순서에 다시 넣기' : '이번 주 순서에서 빼기');
+    b.addEventListener('click', () => {
+      if (hidden) delete bd().hideCommunion; else bd().hideCommunion = true;
+      queueSave();
+      render();
+    });
     n.appendChild(b);
     body.appendChild(n);
   }
@@ -354,6 +361,16 @@ function resizeImageToDataURL(file, maxW, quality) {
       const ctx = cv.getContext('2d');
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);   // 투명 PNG → 흰 배경
       ctx.drawImage(img, 0, 0, w, h);
+      // 크림/누런 종이 배경 → 흰색 정규화 (밝은 픽셀만 흰색으로, 음표·글자는 보존)
+      try {
+        const im = ctx.getImageData(0, 0, w, h);
+        const d = im.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          if (lum > 200) { d[i] = 255; d[i + 1] = 255; d[i + 2] = 255; }
+        }
+        ctx.putImageData(im, 0, 0);
+      } catch (e) { /* 보안상 읽기 불가 시 원본 유지 */ }
       resolve(cv.toDataURL('image/jpeg', quality));
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지를 읽지 못했습니다')); };
@@ -642,7 +659,7 @@ function renderOrderCard(S) {
     const row = el('div', 'order-row');
     const l = el('div', 'order-label');
     if (r.star) l.appendChild(el('span', 'star', '※'));
-    l.appendChild(document.createTextNode(r.label));
+    l.appendChild(el('span', 'order-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤(#1)
     row.appendChild(l);
 
     const inp = el('input', 'order-input' + (r.overridden ? ' is-edited' : '') + (r.bold ? ' order-bold' : ''));

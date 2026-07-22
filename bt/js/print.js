@@ -247,7 +247,7 @@ function panelWeeklyInfo(S) {
 
   // 사랑의 나눔 (4주)
   group('사랑의 나눔', (g) => {
-    const lt = PE('table', 'p-grid');
+    const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
     love.forEach((r) => lhr.appendChild(PE('th', null, fmtMD(r.week))));
     lt.appendChild(lhr);
@@ -364,7 +364,7 @@ function panelCover(S) {
     const row = PE('div', 'co-row');
     const kk = PE('span', 'co-k');
     if (r.star) kk.appendChild(PE('span', 'co-star', '※'));
-    kk.appendChild(document.createTextNode(r.label));
+    kk.appendChild(PE('span', 'co-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤(#1)
     row.appendChild(kk);
     row.appendChild(PE('span', 'co-v' + (r.bold ? ' co-v-bold' : ''), r.detail || ''));
     ol.appendChild(row);

@@ -89,6 +89,7 @@ function buildOrderRows(S) {
     news: '인도자',
     reading: p.ref || '',
     sermon: p.title || '',
+    communion: '다같이',
     closing: (meta.closing_hymn && meta.closing_hymn.title) || '',
     benediction: pastorNameOf(S),
   };
@@ -108,6 +109,11 @@ function buildOrderRows(S) {
     { id: 'closing', label: '찬송', star: true },
     { id: 'benediction', label: '축도', star: true },
   ];
+  // 성찬식 = 성찬식 예정 주간이면 설교 뒤에 자동삽입(§6-4). 이번 주만 빼면 hideCommunion.
+  if (S.communionThisWeek && !(S.bulletin && S.bulletin.hideCommunion)) {
+    const si = rows.findIndex((r) => r.id === 'sermon');
+    rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
+  }
   return rows.map((r) => ({
     id: r.id, label: r.label, star: !!r.star,
     bold: r.id === 'sermon',   // 설교 제목 자동 볼드(#4)
