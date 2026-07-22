@@ -89,7 +89,11 @@
 .p-offering{font-size:8.3pt}
 .po-row{display:flex; gap:6px; padding:2px 0; border-bottom:1px solid #eee; align-items:baseline}
 .po-k{font-weight:700; width:40px; flex:none}
-.po-v{flex:1; line-height:1.4}
+.po-v{flex:1; line-height:1.55}
+/* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
+.po-v .nm{display:inline-block; margin-right:0.85em}
+.po-v .nm:last-child{margin-right:0}
+.po-v .nm2 .nm2a{margin-right:0.28em}
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
 /* ── 표지 ── */
