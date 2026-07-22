@@ -101,14 +101,38 @@
 .po-v .nm2 .nm2a{margin-right:0.28em}
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
-/* ── 표지 ── */
+/* ── 표지 마스트헤드 ── */
+:root{ --orange:#E08A2E; --navy:#1f3a5f; }
 .p-cover{background:#fff}
-.cover-head{text-align:center; padding:4px 0 8px; border-bottom:2px solid var(--brown)}
-.cover-ribbon{font-family:Georgia,serif; font-style:italic; font-size:8pt; color:var(--brown)}
-.cover-name{font-size:15pt; font-weight:900; margin:3px 0 1px; letter-spacing:.01em}
-.cover-sub{font-size:8pt; color:#555}
-.cover-meta{display:flex; justify-content:space-between; font-size:7.5pt; margin-top:5px; color:#333}
-.cover-volno{font-weight:800; color:var(--brown)}
+.cover-head{text-align:center; padding:2px 0 6px}
+/* 리본 */
+.cover-ribbon{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:3px}
+.cover-ribbon .rib-txt{
+  font-family:Georgia,'Times New Roman',serif; font-style:italic; font-weight:700;
+  font-size:9pt; color:var(--orange); letter-spacing:.06em; white-space:nowrap;
+}
+.cover-ribbon .rib-wave{color:var(--orange); font-size:10pt; opacity:.8}
+/* 로고 + 교회명 */
+.cover-brand{display:flex; align-items:center; justify-content:center; gap:8px; margin:1px 0 2px}
+.cover-logo{width:26px; height:26px; object-fit:contain}
+.cover-names{text-align:left}
+.cover-name{font-size:16pt; font-weight:900; color:var(--navy); letter-spacing:.01em; line-height:1.05}
+.cover-en{font-size:6.5pt; font-weight:600; color:#8a8a8a; letter-spacing:.02em}
+/* 슬로건 배지 + 성구 */
+.cover-slogan-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:4px 0 5px}
+.cover-badge{
+  font-size:7pt; font-weight:800; color:#fff; background:var(--orange);
+  padding:2px 9px; border-radius:999px; white-space:nowrap; flex:none;
+}
+.cover-verse{font-size:6.6pt; color:#666; line-height:1.3; text-align:left}
+/* www · 권호 · 날짜 바 */
+.cover-meta{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:7.5pt; color:#333; padding:3px 2px;
+  border-top:2px solid var(--orange); border-bottom:2px solid var(--orange);
+}
+.cover-volno{font-weight:800; color:var(--navy)}
+.cover-date{font-weight:800; color:var(--orange)}
 .cover-order-h{text-align:center; font-weight:800; font-size:11pt; margin:7px 0 1px}
 .cover-time{text-align:center; font-size:8pt; color:#555; margin-bottom:5px}
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘 → 아래 ※안내·섬기는이들이 바닥으로 */
