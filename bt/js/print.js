@@ -164,14 +164,27 @@ function panelNews(S) {
   p.appendChild(topMotto(S));
   p.appendChild(panelHeadBar('교/회/소/식'));
   const list = PE('div', 'news-print');
-  const news = (S.bulletin && S.bulletin.news) || [];
-  news.filter((n) => n.title || n.body).forEach((n, i) => {
+  let n = 0;
+  // 자동 안내 먼저 (연간 행사표 기반)
+  autoNewsItems(S).forEach((a) => {
+    n += 1;
     const item = PE('div', 'np-item');
     const t = PE('div', 'np-t');
-    t.appendChild(PE('span', 'np-num', (i + 1) + '.'));
-    t.appendChild(PE('span', null, ' ' + (n.title || '')));
+    t.appendChild(PE('span', 'np-num', n + '.'));
+    t.appendChild(PE('span', null, ' ' + a.text));
     item.appendChild(t);
-    if (n.body) item.appendChild(PE('div', 'np-b', n.body));
+    list.appendChild(item);
+  });
+  // 수동 소식
+  const news = (S.bulletin && S.bulletin.news) || [];
+  news.filter((x) => x.title || x.body).forEach((x) => {
+    n += 1;
+    const item = PE('div', 'np-item');
+    const t = PE('div', 'np-t');
+    t.appendChild(PE('span', 'np-num', n + '.'));
+    t.appendChild(PE('span', null, ' ' + (x.title || '')));
+    item.appendChild(t);
+    if (x.body) item.appendChild(PE('div', 'np-b', x.body));
     list.appendChild(item);
   });
   p.appendChild(list);

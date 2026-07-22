@@ -342,7 +342,7 @@ function renderSermonCard(S) {
   return card;
 }
 
-// ── 교회소식 (1·2·3 개별 입력창, 추가/삭제 — §9) ──
+// ── 교회소식 (자동 안내 + 수동 소식, §9 + A안) ──
 function renderNewsCard(S) {
   const card = el('div', 'card');
   const h = el('div', 'card-h');
@@ -350,6 +350,36 @@ function renderNewsCard(S) {
   card.appendChild(h);
 
   const data = bd();
+
+  // 자동 안내 (연간 행사표 기반) — 읽기 전용, 필요 시 숨김
+  const auto = autoNewsItems(S);
+  if (auto.length) {
+    const autoBox = el('div', 'autonews');
+    auto.forEach((a) => {
+      const row = el('div', 'autonews-item');
+      row.appendChild(el('span', 'autonews-tag', '자동'));
+      row.appendChild(el('span', 'autonews-txt', a.text));
+      const x = el('button', 'autonews-x', '✕');
+      x.title = '이 자동 안내 숨기기';
+      x.addEventListener('click', () => {
+        data.autoNewsHidden = (data.autoNewsHidden || []).concat(a.key);
+        queueSave();
+        card.replaceWith(renderNewsCard(S));
+      });
+      row.appendChild(x);
+      autoBox.appendChild(row);
+    });
+    card.appendChild(autoBox);
+  }
+  // 숨긴 자동 안내 되살리기
+  if ((data.autoNewsHidden || []).length) {
+    const restore = el('button', 'autonews-restore', '숨긴 자동 안내 되살리기');
+    restore.addEventListener('click', () => {
+      data.autoNewsHidden = []; queueSave(); card.replaceWith(renderNewsCard(S));
+    });
+    card.appendChild(restore);
+  }
+
   data.news = Array.isArray(data.news) ? data.news : [];
   if (!data.news.length) data.news.push({ title: '', body: '' });
 
