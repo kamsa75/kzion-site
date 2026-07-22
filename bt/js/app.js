@@ -545,7 +545,7 @@ function renderOrderCard(S) {
     l.appendChild(document.createTextNode(r.label));
     row.appendChild(l);
 
-    const inp = el('input', 'order-input' + (r.overridden ? ' is-edited' : ''));
+    const inp = el('input', 'order-input' + (r.overridden ? ' is-edited' : '') + (r.bold ? ' order-bold' : ''));
     inp.type = 'text';
     inp.value = r.detail || '';
     inp.placeholder = '입력';
