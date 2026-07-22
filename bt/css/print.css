@@ -26,9 +26,13 @@
   border-right:1px dashed var(--line);
   display:flex; flex-direction:column;
   height:100%;
-  font-size:9.2pt; line-height:1.4; color:var(--ink);
+  font-size:10.2pt; line-height:1.45; color:var(--ink);   /* #1 본문 확대 */
   overflow:hidden;
 }
+/* 이름 목록 공통(헌금·섬기는이들): 이름 사이 넓게 / 두 글자 안쪽 좁게 (#2) */
+.nm{display:inline-block; margin-right:0.85em}
+.nm:last-child{margin-right:0}
+.nm2 .nm2a{margin-right:0.26em}
 .panel:last-child{border-right:none}
 
 /* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
@@ -37,12 +41,12 @@
 
 /* 갈색 제목 바 (실물 주보의 그 바) */
 .p-headbar{
-  text-align:center; font-weight:800; font-size:11pt; color:var(--ink);
+  text-align:center; font-weight:800; font-size:11.5pt; color:var(--ink);
   border-top:2.5px solid var(--brown); border-bottom:2.5px solid var(--brown);
   padding:3px 0; margin:8px 0 7px; letter-spacing:.02em;
 }
 .p-motto{
-  text-align:center; font-size:8pt; font-weight:700; color:var(--ink);
+  text-align:center; font-size:8.8pt; font-weight:700; color:var(--ink);
   border:1px solid var(--brownbar); background:#fbf6ec;
   padding:4px 6px; margin-bottom:4px; border-radius:2px;
 }
@@ -58,47 +62,44 @@
 .praise-img{max-width:100%; max-height:3.4in; object-fit:contain}
 .praise-text{font-size:9pt; line-height:1.6; white-space:pre-wrap}
 .serve-box{border:1px solid var(--line); border-radius:3px; margin-top:6px}
-.serve-h{text-align:center; font-weight:800; font-size:9.5pt; background:var(--brownbar);
+.serve-h{text-align:center; font-weight:800; font-size:10.5pt; background:var(--brownbar);
   padding:3px; border-bottom:1px solid var(--line)}
-.serve-row{display:flex; justify-content:space-between; padding:3px 8px; font-size:8.5pt;
+.serve-row{display:flex; justify-content:space-between; padding:4px 8px; font-size:9.5pt;
   border-bottom:1px solid #eee}
 .serve-row:last-child{border-bottom:none}
 .serve-k{font-weight:700}
-.p-addr{text-align:center; font-size:7.5pt; margin-top:6px; line-height:1.5; color:#333}
+.p-addr{text-align:center; font-size:8.4pt; margin-top:6px; line-height:1.5; color:#333}
 
 /* ── 교회소식 ── */
 .news-print{margin-top:2px}
 .np-item{margin-bottom:8px}
-.np-t{font-weight:800; font-size:9.4pt}
+.np-t{font-weight:800; font-size:10.4pt}
 .np-num{color:var(--ink)}
-.np-b{font-size:8.8pt; line-height:1.45; margin-top:2px; padding-left:12px; color:#222}
+.np-b{font-size:9.8pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#222}
 
 /* ── 표(공용) ── */
-.p-grid{width:100%; border-collapse:collapse; font-size:8pt; margin-bottom:4px}
+.p-grid{width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:4px}
 .p-grid th, .p-grid td{border:1px solid var(--line); padding:2.5px 3px; text-align:center}
 .p-grid th{background:#f4efe6; font-weight:700}
 .p-grid .p-grid-rh{background:#faf7f1; text-align:left; padding-left:5px; white-space:nowrap}
 
 /* 토요새벽 */
 .p-sat{border:1px solid var(--line); border-radius:3px; padding:5px 7px; margin-bottom:4px}
-.p-sat-when{text-align:right; font-size:7.5pt; color:#555; margin-bottom:3px}
-.p-sat-row{display:flex; gap:8px; font-size:8.5pt; padding:1.5px 0}
+.p-sat-when{text-align:right; font-size:8.4pt; color:#555; margin-bottom:3px}
+.p-sat-row{display:flex; gap:8px; font-size:9.5pt; padding:2px 0}
 .p-sat-k{font-weight:700; width:44px; flex:none}
 
 /* 행사계획 */
-.p-events{width:100%; border-collapse:collapse; font-size:8.2pt; margin-bottom:4px}
+.p-events{width:100%; border-collapse:collapse; font-size:9.2pt; margin-bottom:4px}
 .p-events td{border:1px solid var(--line); padding:2.5px 4px}
 .pe-date{font-weight:800; width:42px; text-align:center; color:var(--brown)}
 
 /* 지난주 헌금 */
-.p-offering{font-size:8.3pt}
+.p-offering{font-size:9.5pt}
 .po-row{display:flex; gap:6px; padding:2px 0; border-bottom:1px solid #eee; align-items:baseline}
 .po-k{font-weight:700; width:40px; flex:none}
 .po-v{flex:1; line-height:1.55}
 /* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
-.po-v .nm{display:inline-block; margin-right:0.85em}
-.po-v .nm:last-child{margin-right:0}
-.po-v .nm2 .nm2a{margin-right:0.28em}
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
 /* ── 표지 마스트헤드 ── */
@@ -134,16 +135,16 @@
 .cover-volno{font-weight:800; color:var(--navy)}
 .cover-date{font-weight:800; color:var(--orange)}
 .cover-order-h{text-align:center; font-weight:800; font-size:11pt; margin:7px 0 1px}
-.cover-time{text-align:center; font-size:8pt; color:#555; margin-bottom:5px}
+.cover-time{text-align:center; font-size:8.6pt; color:#555; margin-bottom:5px}
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘 → 아래 ※안내·섬기는이들이 바닥으로 */
 .cover-order{flex:1; display:flex; flex-direction:column; justify-content:space-between; margin-bottom:5px; min-height:0}
-.co-row{display:grid; grid-template-columns:66px 1fr; gap:6px; padding:1.6px 0; font-size:8.6pt; align-items:baseline}
+.co-row{display:grid; grid-template-columns:70px 1fr; gap:6px; padding:2.4px 0; font-size:9.6pt; align-items:baseline}
 .co-k{font-weight:800; text-align:justify}
 .co-star{color:var(--brown); margin-right:1px}
 .co-v{color:#222}
 .cover-note{font-size:7pt; color:#555; text-align:center; border-top:1px dotted var(--line);
   padding-top:3px; margin-bottom:5px; line-height:1.5}
-.cover-serve-h{text-align:center; font-weight:800; font-size:9.5pt; background:var(--brownbar);
+.cover-serve-h{text-align:center; font-weight:800; font-size:10.3pt; background:var(--brownbar);
   padding:3px; margin-bottom:0}
 .cover-serve{margin-top:0}
 
