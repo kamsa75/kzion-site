@@ -110,6 +110,7 @@ function buildOrderRows(S) {
   ];
   return rows.map((r) => ({
     id: r.id, label: r.label, star: !!r.star,
+    bold: r.id === 'sermon',   // 설교 제목 자동 볼드(#4)
     detail: (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]),
     overridden: ov[r.id] !== undefined,
   }));

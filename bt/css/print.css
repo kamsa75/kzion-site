@@ -7,8 +7,9 @@
 :root{
   --pg-w:14in; --pg-h:8.5in;
   --panel-pad:0.32in;
-  --ink:#1a1a1a; --brown:#7a4a1e; --brownbar:#e9dcc9;
-  --line:#c9c2b4;
+  --ink:#242424; --brown:#7a4a1e;
+  --apricot:#FBEFE2; --apricot-line:#ECD9C4;
+  --line:#E4DDCF;
 }
 
 #print-root{
@@ -41,14 +42,14 @@
 
 /* 갈색 제목 바 (실물 주보의 그 바) */
 .p-headbar{
-  text-align:center; font-weight:800; font-size:11.5pt; color:var(--ink);
-  border-top:2.5px solid var(--brown); border-bottom:2.5px solid var(--brown);
-  padding:3px 0; margin:8px 0 7px; letter-spacing:.02em;
+  text-align:center; font-weight:800; font-size:11pt; color:#6e461f;
+  background:var(--apricot); border:1px solid var(--apricot-line);
+  border-radius:4px; padding:4px 0; margin:9px 0 7px; letter-spacing:.03em;
 }
 .p-motto{
-  text-align:center; font-size:8.8pt; font-weight:700; color:var(--ink);
-  border:1px solid var(--brownbar); background:#fbf6ec;
-  padding:4px 6px; margin-bottom:4px; border-radius:2px;
+  text-align:center; font-size:8.6pt; font-weight:600; color:#5c5040;
+  border:1px solid var(--apricot-line); background:#FCF6EE;
+  padding:4px 6px; margin-bottom:4px; border-radius:3px;
 }
 
 /* ── 설교노트 ── */
@@ -61,11 +62,11 @@
   width:100%; height:100%; display:flex; align-items:center; justify-content:center; border-radius:4px}
 .praise-img{max-width:100%; max-height:3.4in; object-fit:contain}
 .praise-text{font-size:9pt; line-height:1.6; white-space:pre-wrap}
-.serve-box{border:1px solid var(--line); border-radius:3px; margin-top:6px}
-.serve-h{text-align:center; font-weight:800; font-size:10.5pt; background:var(--brownbar);
-  padding:3px; border-bottom:1px solid var(--line)}
-.serve-row{display:flex; justify-content:space-between; padding:4px 8px; font-size:9.5pt;
-  border-bottom:1px solid #eee}
+.serve-box{border:1px solid var(--line); border-radius:5px; margin-top:6px; overflow:hidden}
+.serve-h{text-align:center; font-weight:800; font-size:10pt; color:#6e461f; background:var(--apricot);
+  padding:4px; border-bottom:1px solid var(--apricot-line)}
+.serve-row{display:flex; justify-content:space-between; padding:4px 9px; font-size:9.5pt;
+  border-bottom:1px solid #f1ece2}
 .serve-row:last-child{border-bottom:none}
 .serve-k{font-weight:700}
 .p-addr{text-align:center; font-size:8.4pt; margin-top:6px; line-height:1.5; color:#333}
@@ -79,24 +80,26 @@
 
 /* ── 표(공용) ── */
 .p-grid{width:100%; border-collapse:collapse; font-size:9pt; margin-bottom:4px}
-.p-grid th, .p-grid td{border:1px solid var(--line); padding:2.5px 3px; text-align:center}
-.p-grid th{background:#f4efe6; font-weight:700}
-.p-grid .p-grid-rh{background:#faf7f1; text-align:left; padding-left:5px; white-space:nowrap}
+.p-grid th, .p-grid td{border:1px solid var(--line); padding:3px 4px; text-align:center}
+.p-grid th{background:var(--apricot); font-weight:700; color:#6e461f}
+.p-grid .p-grid-rh{background:#FCF6EE; text-align:left; padding-left:6px; white-space:nowrap; font-weight:700}
 
 /* 토요새벽 */
-.p-sat{border:1px solid var(--line); border-radius:3px; padding:5px 7px; margin-bottom:4px}
-.p-sat-when{text-align:right; font-size:8.4pt; color:#555; margin-bottom:3px}
-.p-sat-row{display:flex; gap:8px; font-size:9.5pt; padding:2px 0}
+.p-sat{padding:2px 2px 0; margin-bottom:4px}
+.p-sat-when{text-align:right; font-size:8.4pt; color:#7a6f60; margin-bottom:3px}
+.p-sat-row{display:flex; gap:10px; font-size:9.5pt; padding:2.5px 2px; border-bottom:1px solid #f1ece2}
+.p-sat-row:last-child{border-bottom:none}
 .p-sat-k{font-weight:700; width:44px; flex:none}
 
 /* 행사계획 */
 .p-events{width:100%; border-collapse:collapse; font-size:9.2pt; margin-bottom:4px}
-.p-events td{border:1px solid var(--line); padding:2.5px 4px}
+.p-events td{border:1px solid var(--line); padding:3.5px 5px}
+.p-events tr:nth-child(even) td{background:#FCF8F2}
 .pe-date{font-weight:800; width:42px; text-align:center; color:var(--brown)}
 
 /* 지난주 헌금 */
 .p-offering{font-size:9.5pt}
-.po-row{display:flex; gap:6px; padding:2px 0; border-bottom:1px solid #eee; align-items:baseline}
+.po-row{display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #f1ece2; align-items:baseline}
 .po-k{font-weight:700; width:40px; flex:none}
 .po-v{flex:1; line-height:1.55}
 /* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
@@ -114,23 +117,20 @@
 }
 .cover-ribbon .rib-wave{color:var(--orange); font-size:10pt; opacity:.8}
 /* 로고 + 교회명 */
-.cover-brand{display:flex; align-items:center; justify-content:center; gap:8px; margin:1px 0 2px}
-.cover-logo{width:26px; height:26px; object-fit:contain}
-.cover-names{text-align:left}
-.cover-name{font-size:16pt; font-weight:900; color:var(--navy); letter-spacing:.01em; line-height:1.05}
-.cover-en{font-size:6.5pt; font-weight:600; color:#8a8a8a; letter-spacing:.02em}
-/* 슬로건 배지 + 성구 */
-.cover-slogan-line{display:flex; align-items:center; justify-content:center; gap:7px; margin:4px 0 5px}
+.cover-name{font-size:17pt; font-weight:900; color:var(--navy); letter-spacing:.01em; line-height:1.08; text-align:center; margin-top:1px}
+.cover-en{font-size:6.8pt; font-weight:600; color:#9a9a9a; letter-spacing:.03em; text-align:center}
+/* 슬로건 배지 + 성구 (#3 — 배지 아래 성구) */
 .cover-badge{
-  font-size:7pt; font-weight:800; color:#fff; background:var(--orange);
-  padding:2px 9px; border-radius:999px; white-space:nowrap; flex:none;
+  display:inline-block; font-size:7pt; font-weight:800; color:#fff; background:var(--orange);
+  padding:2px 10px; border-radius:999px; margin:5px auto 3px; text-align:center;
 }
-.cover-verse{font-size:6.6pt; color:#666; line-height:1.3; text-align:left}
+.cover-head{text-align:center}
+.cover-verse{display:block; font-size:7.2pt; color:#6a6152; line-height:1.35; text-align:center; margin-bottom:4px}
 /* www · 권호 · 날짜 바 */
 .cover-meta{
   display:flex; justify-content:space-between; align-items:center;
-  font-size:7.5pt; color:#333; padding:3px 2px;
-  border-top:2px solid var(--orange); border-bottom:2px solid var(--orange);
+  font-size:8pt; color:#3a3a3a; padding:4px 2px;
+  border-top:1.5px solid var(--orange); border-bottom:1.5px solid var(--orange);
 }
 .cover-volno{font-weight:800; color:var(--navy)}
 .cover-date{font-weight:800; color:var(--orange)}
@@ -142,10 +142,11 @@
 .co-k{font-weight:800; text-align:justify}
 .co-star{color:var(--brown); margin-right:1px}
 .co-v{color:#222}
-.cover-note{font-size:7pt; color:#555; text-align:center; border-top:1px dotted var(--line);
-  padding-top:3px; margin-bottom:5px; line-height:1.5}
-.cover-serve-h{text-align:center; font-weight:800; font-size:10.3pt; background:var(--brownbar);
-  padding:3px; margin-bottom:0}
+.co-v-bold{font-weight:800; color:#111}
+.cover-note{font-size:7.6pt; color:#6a6152; text-align:center; border-top:1px solid #efe7da;
+  padding-top:4px; margin-bottom:5px; line-height:1.5}
+.cover-serve-h{text-align:center; font-weight:800; font-size:10pt; color:#6e461f; background:var(--apricot);
+  border:1px solid var(--apricot-line); border-bottom:none; border-radius:5px 5px 0 0; padding:4px; margin-bottom:0}
 .cover-serve{margin-top:0}
 
 /* ---------- 인쇄 게이트 (화면 전용) ---------- */
