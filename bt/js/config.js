@@ -32,6 +32,83 @@ function pickJosa(text, withBatchim, without) {
   if (c >= 0xAC00 && c <= 0xD7A3) return ((c - 0xAC00) % 28 !== 0) ? withBatchim : without;
   return without;
 }
+// 직분 표기 (§8·B9) — 대표기도 이름 뒤 직분. 명단 title → 주보 표기
+function orderTitleLabel(S, name) {
+  if (!name) return '';
+  const m = (S.members || []).find((x) => x.name === name);
+  const t = (m && m.title) || '';
+  if (t.indexOf('목사') >= 0) return '목사';
+  if (t.indexOf('전도사') >= 0) return '전도사';
+  if (t.indexOf('간사') >= 0) return '간사';
+  if (t.indexOf('장로') >= 0) return '장로';      // 시무장로·장로·명예장로
+  if (t.indexOf('안수집사') >= 0) return '집사';
+  if (t.indexOf('권사') >= 0) return '권사';       // 권사·명예권사
+  if (t.indexOf('서리집사') >= 0) return '집사';
+  return '';
+}
+// 특송/성가대 줄 — PPT 성가대 섹션(songs, role=choir) 값에서
+//   성가대: "곡명 · 성가대" / 특송: "곡명 · 특송 OOO"
+function choirLine(S) {
+  const songs = S.choirSongs || [];
+  return songs.map((s) => {
+    const nm = (s.name || '').trim();
+    const perf = (s.song_performer || s.performer || '').trim();
+    const special = (s.song_type || s.songType) === 'special';
+    const tail = special ? ('특송' + (perf ? ' ' + perf : '')) : '성가대';
+    return nm ? nm + ' · ' + tail : tail;
+  }).filter(Boolean).join(' / ');
+}
+function pastorNameOf(S) {
+  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+  return (staff.find((r) => r.label === '담임목사') || {}).value || '';
+}
+// 예배순서 행 — app(편집)·print(인쇄) 공용. detail = 사용자 오버라이드 ?? 자동 기본값
+function buildOrderRows(S) {
+  const p = S.pastor || {};
+  const meta = S.meta || {};
+  const tw = (S.serveWindow || [])[0] || {};
+  const ov = (S.bulletin && S.bulletin.orderOverrides) || {};
+  const prayerName = p.prayer || tw.prayer || '';
+  const pt = orderTitleLabel(S, prayerName);
+  const defaults = {
+    call: '인도자',
+    creed: '사도신경 · 다같이',
+    praise: '(인도: 블레싱) · 다같이',
+    together: '다같이',
+    blessing: '다음 세대를 향한 축복 · 다같이',
+    hymn: (p.hymn && p.hymn.title) || '',
+    prayer: prayerName ? (prayerName + (pt ? ' ' + pt : '')) : '',
+    special: choirLine(S),
+    offering: (meta.offertory_hymn && meta.offertory_hymn.title) || '',
+    news: '인도자',
+    reading: p.ref || '',
+    sermon: p.title || '',
+    closing: (meta.closing_hymn && meta.closing_hymn.title) || '',
+    benediction: pastorNameOf(S),
+  };
+  const rows = [
+    { id: 'call', label: '예배의 부름' },
+    { id: 'creed', label: '신앙고백' },
+    { id: 'praise', label: '다함께 찬양' },
+    { id: 'together', label: '합심기도' },
+    { id: 'blessing', label: '축복' },
+    { id: 'hymn', label: '찬송' },
+    { id: 'prayer', label: '대표기도' },
+    { id: 'special', label: '특송' },
+    { id: 'offering', label: '봉헌' },
+    { id: 'news', label: '교회소식' },
+    { id: 'reading', label: '성경봉독' },
+    { id: 'sermon', label: '설교' },
+    { id: 'closing', label: '찬송', star: true },
+    { id: 'benediction', label: '축도', star: true },
+  ];
+  return rows.map((r) => ({
+    id: r.id, label: r.label, star: !!r.star,
+    detail: (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]),
+    overridden: ov[r.id] !== undefined,
+  }));
+}
+
 // 연간 행사표 → 교회소식 자동 안내 (컨셉 락 §4 확장, A안)
 //  · 주일 당일 행사(event_date 없음): 그 전 주 "다음 주일은…" + 당일 "오늘은…있는 날입니다"
 //  · 주중 행사(event_date 있음): 그 주 "이번 주 …"

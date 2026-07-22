@@ -261,7 +261,7 @@ Deno.serve(async (req) => {
       // 로테이션 표는 이번 주 + 다음 3주도 필요("예배를 섬기는 이들" 실측)
       const ahead = [0, 1, 2, 3].map((k) => iso(addDays(d(weekId), k * 7)));
 
-      const [bul, pastor, events, meta, mem, rotWindow, rotAhead, vn] = await Promise.all([
+      const [bul, pastor, events, meta, mem, rotWindow, rotAhead, vn, choir] = await Promise.all([
         db.from("bulletin_inputs").select("data, field_times, printed_at, updated_at")
           .eq("week_id", weekId).maybeSingle(),
         // PPT 공유 필드 — 읽기만. 저장은 별도 action에서 병합 저장한다(B11)
@@ -275,6 +275,9 @@ Deno.serve(async (req) => {
         assignmentsFor(window),
         assignmentsFor(ahead),
         volNo(weekId),
+        // 성가대 곡 — 특송/성가대 줄을 예배순서에 자동 반영 (PPT 성가대 섹션)
+        db.from("songs").select("name, song_type, song_performer, position")
+          .eq("week_id", weekId).eq("role", "choir").order("position"),
       ]);
 
       const metaMap: Record<string, unknown> = {};
@@ -303,6 +306,7 @@ Deno.serve(async (req) => {
         members: mem.data || [],
         loveWindow: rotWindow,               // 사랑의 나눔 4주 (지난 3주 + 이번 주)
         serveWindow: rotAhead,               // 예배를 섬기는 이들 4주 (이번 주 + 앞 3주)
+        choirSongs: choir.data || [],        // 특송/성가대 줄 자동 반영
       });
     }
 
