@@ -127,27 +127,19 @@ function panelPraiseServe(S) {
 
   const free = PE('div', 'praise-free');
   const pp = (S.bulletin && S.bulletin.praise_panel) || {};
+  const praiseImg = pp.image_data || pp.image_url || '';
   if (pp.mode === 'text' && pp.text) {
     free.appendChild(PE('div', 'praise-text', pp.text));
-  } else if (pp.image_path) {
-    const img = PE('img', 'praise-img'); img.src = pp.image_url || '';
+  } else if (praiseImg) {
+    const img = PE('img', 'praise-img'); img.src = praiseImg;
     free.appendChild(img);
   } else {
-    free.appendChild(PE('div', 'praise-empty', '예배찬양 (이미지 또는 글 — 편집에서 넣기)'));
+    free.appendChild(PE('div', 'praise-empty', '예배찬양 (악보 이미지 또는 글 — 편집에서 넣기)'));
   }
   p.appendChild(free);
 
-  // 섬기는 사람들 (준고정)
-  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
-  const box = PE('div', 'serve-box');
-  box.appendChild(PE('div', 'serve-h', '섬기는 사람들'));
-  staff.forEach((r) => {
-    const row = PE('div', 'serve-row');
-    row.appendChild(PE('span', 'serve-k', r.label));
-    row.appendChild(PE('span', 'serve-v', r.value));
-    box.appendChild(row);
-  });
-  p.appendChild(box);
+  // 섬기는 사람들 (준고정) — 원본 주보 격자 구조(#6)
+  p.appendChild(serveTable(S));
 
   // 주소
   const ci = (S.meta && S.meta.church_info) || {};
@@ -156,6 +148,51 @@ function panelPraiseServe(S) {
   addr.appendChild(PE('div', null, `${ci.site || ''}   ${ci.tel || ''}`));
   p.appendChild(addr);
   return p;
+}
+
+// 섬기는 사람들 표 — 원본 주보 격자(#6). 준고정 staff_panel.rows를 라벨로 배치.
+//   핵심 라벨(담임/협동/유초/뮤직/시무)이 있으면 원본 격자, 없으면 단순 2열로 폴백(안전).
+function serveTable(S) {
+  const rows = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+  const box = PE('div', 'serve-box');
+  box.appendChild(PE('div', 'serve-h', '섬기는 사람들'));
+  const get = (kw) => { const r = rows.find((x) => (x.label || '').indexOf(kw) >= 0); return r ? (r.value || '') : null; };
+  const senior = get('담임'); const assoc = get('협동'); const youth = get('유초');
+  const music = get('뮤직'); const elder = get('시무');
+  const t = PE('table', 'serve-table');
+  const td = (cls, txt, span) => { const c = PE('td', cls, txt); if (span) c.colSpan = span; return c; };
+
+  if ([senior, assoc, youth, music, elder].every((v) => v !== null)) {
+    const r1 = PE('tr');
+    r1.appendChild(td('st-k', '담임목사'));
+    r1.appendChild(td('st-v', senior));
+    const c1 = td('st-v', null, 2);
+    c1.appendChild(PE('span', 'st-il', '협동목사:'));
+    c1.appendChild(document.createTextNode(' ' + assoc));
+    r1.appendChild(c1);
+    t.appendChild(r1);
+
+    const r2 = PE('tr');
+    r2.appendChild(td('st-k', '유초등부'));
+    r2.appendChild(td('st-v', youth));
+    r2.appendChild(td('st-k', '뮤직디렉터'));
+    r2.appendChild(td('st-v', music));
+    t.appendChild(r2);
+
+    const r3 = PE('tr');
+    r3.appendChild(td('st-k', '시무장로'));
+    r3.appendChild(td('st-v', elder, 3));
+    t.appendChild(r3);
+  } else {
+    rows.forEach((r) => {
+      const tr = PE('tr');
+      tr.appendChild(td('st-k', r.label || ''));
+      tr.appendChild(td('st-v', r.value || '', 3));
+      t.appendChild(tr);
+    });
+  }
+  box.appendChild(t);
+  return box;
 }
 
 // ── B-1 교회소식 ──
@@ -303,9 +340,11 @@ function panelCover(S) {
   head.appendChild(PE('div', 'cover-name', ci.name || '시애틀 시온장로교회'));
   head.appendChild(PE('div', 'cover-en', ci.en || 'Korean Zion Presbyterian Church'));
 
-  // 슬로건 배지 + 성구 (#3)
-  head.appendChild(PE('span', 'cover-badge', slogan));
-  head.appendChild(PE('div', 'cover-verse', verse));
+  // 슬로건 배지 + 성구 — 한 줄에 [배지] 성구 (원본 주보 배치, #4)
+  const tagline = PE('div', 'cover-tagline');
+  tagline.appendChild(PE('span', 'cover-badge', slogan));
+  tagline.appendChild(PE('span', 'cover-verse', verse));
+  head.appendChild(tagline);
 
   // www · 권호 · 날짜 바
   const meta = PE('div', 'cover-meta');

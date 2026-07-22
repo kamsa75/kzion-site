@@ -2,6 +2,13 @@
    주보 엔진 UI — PPT(ppt.css)와 같은 톤. 자체 완결(별도 배포 격리).
    ============================================================ */
 
+/* 전 화면·인쇄 공통 폰트: 나눔스퀘어 네오 (한 문서라 print.css에도 적용됨) */
+@font-face{
+  font-family:'NanumSquareNeo';
+  src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_11-01@1.0/NanumSquareNeo-Variable.woff2') format('woff2');
+  font-weight:100 900; font-display:swap;
+}
+
 :root{
   --ui-bg:#F7F6F2;
   --ui-card:#FFFFFF;
@@ -21,7 +28,7 @@
 html,body{margin:0;padding:0}
 body{
   background:var(--ui-bg); color:var(--ui-ink);
-  font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
+  font-family:'NanumSquareNeo',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;
   font-weight:500; line-height:1.5;
   -webkit-text-size-adjust:100%;
   -webkit-tap-highlight-color:transparent;
@@ -216,6 +223,20 @@ body{
   cursor:pointer; margin-top:6px; padding:4px;
 }
 .news-del:active{color:var(--ui-danger)}
+
+/* ---------- 예배찬양 (악보 이미지 / 글) ---------- */
+.seg{display:flex; gap:6px; margin-bottom:12px}
+.seg-btn{
+  flex:1; font-family:inherit; font-size:13.5px; font-weight:700;
+  border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub);
+  border-radius:10px; padding:9px; cursor:pointer;
+}
+.seg-btn.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
+.praise-preview{
+  border:1px solid var(--ui-line); border-radius:12px; background:#faf9f5;
+  padding:8px; margin-bottom:10px; text-align:center;
+}
+.praise-preview img{max-width:100%; max-height:340px; border-radius:6px}
 
 /* ---------- 이름 고르기 ---------- */
 .picker{border:1px solid var(--ui-line); border-radius:12px; padding:8px; background:#fff}
