@@ -266,9 +266,9 @@ Deno.serve(async (req) => {
           .eq("week_id", weekId).maybeSingle(),
         // PPT 공유 필드 — 읽기만. 저장은 별도 action에서 병합 저장한다(B11)
         db.from("pastor_inputs").select("data, updated_at").eq("week_id", weekId).maybeSingle(),
-        db.from("annual_events").select("display_week, label, is_communion")
+        db.from("annual_events").select("display_week, label, event_date, is_communion")
           .eq("show_in_bulletin", true).gte("display_week", weekId)
-          .order("display_week").limit(5),
+          .order("display_week").limit(6),
         db.from("bulletin_meta").select("key, value"),
         db.from("members").select("id, name, title, active").eq("active", true)
           .order("name"),
