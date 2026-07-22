@@ -157,6 +157,63 @@ body{
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px)}
 
+/* ---------- 교회소식 ---------- */
+.news-list{display:flex; flex-direction:column; gap:10px}
+.news-item{display:grid; grid-template-columns:26px 1fr 28px; gap:8px; align-items:start}
+.news-num{
+  width:26px; height:26px; border-radius:8px; background:var(--ui-gold-soft);
+  color:var(--ui-gold); font-weight:800; font-size:13px;
+  display:flex; align-items:center; justify-content:center; margin-top:3px;
+}
+.news-fields{display:flex; flex-direction:column; gap:6px; min-width:0}
+.news-title, .news-body{
+  width:100%; font-family:inherit; font-size:14px; padding:9px 11px;
+  border:1px solid var(--ui-line); border-radius:10px; background:#fff;
+}
+.news-title{font-weight:700}
+.news-body{resize:vertical; line-height:1.5}
+.news-title:focus, .news-body:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
+.news-del{
+  border:none; background:transparent; color:var(--ui-sub); font-size:14px;
+  cursor:pointer; margin-top:6px; padding:4px;
+}
+.news-del:active{color:var(--ui-danger)}
+
+/* ---------- 이름 고르기 ---------- */
+.picker{border:1px solid var(--ui-line); border-radius:12px; padding:8px; background:#fff}
+.picker-chips{display:flex; flex-wrap:wrap; gap:6px; min-height:30px; align-items:center; padding:2px}
+.picker-empty{color:var(--ui-sub); font-size:13px; padding:2px 4px}
+.picker-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--ui-gold-soft); color:var(--ui-ink); font-weight:700; font-size:13px;
+  padding:5px 8px 5px 10px; border-radius:999px;
+}
+.picker-x{color:var(--ui-gold); font-size:11px; cursor:pointer; padding:0 1px}
+.picker-open{width:100%; margin-top:6px; padding:9px; font-size:14px}
+.picker-pool{margin-top:8px; border-top:1px solid var(--ui-line); padding-top:8px}
+.picker-search{
+  width:100%; font-family:inherit; font-size:14px; padding:8px 10px;
+  border:1px solid var(--ui-line); border-radius:9px; margin-bottom:8px;
+}
+.picker-search:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
+.picker-grid{display:flex; flex-wrap:wrap; gap:6px; max-height:200px; overflow-y:auto}
+.pool-name{
+  font-family:inherit; font-size:13px; font-weight:600;
+  padding:7px 11px; border:1px solid var(--ui-line); border-radius:999px;
+  background:#fff; color:var(--ui-ink); cursor:pointer;
+}
+.pool-name.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
+.pool-name:active{filter:brightness(.95)}
+
+.love-inputs{margin-top:12px; padding-top:12px; border-top:1px dashed var(--ui-line)}
+
+/* ---------- 행사계획 ---------- */
+.event-list{display:flex; flex-direction:column}
+.event-row{display:grid; grid-template-columns:52px 1fr; gap:10px; padding:7px 2px; align-items:baseline}
+.event-row + .event-row{border-top:1px solid #f0efe9}
+.event-date{font-weight:800; font-size:13px; color:var(--ui-gold)}
+.event-label{font-size:14px}
+
 /* 데스크톱에서 살짝 넓게 */
 @media (min-width:640px){
   .main{padding-top:22px}
