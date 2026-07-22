@@ -7,7 +7,7 @@
 <title>주보 만들기 · 시애틀 시온장로교회</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/bt.css?v=2">
+<link rel="stylesheet" href="css/bt.css?v=3">
 </head>
 <body>
 <div id="app">
@@ -32,11 +32,13 @@
   <section id="screen-bt" class="screen" hidden>
     <header class="topbar">
       <div class="topbar-left">
-        <span class="topbar-title">주보 만들기</span>
+        <button id="btn-nav-back" class="btn btn-ghost" hidden>← 주보</button>
+        <span id="bt-heading" class="topbar-title">주보 만들기</span>
         <span id="bt-role" class="role-chip"></span>
       </div>
       <div style="display:flex; gap:6px; align-items:center">
         <span id="bt-saved" class="save-note"></span>
+        <button id="btn-roster" class="btn btn-ghost">명단·순서</button>
         <button id="btn-logout" class="btn btn-ghost">로그아웃</button>
       </div>
     </header>
@@ -50,10 +52,22 @@
 
 </div>
 
+<!-- 로테이션 개입 / 명단 편집 팝업 -->
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-back"></div>
+  <div class="sheet-box">
+    <div class="sheet-head">
+      <span id="sheet-title">제목</span>
+      <button id="sheet-close" class="sheet-close">✕</button>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
-<script src="js/config.js?v=2"></script>
-<script src="js/api.js?v=2"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/config.js?v=3"></script>
+<script src="js/api.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>

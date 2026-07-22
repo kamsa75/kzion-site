@@ -214,6 +214,76 @@ body{
 .event-date{font-weight:800; font-size:13px; color:var(--ui-gold)}
 .event-label{font-size:14px}
 
+/* ---------- 4주 표 탭 가능 셀 ---------- */
+.grid4 td.tap{cursor:pointer}
+.grid4 td.tap:active{background:var(--ui-gold-soft)}
+.lock-dot{font-size:10px; margin-left:3px; opacity:.7}
+
+/* ---------- 바텀시트 ---------- */
+.sheet{position:fixed; inset:0; z-index:50; display:flex; align-items:flex-end; justify-content:center}
+.sheet-back{position:absolute; inset:0; background:rgba(0,0,0,.35)}
+.sheet-box{
+  position:relative; width:100%; max-width:520px; background:#fff;
+  border-radius:20px 20px 0 0; padding:18px 18px 28px;
+  max-height:86dvh; overflow-y:auto;
+  box-shadow:0 -8px 30px rgba(0,0,0,.15);
+  animation:sheetUp .18s ease;
+}
+@keyframes sheetUp{from{transform:translateY(20px); opacity:.6} to{transform:none; opacity:1}}
+@media (min-width:560px){
+  .sheet{align-items:center}
+  .sheet-box{border-radius:20px; max-height:80dvh}
+}
+.sheet-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+#sheet-title{font-weight:800; font-size:16px}
+.sheet-close{border:none; background:transparent; font-size:18px; color:var(--ui-sub); cursor:pointer; padding:4px 6px}
+.sheet-cur{font-size:14px; color:var(--ui-sub); margin:0 0 14px}
+.sheet-cur b{color:var(--ui-ink)}
+
+.sheet-opt{
+  display:flex; flex-direction:column; gap:3px; text-align:left; width:100%;
+  background:#fff; border:1px solid var(--ui-line); border-radius:14px;
+  padding:14px; margin-bottom:10px; cursor:pointer; font-family:inherit;
+}
+.sheet-opt:active{background:var(--ui-gold-soft)}
+.sheet-opt-t{font-weight:700; font-size:15px; color:var(--ui-ink)}
+.sheet-opt-d{font-size:12.5px; color:var(--ui-sub); line-height:1.45}
+
+.switch-row{display:flex; align-items:center; gap:8px; font-weight:500!important; font-size:13.5px}
+.switch-row input{width:18px; height:18px}
+
+/* ---------- 명단 관리 ---------- */
+.roster-title{
+  font-size:12px; font-weight:800; color:var(--ui-gold);
+  margin:14px 0 7px; padding-bottom:4px; border-bottom:1px solid var(--ui-line);
+}
+.roster-names{display:flex; flex-wrap:wrap; gap:7px}
+.roster-name{
+  font-family:inherit; font-size:14px; font-weight:600;
+  padding:8px 13px; border:1px solid var(--ui-line); border-radius:999px;
+  background:#fff; color:var(--ui-ink); cursor:pointer;
+}
+.roster-name:active{background:var(--ui-gold-soft)}
+.roster-name.off{color:var(--ui-sub); background:#f4f3ef}
+.roster-off-tag{font-size:10px; color:var(--ui-sub); margin-left:5px}
+
+/* ---------- 풀 편집 ---------- */
+.pool-edit{border:1px solid var(--ui-line); border-radius:14px; padding:12px; margin-bottom:12px}
+.pool-label{font-weight:800; font-size:14px; margin-bottom:9px}
+.pool-names{display:flex; flex-direction:column; gap:4px}
+.pool-item{display:grid; grid-template-columns:24px 1fr auto auto auto; gap:6px; align-items:center}
+.pool-idx{color:var(--ui-sub); font-size:12px; font-weight:700; text-align:center}
+.pool-nm{font-size:14px; font-weight:600}
+.pool-mv, .pool-rm{
+  border:1px solid var(--ui-line); background:#fff; border-radius:8px;
+  width:32px; height:32px; cursor:pointer; font-size:12px; color:var(--ui-ink);
+}
+.pool-mv:disabled{opacity:.3; cursor:default}
+.pool-rm{color:var(--ui-danger)}
+.pool-mv:active, .pool-rm:active{background:var(--ui-gold-soft)}
+.pool-add{margin-top:10px}
+.pool-add .btn{width:100%; padding:9px; font-size:13.5px}
+
 /* 데스크톱에서 살짝 넓게 */
 @media (min-width:640px){
   .main{padding-top:22px}

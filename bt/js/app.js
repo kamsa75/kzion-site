@@ -509,16 +509,22 @@ function renderServeCard(S) {
   table.appendChild(thead);
 
   const tbody = el('tbody');
+  // 기도·봉헌위원은 탭하면 수동 개입. 안내는 연 고정이라 탭 시 이번주만 교체.
   [['기 도', 'prayer'], ['안 내', 'usher'], ['봉헌위원', 'offering']].forEach(([label, key]) => {
     const tr = el('tr');
     tr.appendChild(el('th', null, label));
     rows.forEach((r, i) => {
-      const td = el('td', i === 0 ? 'thisweek' : null);
+      const td = el('td', 'tap' + (i === 0 ? ' thisweek' : ''));
       td.appendChild(document.createTextNode(r[key] || '—'));
-      if (r.manual && r.manual[key]) {
-        const dot = el('span', 'manual-dot', '●');
-        dot.title = '수동 지정';
+      if (r.locked) {
+        const lk = el('span', 'lock-dot', '🔒'); lk.title = '인쇄 확정됨';
+        td.appendChild(lk);
+      } else if (r.manual && r.manual[key]) {
+        const dot = el('span', 'manual-dot', '●'); dot.title = '수동 지정';
         td.appendChild(dot);
+      }
+      if (!r.locked) {
+        td.addEventListener('click', () => openRotationSheet(key, label.replace(/\s/g, ''), r));
       }
       tr.appendChild(td);
     });
@@ -529,15 +535,324 @@ function renderServeCard(S) {
 
   const note = el('p', 'hint');
   note.style.margin = '10px 0 0';
-  note.textContent = '● = 자동 순서를 손으로 바꾼 자리. 순서 조정은 다음 단계에서.';
+  note.innerHTML = '이름을 <b>탭</b>하면 담당자를 바꿀 수 있습니다. ● = 손으로 바꾼 자리 · 🔒 = 인쇄 확정.';
   card.appendChild(note);
   return card;
+}
+
+// ============================================================
+// 3-3 로테이션 수동 개입 (B3-1) — 바텀시트
+// ============================================================
+function openSheet(title, buildBody) {
+  $('#sheet-title').textContent = title;
+  const body = $('#sheet-body');
+  body.innerHTML = '';
+  buildBody(body);
+  $('#sheet').hidden = false;
+}
+function closeSheet() { $('#sheet').hidden = true; }
+
+function openRotationSheet(role, roleLabel, row) {
+  const isPrayer = role === 'prayer';
+  const isUsher = role === 'usher';
+  openSheet(`${roleLabel} — ${fmtMD(row.week)} 바꾸기`, (body) => {
+    const cur = el('p', 'sheet-cur');
+    cur.innerHTML = `현재 <b>${row[role] || '—'}</b>`;
+    body.appendChild(cur);
+
+    // 옵션 1: 이번 주만 다른 분으로 (모든 역할 공통)
+    body.appendChild(sheetOption('이번 주만 다른 분으로',
+      isUsher ? '이번 주 안내만 교체합니다. 다음 주는 원래대로.'
+              : '이번 주만 대타. 다음 주부터는 원래 순서 그대로.',
+      () => pickAndApply(role, row.week, 'once', isUsher ? 'members' : 'members')));
+
+    if (isPrayer || role === 'offering') {
+      // 옵션 2: 건너뛰고 순서 당기기
+      body.appendChild(sheetOption('이분 건너뛰고 순서 당기기',
+        '이번 담당자를 건너뛰고, 다음 분부터 한 칸씩 앞으로 당깁니다.',
+        () => applyShift(role, row.week, row[role])));
+    }
+    if (isPrayer) {
+      // 옵션 3: 중간에 끼워넣기
+      body.appendChild(sheetOption('여기에 다른 분 끼워넣기',
+        '이번 주에 다른 분을 넣고, 원래 담당자는 다음으로 밀립니다.',
+        () => pickAndApply('prayer', row.week, 'insert', 'members')));
+    }
+  });
+}
+
+function sheetOption(title, desc, onClick) {
+  const b = el('button', 'sheet-opt');
+  b.appendChild(el('span', 'sheet-opt-t', title));
+  b.appendChild(el('span', 'sheet-opt-d', desc));
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+// 이름/마을 골라서 적용 (once·insert)
+function pickAndApply(role, weekId, mode, source) {
+  openSheet(mode === 'insert' ? '끼워넣을 분 고르기' : '대신할 분 고르기', (body) => {
+    const sel = [];
+    body.appendChild(namePicker({
+      selected: sel, source, multi: false,
+      placeholder: '명단에서 한 분',
+      onChange: () => {},
+    }));
+    const apply = el('button', 'btn btn-primary btn-wide', '적용');
+    apply.style.marginTop = '14px';
+    apply.addEventListener('click', async () => {
+      if (!sel[0]) { toast('한 분을 골라주세요'); return; }
+      apply.disabled = true; apply.textContent = '적용 중…';
+      try {
+        await BT_API.call('overrideRotation', { weekId, role, mode, name: sel[0] });
+        closeSheet();
+        await refreshRotation();
+        toast('바꿨습니다');
+      } catch (err) {
+        toast('실패: ' + (err.message || ''));
+        apply.disabled = false; apply.textContent = '적용';
+      }
+    });
+    body.appendChild(apply);
+  });
+}
+
+async function applyShift(role, weekId, curName) {
+  if (!confirm(`${curName} 님을 건너뛰고 순서를 당길까요?`)) return;
+  try {
+    await BT_API.call('overrideRotation', { weekId, role, mode: 'shift' });
+    closeSheet();
+    await refreshRotation();
+    toast('순서를 당겼습니다');
+  } catch (err) { toast('실패: ' + (err.message || '')); }
+}
+
+// 로테이션만 다시 계산해 표 갱신 (전체 리로드 없이)
+async function refreshRotation() {
+  try {
+    const r = await BT_API.call('getBulletin');
+    STATE.serveWindow = r.serveWindow;
+    STATE.loveWindow = r.loveWindow;
+    if (VIEW === 'bt') render();
+  } catch (err) { /* 조용히 무시 — 다음 새로고침에 반영 */ }
+}
+
+// ============================================================
+// 3-3 명단 관리 (직분별 목록 + 풀 소속 토글 + 순서)
+// ============================================================
+let VIEW = 'bt';          // 'bt' | 'roster'
+let ROSTER = null;        // getMembers 응답
+
+async function openRoster() {
+  VIEW = 'roster';
+  $('#bt-heading').textContent = '명단 · 순서';
+  $('#btn-nav-back').hidden = false;
+  $('#btn-roster').hidden = true;
+  const body = $('#bt-body');
+  body.innerHTML = '<p class="center-note">불러오는 중…</p>';
+  try {
+    ROSTER = await BT_API.call('getMembers');
+    renderRoster();
+  } catch (err) {
+    body.innerHTML = `<p class="center-note">불러오지 못했습니다.<br>${err.message || ''}</p>`;
+  }
+}
+
+function backToBt() {
+  VIEW = 'bt';
+  $('#bt-heading').textContent = '주보 만들기';
+  $('#btn-nav-back').hidden = true;
+  $('#btn-roster').hidden = false;
+  render();
+}
+
+const TITLE_ORDER = ['담임목사', '협동목사', '교육간사', '반주자', '시무장로', '장로',
+  '명예장로', '안수집사', '권사', '명예권사', '서리집사', '교인'];
+
+function renderRoster() {
+  const body = $('#bt-body');
+  body.innerHTML = '';
+
+  // ── 기도 풀 편집 (넣기·빼기 + 순서) ──
+  const pools = ROSTER.pools || [];
+  const prayerElders = pools.find((p) => p.id === 'prayer_elders');
+  const prayerDeacons = pools.find((p) => p.id === 'prayer_deacons');
+  const offering = pools.find((p) => p.id === 'offering');
+
+  const poolCard = el('div', 'card');
+  poolCard.appendChild(cardHead('기도·봉헌 순서 풀', '넣기·빼기 · 순서 바꾸기'));
+  [prayerElders, prayerDeacons, offering].filter(Boolean).forEach((p) => {
+    poolCard.appendChild(renderPool(p));
+  });
+  const poolNote = el('p', 'hint');
+  poolNote.style.margin = '4px 2px 0';
+  poolNote.innerHTML = '순서 = 돌아가는 차례. ▲▼로 옮기고, ✕로 빼기. 아래 명단에서 넣기.';
+  poolCard.appendChild(poolNote);
+  body.appendChild(poolCard);
+
+  // ── 교인 명단 (직분별) ──
+  const memCard = el('div', 'card');
+  const mh = cardHead('교인 명단', '');
+  const addBtn = el('button', 'btn btn-line', '＋ 새 교인');
+  addBtn.style.marginLeft = 'auto';
+  addBtn.addEventListener('click', () => openMemberEdit(null));
+  mh.appendChild(addBtn);
+  memCard.appendChild(mh);
+
+  const members = (ROSTER.members || []).slice()
+    .sort((a, b) => TITLE_ORDER.indexOf(a.title) - TITLE_ORDER.indexOf(b.title));
+  const byTitle = {};
+  members.forEach((m) => { (byTitle[m.title] = byTitle[m.title] || []).push(m); });
+
+  TITLE_ORDER.forEach((title) => {
+    const list = byTitle[title];
+    if (!list) return;
+    memCard.appendChild(el('div', 'roster-title', title));
+    const wrap = el('div', 'roster-names');
+    list.forEach((m) => {
+      const chip = el('button', 'roster-name' + (m.active ? '' : ' off'), m.name);
+      if (!m.active) chip.appendChild(el('span', 'roster-off-tag', '비활동'));
+      chip.addEventListener('click', () => openMemberEdit(m));
+      wrap.appendChild(chip);
+    });
+    memCard.appendChild(wrap);
+  });
+  body.appendChild(memCard);
+}
+
+function cardHead(title, sub) {
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, title));
+  if (sub) h.appendChild(el('span', 'sub', sub));
+  return h;
+}
+
+// 풀 하나 — 순서 있는 이름 목록, ▲▼ 이동 · ✕ 빼기
+function renderPool(p) {
+  const box = el('div', 'pool-edit');
+  box.appendChild(el('div', 'pool-label', p.label));
+  const names = Array.isArray(p.member_names) ? p.member_names : [];
+  const list = el('div', 'pool-names');
+
+  function save() {
+    BT_API.call('savePool', { id: p.id, memberNames: p.member_names })
+      .then(() => toast('순서 저장됨'))
+      .catch((e) => toast('저장 실패: ' + (e.message || '')));
+  }
+  function paint() {
+    list.innerHTML = '';
+    p.member_names.forEach((name, i) => {
+      const row = el('div', 'pool-item');
+      row.appendChild(el('span', 'pool-idx', String(i + 1)));
+      row.appendChild(el('span', 'pool-nm', name));
+      const up = el('button', 'pool-mv', '▲'); up.disabled = i === 0;
+      up.addEventListener('click', () => { swap(p.member_names, i, i - 1); paint(); save(); });
+      const dn = el('button', 'pool-mv', '▼'); dn.disabled = i === p.member_names.length - 1;
+      dn.addEventListener('click', () => { swap(p.member_names, i, i + 1); paint(); save(); });
+      const rm = el('button', 'pool-rm', '✕');
+      rm.addEventListener('click', () => { p.member_names.splice(i, 1); paint(); save(); });
+      row.appendChild(up); row.appendChild(dn); row.appendChild(rm);
+      list.appendChild(row);
+    });
+  }
+  p.member_names = names.slice();
+  paint();
+  box.appendChild(list);
+
+  // 넣기: 명단에서 아직 풀에 없는 사람 고르기
+  const addWrap = el('div', 'pool-add');
+  const add = el('button', 'btn btn-line', '＋ 이 풀에 넣기');
+  add.addEventListener('click', () => {
+    openSheet(`${p.label}에 넣기`, (bodyEl) => {
+      const sel = [];
+      bodyEl.appendChild(namePicker({
+        selected: sel, source: 'members', multi: false,
+        placeholder: '명단에서 한 분',
+        onChange: () => {},
+      }));
+      const ok = el('button', 'btn btn-primary btn-wide', '넣기');
+      ok.style.marginTop = '14px';
+      ok.addEventListener('click', () => {
+        if (!sel[0]) { toast('한 분을 골라주세요'); return; }
+        if (p.member_names.includes(sel[0])) { toast('이미 있습니다'); return; }
+        p.member_names.push(sel[0]); paint(); save(); closeSheet();
+      });
+      bodyEl.appendChild(ok);
+    });
+  });
+  addWrap.appendChild(add);
+  box.appendChild(addWrap);
+  return box;
+}
+
+function swap(arr, i, j) { const t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+
+// 교인 추가·수정 (이름·직분·활동)
+function openMemberEdit(m) {
+  const isNew = !m;
+  openSheet(isNew ? '새 교인' : `${m.name} 수정`, (body) => {
+    const nf = el('div', 'field');
+    nf.appendChild(el('label', null, '이름'));
+    const ni = el('input'); ni.type = 'text'; ni.value = m ? m.name : '';
+    nf.appendChild(ni); body.appendChild(nf);
+
+    const tf = el('div', 'field');
+    tf.appendChild(el('label', null, '직분'));
+    const ts = el('select');
+    TITLE_ORDER.forEach((t) => {
+      const o = el('option', null, t); o.value = t;
+      if (m && m.title === t) o.selected = true;
+      ts.appendChild(o);
+    });
+    tf.appendChild(ts); body.appendChild(tf);
+
+    if (!isNew) {
+      const af = el('div', 'field');
+      const lab = el('label', 'switch-row');
+      const cb = el('input'); cb.type = 'checkbox'; cb.checked = !!m.active;
+      lab.appendChild(cb);
+      lab.appendChild(el('span', null, ' 활동 교인 (끄면 명단·순서에서 숨김, 기록은 보존)'));
+      af.appendChild(lab); body.appendChild(af);
+      m._cb = cb;
+    }
+
+    const save = el('button', 'btn btn-primary btn-wide', '저장');
+    save.style.marginTop = '10px';
+    save.addEventListener('click', async () => {
+      const name = ni.value.trim();
+      if (!name) { toast('이름을 입력하세요'); return; }
+      save.disabled = true; save.textContent = '저장 중…';
+      const member = isNew
+        ? { name, title: ts.value }
+        : { id: m.id, name, title: ts.value, active: m._cb.checked };
+      try {
+        await BT_API.call('saveMember', { member });
+        closeSheet();
+        ROSTER = await BT_API.call('getMembers');
+        renderRoster();
+        toast('저장됨');
+      } catch (err) {
+        toast('실패: ' + (err.message || ''));
+        save.disabled = false; save.textContent = '저장';
+      }
+    });
+    body.appendChild(save);
+  });
+}
+
+// ---------- 네비게이션 ----------
+function initNav() {
+  $('#btn-roster').addEventListener('click', openRoster);
+  $('#btn-nav-back').addEventListener('click', backToBt);
+  $('#sheet-close').addEventListener('click', closeSheet);
+  $('#sheet').querySelector('.sheet-back').addEventListener('click', closeSheet);
 }
 
 // ---------- 부팅 ----------
 (function boot() {
   initPin();
   initLogout();
+  initNav();
   if (BT_API.hasToken()) enter();
   else show('#screen-pin');
 })();
