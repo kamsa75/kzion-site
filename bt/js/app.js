@@ -840,10 +840,23 @@ function openMemberEdit(m) {
   });
 }
 
+// ---------- 인쇄 미리보기 ----------
+function goPrint() {
+  ['#screen-pin', '#screen-bt', '#screen-print'].forEach((s) => { $(s).hidden = (s !== '#screen-print'); });
+  openPrint(STATE);
+}
+function backFromPrint() {
+  $('#screen-print').hidden = true;
+  $('#screen-bt').hidden = false;
+}
+
 // ---------- 네비게이션 ----------
 function initNav() {
   $('#btn-roster').addEventListener('click', openRoster);
   $('#btn-nav-back').addEventListener('click', backToBt);
+  $('#btn-print').addEventListener('click', goPrint);
+  $('#btn-print-back').addEventListener('click', backFromPrint);
+  $('#btn-do-print').addEventListener('click', () => window.print());
   $('#sheet-close').addEventListener('click', closeSheet);
   $('#sheet').querySelector('.sheet-back').addEventListener('click', closeSheet);
 }

@@ -7,7 +7,8 @@
 <title>주보 만들기 · 시애틀 시온장로교회</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/bt.css?v=3">
+<link rel="stylesheet" href="css/bt.css?v=4">
+<link rel="stylesheet" href="css/print.css?v=4">
 </head>
 <body>
 <div id="app">
@@ -39,6 +40,7 @@
       <div style="display:flex; gap:6px; align-items:center">
         <span id="bt-saved" class="save-note"></span>
         <button id="btn-roster" class="btn btn-ghost">명단·순서</button>
+        <button id="btn-print" class="btn btn-line">미리보기·인쇄</button>
         <button id="btn-logout" class="btn btn-ghost">로그아웃</button>
       </div>
     </header>
@@ -48,6 +50,21 @@
         <p class="center-note">불러오는 중…</p>
       </div>
     </main>
+  </section>
+
+  <!-- 인쇄 미리보기 (트라이폴드) -->
+  <section id="screen-print" class="screen" hidden>
+    <header class="topbar noprint">
+      <div class="topbar-left">
+        <button id="btn-print-back" class="btn btn-ghost">← 편집</button>
+        <span class="topbar-title">인쇄 미리보기</span>
+      </div>
+      <div style="display:flex; gap:6px; align-items:center">
+        <button id="btn-do-print" class="btn btn-primary">인쇄하기</button>
+      </div>
+    </header>
+    <div id="print-gate" class="noprint"></div>
+    <div id="print-root"></div>
   </section>
 
 </div>
@@ -66,8 +83,9 @@
 
 <div id="toast" class="toast"></div>
 
-<script src="js/config.js?v=3"></script>
-<script src="js/api.js?v=3"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/api.js?v=4"></script>
+<script src="js/print.js?v=4"></script>
+<script src="js/app.js?v=4"></script>
 </body>
 </html>
