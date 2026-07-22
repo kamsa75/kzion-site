@@ -403,18 +403,27 @@ function renderOfferingCard(S) {
   card.appendChild(h);
 
   const data = bd();
-  data.offering = data.offering || { thanks: [], tithe: [], weekly: [], mission: [], total: '' };
+  data.offering = data.offering || {};
   const o = data.offering;
-  ['thanks', 'tithe', 'weekly', 'mission'].forEach((k) => { o[k] = Array.isArray(o[k]) ? o[k] : []; });
+  // 이전(배열) 데이터가 있으면 문자열로 변환 — 호환
+  ['thanks', 'tithe', 'weekly', 'mission'].forEach((k) => {
+    if (Array.isArray(o[k])) o[k] = o[k].join(' ');
+    if (typeof o[k] !== 'string') o[k] = '';
+  });
+
+  const info = el('p', 'hint');
+  info.style.margin = '0 2px 10px';
+  info.textContent = '이름을 띄어쓰기로 구분해 적으세요. 두 글자 이름은 인쇄 때 “김 정”처럼 자동 정렬됩니다.';
+  card.appendChild(info);
 
   [['thanks', '감사'], ['tithe', '십일조'], ['weekly', '주정'], ['mission', '선교']].forEach(([key, label]) => {
     const f = el('div', 'field');
     f.appendChild(el('label', null, label));
-    f.appendChild(namePicker({
-      selected: o[key], source: 'members',
-      placeholder: '헌금하신 분을 명단에서 고르세요',
-      onChange: queueSave,
-    }));
+    const inp = el('input'); inp.type = 'text';
+    inp.placeholder = '예: 임영숙 김정 남미령 원동휘';
+    inp.value = o[key] || '';
+    inp.addEventListener('input', () => { o[key] = inp.value; queueSave(); });
+    f.appendChild(inp);
     card.appendChild(f);
   });
 
@@ -948,6 +957,15 @@ function backFromPrint() {
   $('#screen-print').hidden = true;
   $('#screen-bt').hidden = false;
 }
+function doPrint() {
+  const missing = window.__printMissing || [];
+  if (missing.length) {
+    const ok = confirm('아직 비어 있는 항목이 있습니다:\n\n· ' + missing.join('\n· ') +
+      '\n\n그래도 인쇄할까요?');
+    if (!ok) return;
+  }
+  window.print();
+}
 
 // ---------- 네비게이션 ----------
 function initNav() {
@@ -955,7 +973,7 @@ function initNav() {
   $('#btn-nav-back').addEventListener('click', backToBt);
   $('#btn-print').addEventListener('click', goPrint);
   $('#btn-print-back').addEventListener('click', backFromPrint);
-  $('#btn-do-print').addEventListener('click', () => window.print());
+  $('#btn-do-print').addEventListener('click', doPrint);
   $('#sheet-close').addEventListener('click', closeSheet);
   $('#sheet').querySelector('.sheet-back').addEventListener('click', closeSheet);
 }
