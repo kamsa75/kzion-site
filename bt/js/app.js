@@ -784,7 +784,7 @@ function renderOrderCard(S) {
       inp.classList.add('is-edited');
       queueSave();
     });
-    // 비우면 오버라이드 삭제 → 자동값 복귀
+    // 비우면 오버라이드 삭제 → 자동값 복귀 / 특송은 곡명·담당 사이 점 자동(#2)
     inp.addEventListener('blur', () => {
       if (inp.value.trim() === '') {
         delete overrides()[r.id];
@@ -792,6 +792,9 @@ function renderOrderCard(S) {
         const back = buildOrderRows(S).find((x) => x.id === r.id);
         inp.value = (back && back.detail) || '';
         queueSave();
+      } else if (r.id === 'special') {
+        const f = formatSpecial(inp.value);
+        if (f !== inp.value) { inp.value = f; overrides()[r.id] = f; queueSave(); }
       }
     });
     row.appendChild(inp);
