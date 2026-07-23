@@ -685,7 +685,12 @@ function renderLoveCard(S) {
       rows.forEach((r, i) => {
         const v = valOf(r, key);
         const td = el('td', 'tap' + (i === 0 ? ' thisweek' : '') + (v ? '' : ' is-empty'));
-        td.textContent = v || '＋';
+        // 친교헌금 두 분이면 두 줄로(인쇄와 동일한 안정감, #6-1) — 봉사담당(2촌 등)은 한 줄
+        if (key === 'love_offering' && v.trim()) {
+          v.trim().split(/\s+/).forEach((n) => td.appendChild(el('div', 'serve-name', n)));
+        } else {
+          td.textContent = v || '＋';
+        }
         td.addEventListener('click', () => openLoveEditor(r.week, key, label, paint));
         tr.appendChild(td);
       });
