@@ -50,6 +50,18 @@ body{
 .btn-line{background:#fff; color:var(--ui-ink); border-color:var(--ui-line)}
 .btn-wide{width:100%}
 .btn:disabled{opacity:.45; cursor:default}
+/* 앱 간 이동 링크(주보↔PPT) — 골드 소프트 알약 */
+.btn-cross{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  text-decoration:none; color:var(--ui-gold); background:var(--ui-gold-soft);
+  border:1px solid #E7D9C0; border-radius:999px;
+  font-family:inherit; font-size:14px; font-weight:800; padding:8px 15px;
+  letter-spacing:-.01em; white-space:nowrap; cursor:pointer;
+  transition:background .12s, border-color .12s;
+}
+.btn-cross svg{flex:none}
+.btn-cross:active{filter:brightness(.96)}
+@media(hover:hover){ .btn-cross:hover{background:#EFE2CC; border-color:#DCC9A6} }
 
 /* ---------- PIN 입장 (PPT와 동일 톤) ---------- */
 .screen-pin{display:flex; align-items:center; justify-content:center; padding:24px}
@@ -85,6 +97,7 @@ body{
   .topbar{padding:10px 12px}
   .topbar-title{display:none}
   .topbar .btn{padding:8px 10px; font-size:13px; border-radius:10px}
+  .topbar .btn-cross{padding:7px 12px; font-size:12.5px}
   .role-chip{font-size:11px; padding:2px 7px}
   .order-row{padding:7px 6px}   /* 모바일 예배순서 행간 축소(#1) */
 }
@@ -207,8 +220,6 @@ body{
 .order-badge.ppt{color:#2b5a86; background:#e4f0fa; border:1px solid #bfd9ef}
 .order-badge.auto{color:#8A6D1E; background:var(--ui-gold-soft); border:1px solid #ebd9a6}
 .order-foot{display:flex; flex-direction:column; gap:8px; margin-top:10px}
-.btn-ppt{align-self:flex-start; font-size:13px; padding:8px 14px; color:#2b5a86; border-color:#bfd9ef; text-decoration:none}
-.btn-ppt:hover{background:#eef6fc; border-color:#9cc6e8}
 
 /* ---------- 4주 표 (예배를 섬기는 이들 · 사랑의 나눔) ---------- */
 .grid4{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
