@@ -100,9 +100,9 @@
 .p-love{table-layout:fixed}
 .p-love th:first-child, .p-love td:first-child{width:var(--info-c1)}
 .p-love tr:first-child th{font-size:9pt}   /* 날짜를 예배섬기는이들 표와 동일 크기로 */
-/* 친교헌금·봉사담당 세로축 라벨 양끝맞춤(#6) */
-.p-love .p-grid-rh{white-space:normal; text-align:justify; text-align-last:justify;
-  text-justify:inter-character; padding-left:6px; padding-right:6px}
+/* 친교헌금·봉사담당 세로축 라벨 양끝맞춤(#6) — 글자 span+flex(인쇄·사파리 안정) */
+.p-love .p-grid-rh{white-space:normal; padding-left:6px; padding-right:6px}
+.p-love .p-grid-rh .rh-inner.is-spread{display:flex; justify-content:space-between}
 .love-name{line-height:1.3}   /* 친교헌금 두 분이면 두 줄(#6-1) */
 /* 예배를 섬기는 이들 — 날짜(세로축) 오른쪽 정렬(#4) */
 .cover-serve .p-grid-rh{text-align:right; padding-right:6px}
@@ -112,8 +112,8 @@
 .p-sat-when{text-align:right; font-size:8.7pt; color:#000; margin-bottom:3px}
 .p-sat-row{display:flex; gap:10px; font-size:9.9pt; padding:2.5px 0; border-bottom:1px solid #f1ece2}
 .p-sat-row:last-child{border-bottom:none}
-.p-sat-k{font-weight:700; width:var(--info-c1); flex:none; padding:0 6px;   /* 사랑의나눔 세로축과 동일 여백 */
-  text-align:justify; text-align-last:justify; text-justify:inter-character}
+.p-sat-k{font-weight:700; width:var(--info-c1); flex:none; padding:0 6px}   /* 사랑의나눔 세로축과 동일 여백 */
+.p-sat-k.is-spread{display:flex; justify-content:space-between}   /* 찬송·설교·합심기도 양끝맞춤 */
 
 /* 행사계획 */
 .p-events{width:100%; border-collapse:collapse; font-size:9.6pt; margin-bottom:4px}
@@ -126,8 +126,8 @@
 /* 지난주 헌금 */
 .p-offering{font-size:9.9pt}
 .po-row{display:flex; gap:6px; padding:3px 0; border-bottom:1px solid #f1ece2; align-items:baseline}
-.po-k{font-weight:700; width:44px; flex:none;
-  text-align:justify; text-align-last:justify; text-justify:inter-character}   /* 감사·십일조·주정·선교·합계 양끝맞춤(#7) */
+.po-k{font-weight:700; width:44px; flex:none}
+.po-k.is-spread{display:flex; justify-content:space-between}   /* 감사·십일조·주정·선교·합계 양끝맞춤(#7) */
 .po-v{flex:1; line-height:1.55; padding-left:10px}   /* 명단·금액 시작 앞 여백 */
 /* 이름을 고정 칸 그리드에 → 가변폭 폰트여도 열이 항상 정렬 */
 .po-names{display:grid; grid-template-columns:repeat(auto-fill, minmax(3.4em, 1fr)); gap:3px 6px}
@@ -175,7 +175,8 @@
 .cover-order{flex:0 1 auto; display:flex; flex-direction:column; gap:4px; margin-bottom:3px; min-height:0}
 .co-row{display:grid; grid-template-columns:74px 1fr; gap:21px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}   /* 순서명↔내용 간격(#2→0.5배 더) */
 .co-k{font-weight:800; display:flex; align-items:baseline}
-.co-lab{flex:1; text-align:justify; text-align-last:justify; text-justify:inter-character}   /* 라벨 전체 폭 양끝맞춤 */
+.co-lab{flex:1}
+.co-lab.is-spread{display:flex; justify-content:space-between}   /* 라벨 전체 폭 양끝맞춤 */
 .co-star{color:#000; flex:none; margin-right:2px; font-size:0.85em}   /* ※ 약간 작게 */
 /* 별표(※) 행: 라벨을 설교처럼 전체 폭 정렬하고 ※는 라벨 앞(왼쪽)에 매달기(#5) */
 .co-k-star{position:relative}

@@ -13,6 +13,18 @@ const PE = (tag, cls, txt) => {
   return n;
 };
 
+// 라벨 양끝맞춤 — text-align-last/text-justify:inter-character는 인쇄 렌더러·Safari에서
+//   불안정(붙은 글자가 안 벌어짐). 글자를 span으로 쪼개 flex(space-between)로 균등하게 편다:
+//   화면·인쇄·모든 브라우저에서 동일하게 동작. 공백은 무시하고 붙여서 균등 배분.
+function spreadLabel(cls, text) {
+  const el = PE('span', cls);
+  const chars = String(text == null ? '' : text).replace(/\s+/g, '').split('');
+  if (chars.length < 2) { el.textContent = text || ''; return el; }
+  el.classList.add('is-spread');
+  chars.forEach((c) => el.appendChild(PE('span', 'sp-ch', c)));
+  return el;
+}
+
 // 이름 목록 렌더 (§8 표기 규칙) — 7/19 주보 배치 재현:
 //   · 이름과 이름 사이는 넓게 (요소 여백)
 //   · 두 글자 이름은 안쪽만 좁게 벌려 세 글자 이름과 폭을 맞춤 ("김정"→"김 정")
@@ -266,7 +278,8 @@ function panelWeeklyInfo(S) {
     love.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
     lt.appendChild(lhr);
     [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
-      const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
+      const tr = PE('tr'); const rh = PE('th', 'p-grid-rh');
+      rh.appendChild(spreadLabel('rh-inner', lab)); tr.appendChild(rh);
       love.forEach((r) => {
         const cell = PE('td', null);
         const v = Array.isArray(r[k]) ? r[k].join(' ') : (r[k] || '');
@@ -297,7 +310,7 @@ function panelWeeklyInfo(S) {
     [['찬송', sat.hymn || '다같이'], ['설교', sermonLine], ['합심기도', sat.pray || '다같이']]
       .forEach(([k, v]) => {
         const r = PE('div', 'p-sat-row');
-        r.appendChild(PE('span', 'p-sat-k', k));
+        r.appendChild(spreadLabel('p-sat-k', k));
         r.appendChild(PE('span', 'p-sat-v', v));
         satBox.appendChild(r);
       });
@@ -327,7 +340,7 @@ function panelWeeklyInfo(S) {
         const txt = asStr(v).trim();
         if (!txt) return;
         const r = PE('div', 'po-row');
-        r.appendChild(PE('span', 'po-k', lab));
+        r.appendChild(spreadLabel('po-k', lab));
         // 이름을 그리드 고정 칸에 하나씩 → 가변폭 폰트여도 열이 완벽 정렬
         const val = PE('div', 'po-v po-names');
         txt.split(/\s+/).filter(Boolean).forEach((n) => val.appendChild(PE('span', 'po-name', n)));
@@ -335,7 +348,7 @@ function panelWeeklyInfo(S) {
         ot.appendChild(r);
       });
     const tot = PE('div', 'po-row po-total');
-    tot.appendChild(PE('span', 'po-k', '합계'));
+    tot.appendChild(spreadLabel('po-k', '합계'));
     const totVal = String(o.total || '').replace(/\$/g, '').trim();   // 사용자가 $ 넣어도 중복 방지
     tot.appendChild(PE('span', 'po-v', totVal ? '$' + totVal : ''));
     ot.appendChild(tot);
@@ -390,7 +403,7 @@ function panelCover(S) {
     const row = PE('div', 'co-row');
     const kk = PE('span', 'co-k' + (r.star ? ' co-k-star' : ''));
     if (r.star) kk.appendChild(PE('span', 'co-star', '※'));
-    kk.appendChild(PE('span', 'co-lab', r.label));   // 라벨 전체 폭 양끝맞춤(설교와 동일), ※는 앞에 매달기
+    kk.appendChild(spreadLabel('co-lab', r.label));   // 라벨 전체 폭 양끝맞춤(설교와 동일), ※는 앞에 매달기
     row.appendChild(kk);
     row.appendChild(PE('span', 'co-v' + (r.bold ? ' co-v-bold' : ''), r.detail || ''));
     ol.appendChild(row);
