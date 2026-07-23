@@ -472,16 +472,6 @@ Deno.serve(async (req) => {
       return json({ error: "알 수 없는 요청" }, 400);
     }
 
-    // ---------- 이 주 수동 로테이션 초기화 (되돌리기, #9·후속#4) ----------
-    // 이번 주에 직접 바꾼 담당자(기도·안내·봉헌위원 once 오버라이드 + 사랑의나눔)를 지우고
-    // 자동 계산값으로 복귀. 인쇄 확정(locked_at)된 주간은 보존한다.
-    case "resetRotations": {
-      const { error } = await db.from("rotation_assignments")
-        .delete().eq("week_id", weekId).is("locked_at", null);
-      if (error) return json({ error: "초기화 실패" }, 500);
-      return json({ ok: true });
-    }
-
     // ---------- 앞으로 N주 미리보기 (명단 편집 결과 확인용) ----------
     case "previewRotation": {
       const n = Math.min(20, Math.max(1, Number(body.weeks) || 8));
