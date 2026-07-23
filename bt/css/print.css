@@ -99,6 +99,7 @@
 /* 사랑의 나눔 — 첫 칼럼 고정 폭(#6·#7), 주차 4칸 균등, 날짜 가운데 정렬(#3) */
 .p-love{table-layout:fixed}
 .p-love th:first-child, .p-love td:first-child{width:var(--info-c1)}
+.p-love tr:first-child th{font-size:9pt}   /* 날짜를 예배섬기는이들 표와 동일 크기로 */
 /* 친교헌금·봉사담당 세로축 라벨 양끝맞춤(#6) */
 .p-love .p-grid-rh{white-space:normal; text-align:justify; text-align-last:justify;
   text-justify:inter-character; padding-left:6px; padding-right:6px}
@@ -118,7 +119,7 @@
 .p-events{width:100%; border-collapse:collapse; font-size:9.6pt; margin-bottom:4px}
 .p-events td{border:1px solid var(--line); padding:3.5px 5px}
 .p-events tr:nth-child(even) td{background:#F8EAD5}
-.pe-date{font-weight:800; width:var(--info-c1); text-align:right; padding-right:7px; color:#000}   /* 첫 칼럼 통일(#7)·날짜 오른쪽(#4) */
+.pe-date{font-weight:800; width:var(--info-c1); text-align:right; padding-right:7px; color:#000; font-size:9pt}   /* 날짜 오른쪽·예배섬기는이들과 동일 크기 */
 /* 행사 내용 앞글자를 토요새벽 값(다같이…)의 시작 x에 맞춤 — 우선순위 위해 td.pe-label */
 .p-events td.pe-label{padding-left:8.5px}
 
