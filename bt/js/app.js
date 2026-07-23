@@ -90,10 +90,84 @@ async function enter() {
 // ============================================================
 // 렌더 (3-1: 표지)
 // ============================================================
+// ── 이번 주 현황 카드 — 필수 항목 완료 여부 한눈에(무엇이 남았나) ──
+function renderStatusCard(S) {
+  const card = el('div', 'card status-card');
+  const h = el('div', 'card-h');
+  h.appendChild(el('h2', null, '이번 주 현황'));
+  h.appendChild(el('span', 'sub', fmtKDate(S.weekId) + ' · 제' + S.vol + '권 ' + S.no + '호'));
+  card.appendChild(h);
+
+  const req = printChecklist(S);   // [{ ok, label }] — 필수 6종
+  const done = req.filter((x) => x.ok).length;
+
+  const sum = el('div', 'status-sum');
+  const bar = el('div', 'status-bar');
+  const fill = el('div', 'status-bar-fill'); fill.style.width = Math.round(done / req.length * 100) + '%';
+  if (done === req.length) fill.classList.add('full');
+  bar.appendChild(fill); sum.appendChild(bar);
+  sum.appendChild(el('span', 'status-count' + (done === req.length ? ' ok' : ''),
+    done === req.length ? '필수 항목 모두 완료 ✓' : `필수 ${done}/${req.length} 완료`));
+  card.appendChild(sum);
+
+  // 필수 항목 → 눌러서 해당 카드로 이동
+  const cardOf = {
+    '설교 제목': '예배 순서', '설교 본문(성경)': '예배 순서',
+    '대표기도 담당': '예배 순서', '찬송(중간)': '예배 순서',
+    '교회 소식': '교회 소식', '지난주 헌금 합계': '지난 주 헌금',
+  };
+  const grid = el('div', 'status-grid');
+  req.forEach((item) => {
+    const chip = el('button', 'status-chip' + (item.ok ? ' done' : ' todo'));
+    chip.appendChild(el('span', 'status-ic', item.ok ? '✓' : '○'));
+    chip.appendChild(document.createTextNode(item.label));
+    const target = cardOf[item.label];
+    if (target) chip.addEventListener('click', () => scrollToCard(target));
+    grid.appendChild(chip);
+  });
+  card.appendChild(grid);
+
+  // 그 외(정보성) — 채워짐/비어있음만 표시
+  const data = bd();
+  const lw0 = (S.loveWindow && S.loveWindow[0]) || {};
+  const opt = [
+    { ok: (S.choirSongs || []).length > 0, label: '성가대 곡', card: null },
+    { ok: !!(data.praise_panel && (data.praise_panel.image_data || data.praise_panel.text)), label: '예배찬양', card: '예배찬양 (악보)' },
+    { ok: !!(data.saturday && data.saturday.sermon), label: '토요새벽 설교', card: '토요새벽예배' },
+    { ok: !!lw0.love_offering, label: '친교헌금', card: '사랑의 나눔' },
+  ];
+  const optRow = el('div', 'status-opt');
+  optRow.appendChild(el('span', 'status-opt-label', '그 외'));
+  opt.forEach((o) => {
+    const s = el('button', 'status-mini' + (o.ok ? ' on' : ''), (o.ok ? '● ' : '○ ') + o.label);
+    if (o.card) s.addEventListener('click', () => scrollToCard(o.card));
+    optRow.appendChild(s);
+  });
+  card.appendChild(optRow);
+  return card;
+}
+
+// 해당 제목의 카드로 부드럽게 스크롤 + 잠깐 강조
+function scrollToCard(headingText) {
+  const cards = document.querySelectorAll('#bt-body .card');
+  for (const c of cards) {
+    const h2 = c.querySelector('.card-h h2');
+    if (h2 && h2.textContent.trim() === headingText) {
+      c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      c.classList.add('card-flash');
+      setTimeout(() => c.classList.remove('card-flash'), 1200);
+      return;
+    }
+  }
+}
+
 function render() {
   const S = STATE;
   const body = $('#bt-body');
   body.innerHTML = '';
+
+  // ── 이번 주 현황 (무엇이 남았나 한눈에) ──
+  body.appendChild(renderStatusCard(S));
 
   // ── 주차 헤더 (권/호·날짜 자동) ──
   const head = el('div', 'week-head');

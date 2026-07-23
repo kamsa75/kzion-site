@@ -111,6 +111,33 @@ body{
 .week-reset:active{filter:brightness(.96)}
 .week-reset:hover{border-color:var(--ui-gold); color:var(--ui-ink)}
 
+/* ---------- 이번 주 현황 카드 ---------- */
+.status-card{border-color:var(--ui-gold); box-shadow:0 4px 22px rgba(176,141,83,.09)}
+.status-sum{display:flex; align-items:center; gap:12px; margin:2px 0 14px}
+.status-bar{flex:1; height:9px; background:var(--ui-line); border-radius:999px; overflow:hidden; min-width:80px}
+.status-bar-fill{height:100%; background:var(--ui-gold); border-radius:999px; transition:width .35s ease}
+.status-bar-fill.full{background:var(--ui-ok)}
+.status-count{font-size:13px; font-weight:800; color:var(--ui-sub); white-space:nowrap}
+.status-count.ok{color:var(--ui-ok)}
+.status-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px}
+.status-chip{display:flex; align-items:center; gap:8px; font-family:inherit; font-size:14px; font-weight:700;
+  padding:10px 12px; border-radius:12px; cursor:pointer; text-align:left; border:1px solid var(--ui-line); background:#fff}
+.status-chip .status-ic{width:19px; height:19px; border-radius:999px; display:inline-flex;
+  align-items:center; justify-content:center; font-size:11px; font-weight:800; flex:none}
+.status-chip.done{background:#eef6ef; border-color:#bfe0c4; color:#2c6b3b}
+.status-chip.done .status-ic{background:var(--ui-ok); color:#fff}
+.status-chip.todo{background:var(--ui-warn-bg); border-color:#E6D3A0; color:#8A6D1E}
+.status-chip.todo .status-ic{background:#fff; color:#c99a1e; border:1px solid #E6D3A0}
+.status-chip:hover{filter:brightness(.98)}
+.status-chip:active{filter:brightness(.95)}
+.status-opt{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:11px; padding-top:11px; border-top:1px dashed var(--ui-line)}
+.status-opt-label{font-size:12px; color:var(--ui-sub); font-weight:800; margin-right:2px}
+.status-mini{font-family:inherit; font-size:12.5px; font-weight:600; padding:5px 10px; border-radius:999px;
+  border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub); cursor:pointer; white-space:nowrap}
+.status-mini.on{color:#2c6b3b; border-color:#bfe0c4; background:#f3f9f4}
+.card-flash{animation:cardFlash 1.2s ease}
+@keyframes cardFlash{0%,100%{box-shadow:0 0 0 0 rgba(176,141,83,0)} 25%{box-shadow:0 0 0 3px rgba(176,141,83,.4)}}
+
 /* ---------- 카드 ---------- */
 .card{
   background:var(--ui-card); border:1px solid var(--ui-line);
