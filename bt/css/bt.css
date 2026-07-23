@@ -179,7 +179,7 @@ body{
 .love-grid{font-size:14px}
 .love-grid thead th{background:var(--ui-gold-soft); font-weight:800; padding:8px 6px; white-space:nowrap}
 .love-grid tbody th{background:var(--ui-gold-soft); font-weight:800; padding:9px 10px;
-  text-align:justify; text-align-last:justify; text-justify:inter-character; white-space:normal}
+  text-align:left; white-space:nowrap}
 .love-grid td{padding:11px 6px}
 .love-grid td.tap{cursor:pointer}
 .love-grid td.tap:hover{background:#faf6ec}
