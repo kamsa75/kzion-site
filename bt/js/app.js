@@ -428,7 +428,7 @@ function renderPraiseCard(S) {
       const file = inp.files && inp.files[0]; if (!file) return;
       pick.firstChild && (pick.childNodes[0].nodeValue = '처리 중…');
       try {
-        pp.image_data = await resizeImageToDataURL(file, 1500, 0.85);
+        pp.image_data = await resizeImageToDataURL(file, 2400, 0.92);   // 인쇄용 고해상도(#해상도)
         delete pp.image_url; delete pp.image_path;
         queueSave(); paint();
       } catch (e) { toast('이미지 처리 실패: ' + (e.message || '')); paint(); }
@@ -445,7 +445,7 @@ function renderPraiseCard(S) {
       });
       wrap.appendChild(del);
     }
-    const hint = el('p', 'hint', '세로 악보 사진을 밝고 또렷하게. 자동으로 폭 1500px JPEG로 줄여 저장합니다.');
+    const hint = el('p', 'hint', '세로 악보 사진을 밝고 또렷하게. 인쇄 화질을 위해 폭 2400px 고화질로 저장합니다.');
     hint.style.margin = '8px 0 0';
     wrap.appendChild(hint);
   }
@@ -719,7 +719,7 @@ function renderNotePanelCard(S, idx, label) {
     inp.addEventListener('change', async () => {
       const f = inp.files && inp.files[0]; if (!f) return;
       pick.childNodes[0] && (pick.childNodes[0].nodeValue = '처리 중…');
-      try { np.image_data = await resizeImageToDataURL(f, 1500, 0.85); queueSave(); paintImg(); }
+      try { np.image_data = await resizeImageToDataURL(f, 2400, 0.92); queueSave(); paintImg(); }   // 인쇄용 고해상도
       catch (e) { toast('이미지 처리 실패: ' + (e.message || '')); paintImg(); }
     });
     pick.appendChild(inp); wrap.appendChild(pick);
