@@ -130,8 +130,8 @@ function buildOrderRows(S) {
     rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
   }
   // 공유 필드 = 한 곳에서만 입력(값 갈라짐 차단). 주보에선 읽기전용으로 표시.
-  //   설교·본문·찬송 = PPT에서 입력 / 대표기도 = 섬기는이들 표·PPT(자동)
-  const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: '자동' };
+  //   설교·본문·찬송·대표기도 = PPT에서 입력(PPT 값 없으면 로테이션 자동값으로 대체)
+  const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: 'PPT' };
   return rows.map((r) => {
     const src = SHARED[r.id];
     let detail = src ? defaults[r.id] : (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]);
