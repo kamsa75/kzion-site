@@ -85,7 +85,7 @@
 /* ── 교회소식 ── */
 .news-print{margin-top:2px}
 .np-item{margin-bottom:8px}
-.np-t{font-weight:800; font-size:10.9pt}
+.np-t{font-weight:800; font-size:10.3pt}   /* 예배순서 값과 동일 크기(#1) */
 .np-t.np-plain{font-weight:normal}     /* 교회소식 본문(자동 안내)은 일반 굵기 */
 .np-num{color:var(--ink); font-weight:800}
 .np-b{font-size:10.3pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#000}
