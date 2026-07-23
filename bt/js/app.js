@@ -557,21 +557,23 @@ function renderLoveCard(S) {
   card.appendChild(h);
 
   const rows = S.loveWindow || [];
+  const disp = rows.slice().reverse();   // 이번 주가 맨 앞(#6)
   const table = el('table', 'grid4');
   const thead = el('thead'); const htr = el('tr');
   htr.appendChild(el('th', null, ''));
-  rows.forEach((r, i) => htr.appendChild(el('th', null,
-    fmtMD(r.week) + (i === rows.length - 1 ? ' (이번 주)' : ''))));
+  disp.forEach((r, i) => htr.appendChild(el('th', null,
+    fmtMD(r.week) + (i === 0 ? ' (이번 주)' : ''))));
   thead.appendChild(htr); table.appendChild(thead);
 
   const tbody = el('tbody');
   [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([label, key]) => {
     const tr = el('tr');
     tr.appendChild(el('th', null, label));
-    rows.forEach((r, i) => {
-      const isThis = i === rows.length - 1;
+    disp.forEach((r, i) => {
+      const isThis = i === 0;
       const td = el('td', isThis ? 'thisweek' : null);
-      td.textContent = r[key] || (isThis ? '' : '—');
+      const v = Array.isArray(r[key]) ? r[key].join(' ') : (r[key] || '');
+      td.textContent = v || (isThis ? '' : '—');
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -583,14 +585,15 @@ function renderLoveCard(S) {
   const box = el('div', 'love-inputs');
 
   const f1 = el('div', 'field');
-  f1.appendChild(el('label', null, '이번 주 친교헌금 (한 분)'));
+  f1.appendChild(el('label', null, '이번 주 친교헌금 (한두 분 · 두 분이면 두 줄로 인쇄)'));
   const sel1 = [];
   const cur1 = rows.length ? rows[rows.length - 1].love_offering : '';
-  if (cur1) sel1.push(cur1);
+  const cur1s = Array.isArray(cur1) ? cur1 : (cur1 ? String(cur1).trim().split(/\s+/) : []);
+  cur1s.filter(Boolean).forEach((n) => sel1.push(n));
   f1.appendChild(namePicker({
-    selected: sel1, source: 'members', multi: false,
-    placeholder: '명단에서 한 분',
-    onChange: () => saveLove(thisWeekId, 'love_offering', sel1[0] || ''),
+    selected: sel1, source: 'members', multi: true,
+    placeholder: '명단에서 (없으면 비워둠, 두 분까지)',
+    onChange: () => saveLove(thisWeekId, 'love_offering', sel1.join(' ')),
   }));
   box.appendChild(f1);
 
@@ -610,7 +613,7 @@ function renderLoveCard(S) {
 }
 
 async function saveLove(weekId, role, name) {
-  if (!name) return;
+  // 친교헌금·봉사담당은 빈 값도 허용(비우기, #6-1). 서버가 love_ 역할 빈값이면 삭제한다.
   markSaving();
   try {
     await BT_API.call('overrideRotation', { weekId, role, mode: 'once', name });
