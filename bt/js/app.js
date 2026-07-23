@@ -1169,6 +1169,7 @@ function openMemberEdit(m) {
 function goPrint() {
   ['#screen-pin', '#screen-bt', '#screen-print'].forEach((s) => { $(s).hidden = (s !== '#screen-print'); });
   openPrint(STATE);
+  updateConfirmBtn();
 }
 function backFromPrint() {
   $('#screen-print').hidden = true;
@@ -1204,6 +1205,43 @@ function doPrint() {
     if (!ok) return;
   }
   window.print();
+}
+
+// ---------- 인쇄 확정(잠금)·해제 ----------
+// 확정하면 그 주 담당자 배정(기도·안내·봉헌위원·사랑나눔)이 지금 값으로 고정 → 명단 바뀌어도 안 변함(B3-2)
+function updateConfirmBtn() {
+  const b = $('#btn-confirm');
+  if (!b) return;
+  const confirmed = !!STATE.printedAt;
+  b.textContent = confirmed ? '🔓 확정 해제' : '🔒 이 주 확정';
+  b.title = confirmed
+    ? '확정을 해제해 담당자를 다시 수정할 수 있게 합니다'
+    : '이 주 담당자 배정을 지금 값으로 고정합니다 (명단 바뀌어도 안 변함)';
+  b.onclick = confirmed ? unlockWeek : confirmWeek;
+}
+async function confirmWeek() {
+  const ok = confirm(
+    '이 주보를 "확정"하면 담당자 배정(기도·안내·봉헌위원·사랑의 나눔)이 지금 값으로 고정됩니다.\n\n'
+    + '· 이후 명단·로테이션을 고쳐도 이 주 담당자는 바뀌지 않습니다.\n'
+    + '· 확정 상태에서는 이 주 담당자를 수정할 수 없습니다(해제하면 다시 가능).\n\n'
+    + '확정할까요?');
+  if (!ok) return;
+  try {
+    await BT_API.call('confirmPrint', { weekId: STATE.weekId });
+    toast('이 주 담당자 배정을 확정(고정)했습니다.');
+    await enter();
+    goPrint();
+  } catch (e) { toast('확정 실패: ' + (e.message || '')); }
+}
+async function unlockWeek() {
+  const ok = confirm('이 주 확정을 해제하면 담당자를 다시 수정할 수 있습니다.\n해제할까요?');
+  if (!ok) return;
+  try {
+    await BT_API.call('unlockPrint', { weekId: STATE.weekId });
+    toast('확정을 해제했습니다. 담당자를 수정할 수 있어요.');
+    await enter();
+    goPrint();
+  } catch (e) { toast('해제 실패: ' + (e.message || '')); }
 }
 
 // ---------- 네비게이션 ----------

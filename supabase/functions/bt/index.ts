@@ -581,6 +581,15 @@ Deno.serve(async (req) => {
       return json({ ok: true, printedAt: nowIso });
     }
 
+    // ---------- 인쇄 확정 해제 (잠금 풀기) ----------
+    // 확정 스냅샷의 locked_at을 지워 다시 수정 가능하게 한다(값은 유지 → 편집 가능한 오버라이드로 남음).
+    case "unlockPrint": {
+      await db.from("rotation_assignments")
+        .update({ locked_at: null }).eq("week_id", weekId).not("locked_at", "is", null);
+      await db.from("bulletin_inputs").update({ printed_at: null }).eq("week_id", weekId);
+      return json({ ok: true });
+    }
+
     // ---------- 이 주 수동 로테이션 초기화 (#9 되돌리기) ----------
     // 이 주에 넣은 수동 배정(이번 주만·안내·사랑나눔·끼워넣기)만 삭제한다.
     // 인쇄 확정(locked_at)된 것은 건드리지 않고, 앵커(당기기·봉헌 월지정)는 보존한다(로테이션 기준선 보호).
