@@ -119,11 +119,12 @@ body{
 .status-bar-fill.full{background:var(--ui-ok)}
 .status-count{font-size:13px; font-weight:800; color:var(--ui-sub); white-space:nowrap}
 .status-count.ok{color:var(--ui-ok)}
-.status-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px}
-.status-chip{display:flex; align-items:center; gap:8px; font-family:inherit; font-size:14px; font-weight:700;
-  padding:10px 12px; border-radius:12px; cursor:pointer; text-align:left; border:1px solid var(--ui-line); background:#fff}
-.status-chip .status-ic{width:19px; height:19px; border-radius:999px; display:inline-flex;
-  align-items:center; justify-content:center; font-size:11px; font-weight:800; flex:none}
+.status-grid{display:flex; flex-wrap:wrap; gap:7px}
+.status-chip{display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:13px; font-weight:700;
+  padding:6px 11px; border-radius:999px; cursor:pointer; text-align:left; white-space:nowrap;
+  border:1px solid var(--ui-line); background:#fff}
+.status-chip .status-ic{width:16px; height:16px; border-radius:999px; display:inline-flex;
+  align-items:center; justify-content:center; font-size:10px; font-weight:800; flex:none}
 .status-chip.done{background:#eef6ef; border-color:#bfe0c4; color:#2c6b3b}
 .status-chip.done .status-ic{background:var(--ui-ok); color:#fff}
 .status-chip.todo{background:var(--ui-warn-bg); border-color:#E6D3A0; color:#8A6D1E}
