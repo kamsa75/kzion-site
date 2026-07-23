@@ -280,7 +280,7 @@ function panelWeeklyInfo(S) {
     const defPreacher = pastorName ? pastorName.value + ' 목사' : '';
     const preacher = (sat.preacher && sat.preacher.trim()) || defPreacher;
     const sermonLine = [sat.sermon, preacher].filter((x) => x && x.trim()).join(' · ');
-    [['찬 송', sat.hymn || '다같이'], ['설 교', sermonLine], ['합심기도', sat.pray || '다같이']]
+    [['찬송', sat.hymn || '다같이'], ['설교', sermonLine], ['합심기도', sat.pray || '다같이']]
       .forEach(([k, v]) => {
         const r = PE('div', 'p-sat-row');
         r.appendChild(PE('span', 'p-sat-k', k));
@@ -308,7 +308,7 @@ function panelWeeklyInfo(S) {
     const o = (S.bulletin && S.bulletin.offering) || {};
     const ot = PE('div', 'p-offering');
     const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
-    [['감 사', o.thanks], ['십일조', o.tithe], ['주 정', o.weekly], ['선 교', o.mission]]
+    [['감사', o.thanks], ['십일조', o.tithe], ['주정', o.weekly], ['선교', o.mission]]
       .forEach(([lab, v]) => {
         const txt = asStr(v).trim();
         if (!txt) return;
@@ -320,7 +320,7 @@ function panelWeeklyInfo(S) {
         ot.appendChild(r);
       });
     const tot = PE('div', 'po-row po-total');
-    tot.appendChild(PE('span', 'po-k', '합 계'));
+    tot.appendChild(PE('span', 'po-k', '합계'));
     tot.appendChild(PE('span', 'po-v', o.total ? '$' + o.total : ''));
     ot.appendChild(tot);
     g.appendChild(ot);
@@ -372,9 +372,9 @@ function panelCover(S) {
   const ol = PE('div', 'cover-order');
   buildOrderRows(S).forEach((r) => {   // app 편집과 동일한 값 (공용)
     const row = PE('div', 'co-row');
-    const kk = PE('span', 'co-k');
+    const kk = PE('span', 'co-k' + (r.star ? ' co-k-star' : ''));
     if (r.star) kk.appendChild(PE('span', 'co-star', '※'));
-    kk.appendChild(PE('span', 'co-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤(#1)
+    kk.appendChild(PE('span', 'co-lab', r.label));   // 라벨 전체 폭 양끝맞춤(설교와 동일), ※는 앞에 매달기
     row.appendChild(kk);
     row.appendChild(PE('span', 'co-v' + (r.bold ? ' co-v-bold' : ''), r.detail || ''));
     ol.appendChild(row);
