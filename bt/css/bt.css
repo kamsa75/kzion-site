@@ -276,6 +276,12 @@ body{
   border:1px solid var(--ui-line); border-radius:9px; background:#fff}
 .ev-date-in:focus, .ev-label-in:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
 
+/* ---------- 사랑의 나눔 주 선택 ---------- */
+.love-weeksel{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:12px 0 4px}
+.love-week-btn{font-family:inherit; font-size:12.5px; font-weight:700; padding:6px 11px;
+  border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub); border-radius:999px; cursor:pointer}
+.love-week-btn.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
+
 /* ---------- 이름 고르기 ---------- */
 .picker{border:1px solid var(--ui-line); border-radius:12px; padding:8px; background:#fff}
 .picker-chips{display:flex; flex-wrap:wrap; gap:6px; min-height:30px; align-items:center; padding:2px}

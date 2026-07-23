@@ -176,10 +176,26 @@ function offeringAt(anchors: Anchor[], pools: Pools, weekId: string): string | n
   return pool[(i + months) % pool.length];
 }
 
+// 봉사담당(마을) — 월 단위 순환 (봉헌위원과 동일 방식, pool 'love_service')
+function loveServiceAt(anchors: Anchor[], pools: Pools, weekId: string): string | null {
+  const a = anchorFor(anchors, weekId);
+  const pool = pools["love_service"] || [];
+  if (!a || !pool.length) return null;
+  const spec = a.spec as { month: string; name: string };
+  const [ay, am] = String(spec.month).split("-").map(Number);
+  const w = d(weekId);
+  const months = (w.getUTCFullYear() - ay) * 12 + (w.getUTCMonth() + 1 - am);
+  if (months < 0) return null;
+  const i = Math.max(0, pool.indexOf(spec.name));
+  return pool[(i + months) % pool.length];
+}
+
 // 그 주 전체 배정 — 오버라이드(수동·인쇄 스냅샷)가 계산보다 우선
 async function assignmentsFor(weekIds: string[]) {
   const pools = await loadPools();
-  const [pAnch, oAnch] = await Promise.all([loadAnchors("prayer"), loadAnchors("offering")]);
+  const [pAnch, oAnch, lsAnch] = await Promise.all([
+    loadAnchors("prayer"), loadAnchors("offering"), loadAnchors("love_service"),
+  ]);
   const { data: overrides } = await db
     .from("rotation_assignments")
     .select("week_id, role, assigned, is_manual, locked_at")
@@ -207,8 +223,8 @@ async function assignmentsFor(weekIds: string[]) {
       prayer: pick("prayer", st?.assigned ?? null),
       offering: pick("offering", offeringAt(oAnch, pools, w)),
       usher: pick("usher", usherNames.join(" ")),
-      love_offering: ovMap.get(`${w}|love_offering`) ?? "",   // 손입력 전용(B5)
-      love_service: ovMap.get(`${w}|love_service`) ?? "",     // 손입력 전용(B5)
+      love_offering: ovMap.get(`${w}|love_offering`) ?? "",   // 친교헌금 = 손입력(B5)
+      love_service: ovMap.get(`${w}|love_service`) ?? loveServiceAt(lsAnch, pools, w) ?? "",   // 봉사담당 = 월 순환 자동 + 수동
       locked: lockMap.has(`${w}|prayer`),
       manual: {
         prayer: ovMap.has(`${w}|prayer`),
@@ -256,12 +272,10 @@ Deno.serve(async (req) => {
     case "getBulletin": {
       await ensureWeek(weekId);
 
-      // 4주 롤링 창 (이번 주 포함 앞 3주 — 7/19 주보 실측: 6/28~7/19)
-      const window = [-3, -2, -1, 0].map((k) => iso(addDays(d(weekId), k * 7)));
-      // 로테이션 표는 이번 주 + 다음 3주도 필요("예배를 섬기는 이들" 실측)
+      // 사랑의 나눔·섬기는이들 4주 = 이번 주 + 다음 3주(다가올 주)
       const ahead = [0, 1, 2, 3].map((k) => iso(addDays(d(weekId), k * 7)));
 
-      const [bul, pastor, events, meta, mem, rotWindow, rotAhead, vn, choir] = await Promise.all([
+      const [bul, pastor, events, meta, mem, rotAhead, vn, choir] = await Promise.all([
         db.from("bulletin_inputs").select("data, field_times, printed_at, updated_at")
           .eq("week_id", weekId).maybeSingle(),
         // PPT 공유 필드 — 읽기만. 저장은 별도 action에서 병합 저장한다(B11)
@@ -272,7 +286,6 @@ Deno.serve(async (req) => {
         db.from("bulletin_meta").select("key, value"),
         db.from("members").select("id, name, title, active").eq("active", true)
           .order("name"),
-        assignmentsFor(window),
         assignmentsFor(ahead),
         volNo(weekId),
         // 성가대 곡 — 특송/성가대 줄을 예배순서에 자동 반영 (PPT 성가대 섹션)
@@ -304,7 +317,7 @@ Deno.serve(async (req) => {
         communionThisWeek: communion,
         meta: metaMap,
         members: mem.data || [],
-        loveWindow: rotWindow,               // 사랑의 나눔 4주 (지난 3주 + 이번 주)
+        loveWindow: rotAhead,                // 사랑의 나눔 4주 (이번 주 + 앞 3주 — 다가올 주)
         serveWindow: rotAhead,               // 예배를 섬기는 이들 4주 (이번 주 + 앞 3주)
         choirSongs: choir.data || [],        // 특송/성가대 줄 자동 반영
       });
