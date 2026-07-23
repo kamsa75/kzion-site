@@ -116,11 +116,16 @@ function renderStatusCard(S) {
     '대표기도 담당': '예배 순서', '찬송(중간)': '예배 순서',
     '교회 소식': '교회 소식', '지난주 헌금 합계': '지난 주 헌금',
   };
+  // 현황 칩은 짧게(누르면 해당 카드로 이동하니 맥락 충분) — 한 줄에 6개
+  const shortOf = {
+    '설교 본문(성경)': '설교 본문', '대표기도 담당': '대표기도',
+    '찬송(중간)': '찬송', '지난주 헌금 합계': '헌금 합계',
+  };
   const grid = el('div', 'status-grid');
   req.forEach((item) => {
     const chip = el('button', 'status-chip' + (item.ok ? ' done' : ' todo'));
     chip.appendChild(el('span', 'status-ic', item.ok ? '✓' : '○'));
-    chip.appendChild(document.createTextNode(item.label));
+    chip.appendChild(document.createTextNode(shortOf[item.label] || item.label));
     const target = cardOf[item.label];
     if (target) chip.addEventListener('click', () => scrollToCard(target));
     grid.appendChild(chip);
