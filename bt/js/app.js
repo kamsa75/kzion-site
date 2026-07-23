@@ -554,91 +554,74 @@ function renderOfferingCard(S) {
   return card;
 }
 
-// ── 사랑의 나눔 (다가올 4주 표, 주 선택해 미래 주도 입력) ──
+// ── 사랑의 나눔 (다가올 4주 표 — 칸을 눌러 바로 수정) ──
 function renderLoveCard(S) {
   const card = el('div', 'card');
   const h = el('div', 'card-h');
   h.appendChild(el('h2', null, '사랑의 나눔'));
-  h.appendChild(el('span', 'sub', '이번 주 + 다가올 3주'));
+  h.appendChild(el('span', 'sub', '이번 주 + 다가올 3주 · 칸을 눌러 수정'));
   card.appendChild(h);
 
   const rows = S.loveWindow || [];   // [이번주, +1, +2, +3]
   const valOf = (r, k) => (Array.isArray(r[k]) ? r[k].join(' ') : (r[k] || ''));
 
-  const table = el('table', 'grid4');
+  const table = el('table', 'grid4 love-grid');
   const thead = el('thead'); const htr = el('tr');
   htr.appendChild(el('th', null, ''));
-  rows.forEach((r, i) => htr.appendChild(el('th', null,
-    fmtMD(r.week) + (i === 0 ? ' (이번 주)' : ''))));
+  rows.forEach((r, i) => {
+    const th = el('th', i === 0 ? 'thisweek' : null);
+    th.appendChild(document.createTextNode(fmtMDKorean(r.week)));
+    if (i === 0) th.appendChild(el('span', 'love-now', '이번 주'));
+    htr.appendChild(th);
+  });
   thead.appendChild(htr); table.appendChild(thead);
 
   const tbody = el('tbody');
-  [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([label, key]) => {
-    const tr = el('tr');
-    tr.appendChild(el('th', null, label));
-    rows.forEach((r, i) => {
-      const td = el('td', i === 0 ? 'thisweek' : null);
-      td.textContent = valOf(r, key) || '—';
-      tr.appendChild(td);
+  function paint() {
+    tbody.innerHTML = '';
+    [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([label, key]) => {
+      const tr = el('tr');
+      tr.appendChild(el('th', null, label));
+      rows.forEach((r, i) => {
+        const v = valOf(r, key);
+        const td = el('td', 'tap' + (i === 0 ? ' thisweek' : '') + (v ? '' : ' is-empty'));
+        td.textContent = v || '＋';
+        td.addEventListener('click', () => openLoveEditor(r.week, key, label, paint));
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
     });
-    tbody.appendChild(tr);
-  });
+  }
+  paint();
   table.appendChild(tbody); card.appendChild(table);
 
-  // 입력할 주 선택 → 그 주의 친교헌금·봉사담당 편집(미래 주도)
-  let selWeek = rows.length ? rows[0].week : S.weekId;
-  const box = el('div', 'love-inputs');
-  const weekSel = el('div', 'love-weeksel');
-  const fields = el('div');
-
-  function rebuild() {
-    weekSel.innerHTML = '';
-    weekSel.appendChild(el('span', 'hint', '입력할 주 '));
-    rows.forEach((r, i) => {
-      const b = el('button', 'love-week-btn' + (r.week === selWeek ? ' on' : ''),
-        fmtMD(r.week) + (i === 0 ? ' (이번주)' : ''));
-      b.addEventListener('click', () => { selWeek = r.week; rebuild(); });
-      weekSel.appendChild(b);
-    });
-
-    fields.innerHTML = '';
-    const row = rows.find((r) => r.week === selWeek) || {};
-
-    const f1 = el('div', 'field');
-    f1.appendChild(el('label', null, '친교헌금 (한두 분 · 없으면 비움 · 두 분이면 두 줄로 인쇄)'));
-    const c1 = row.love_offering;
-    const sel1 = Array.isArray(c1) ? c1.slice() : (c1 ? String(c1).trim().split(/\s+/).filter(Boolean) : []);
-    f1.appendChild(namePicker({
-      selected: sel1, source: 'members', multi: true, placeholder: '명단에서 (두 분까지)',
-      onChange: () => saveLove(selWeek, 'love_offering', sel1.join(' '), () => rebuildTable()),
-    }));
-    fields.appendChild(f1);
-
-    const f2 = el('div', 'field');
-    const l2 = el('label', null, '봉사담당 (마을)');
-    l2.appendChild(el('span', 'hint', '  월 순환 자동 · 바꾸려면 선택, 비우면 자동값'));
-    f2.appendChild(l2);
-    const c2 = row.love_service;
-    const sel2 = c2 ? [String(c2)] : [];
-    f2.appendChild(namePicker({
-      selected: sel2, source: 'villages', multi: false, placeholder: '마을 선택(비우면 자동값)',
-      onChange: () => saveLove(selWeek, 'love_service', sel2[0] || '', () => rebuildTable()),
-    }));
-    fields.appendChild(f2);
-  }
-  // 저장 후 상단 표 텍스트만 갱신(선택 상태 유지)
-  function rebuildTable() {
-    [['love_offering', 1], ['love_service', 2]].forEach(([key, rowIdx]) => {
-      const tr = tbody.children[rowIdx - 1];
-      if (!tr) return;
-      rows.forEach((r, i) => { if (tr.children[i + 1]) tr.children[i + 1].textContent = valOf(r, key) || '—'; });
-    });
-  }
-  box.appendChild(weekSel);
-  box.appendChild(fields);
-  rebuild();
-  card.appendChild(box);
+  const note = el('p', 'hint'); note.style.margin = '8px 2px 0';
+  note.textContent = '표의 칸을 눌러 그 주 담당을 지정·수정하세요. 봉사담당은 비우면 자동 순환값으로 돌아갑니다.';
+  card.appendChild(note);
   return card;
+}
+
+// 표 칸 클릭 → 팝업에서 그 주·항목 편집
+function openLoveEditor(week, key, label, onDone) {
+  openSheet(`${label} · ${fmtKDate(week)}`, (body) => {
+    const row = (STATE.loveWindow || []).find((r) => r.week === week) || {};
+    const cur = row[key];
+    if (key === 'love_offering') {
+      body.appendChild(el('p', 'hint', '한두 분 · 없으면 비움 · 두 분이면 두 줄로 인쇄'));
+      const sel = Array.isArray(cur) ? cur.slice() : (cur ? String(cur).trim().split(/\s+/).filter(Boolean) : []);
+      body.appendChild(namePicker({
+        selected: sel, source: 'members', multi: true, placeholder: '명단에서 (두 분까지)',
+        onChange: () => saveLove(week, 'love_offering', sel.join(' '), onDone),
+      }));
+    } else {
+      body.appendChild(el('p', 'hint', '마을 선택 · 비우면 월 순환 자동값으로 복귀'));
+      const sel = cur ? [String(cur)] : [];
+      body.appendChild(namePicker({
+        selected: sel, source: 'villages', multi: false, placeholder: '마을 선택(비우면 자동값)',
+        onChange: () => saveLove(week, 'love_service', sel[0] || '', onDone),
+      }));
+    }
+  });
 }
 
 async function saveLove(weekId, role, name, onDone) {

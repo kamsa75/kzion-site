@@ -175,6 +175,17 @@ body{
 .grid4 tbody th{background:#faf9f5; font-weight:700; text-align:left; padding-left:9px; white-space:nowrap}
 .grid4 td.thisweek{background:#fffdf5}
 .grid4 .manual-dot{color:var(--ui-gold); font-size:10px; margin-left:3px}
+/* 사랑의 나눔 표 — 인쇄 미리보기와 톤·간격 맞춤 + 칸 눌러 수정 */
+.love-grid{font-size:14px}
+.love-grid thead th{background:var(--ui-gold-soft); font-weight:800; padding:8px 6px; white-space:nowrap}
+.love-grid tbody th{background:var(--ui-gold-soft); font-weight:800; padding:9px 10px;
+  text-align:justify; text-align-last:justify; text-justify:inter-character; white-space:normal}
+.love-grid td{padding:11px 6px}
+.love-grid td.tap{cursor:pointer}
+.love-grid td.tap:hover{background:#faf6ec}
+.love-grid td.tap:active{background:var(--ui-gold-soft)}
+.love-grid td.is-empty{color:#c6b795; font-weight:700}
+.love-now{display:block; font-size:10px; font-weight:800; color:var(--ui-gold); margin-top:2px}
 
 /* ---------- 성찬식 선제 제안 배너 (§6-4) ---------- */
 .notice{
