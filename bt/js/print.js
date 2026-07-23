@@ -337,7 +337,8 @@ function panelWeeklyInfo(S) {
       });
     const tot = PE('div', 'po-row po-total');
     tot.appendChild(PE('span', 'po-k', '합계'));
-    tot.appendChild(PE('span', 'po-v', o.total ? '$' + o.total : ''));
+    const totVal = String(o.total || '').replace(/\$/g, '').trim();   // 사용자가 $ 넣어도 중복 방지
+    tot.appendChild(PE('span', 'po-v', totVal ? '$' + totVal : ''));
     ot.appendChild(tot);
     g.appendChild(ot);
   });

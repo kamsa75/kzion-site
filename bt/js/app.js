@@ -539,10 +539,16 @@ function renderOfferingCard(S) {
   });
 
   const tf = el('div', 'field');
-  tf.appendChild(el('label', null, '합계 ($)'));
+  const tl = el('label', null, '합계');
+  tl.appendChild(el('span', 'hint', '  $는 자동으로 붙어요 — 숫자만 입력하세요'));
+  tf.appendChild(tl);
   const ti = el('input'); ti.type = 'text'; ti.inputMode = 'decimal';
   ti.placeholder = '예: 1,316.00'; ti.value = o.total || '';
-  ti.addEventListener('input', () => { o.total = ti.value; queueSave(); });
+  ti.addEventListener('input', () => {
+    const cleaned = ti.value.replace(/\$/g, '');       // $를 넣어도 자동 제거(중복 방지)
+    if (cleaned !== ti.value) ti.value = cleaned;
+    o.total = cleaned; queueSave();
+  });
   tf.appendChild(ti);
   card.appendChild(tf);
   return card;
