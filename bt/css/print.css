@@ -211,6 +211,10 @@
 @media print{
   @page{ size:14in 8.5in; margin:0; }
   html,body{background:#fff!important}
+  /* 배경색·소제목 바가 인쇄에 그대로 나오게(기본은 브라우저가 배경 생략) */
+  *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
+  /* 업로드 이미지(악보·설교노트) 선명하게 */
+  .praise-img, .note-img{ image-rendering:-webkit-optimize-contrast; }
   .noprint, .topbar, #print-gate, #screen-pin, #screen-bt, #toast, #sheet{display:none!important}
   #screen-print{display:block!important}
   #print-root{padding:0; gap:0; background:#fff; display:block}
