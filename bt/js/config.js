@@ -129,14 +129,20 @@ function buildOrderRows(S) {
     const si = rows.findIndex((r) => r.id === 'sermon');
     rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
   }
+  // 공유 필드 = 한 곳에서만 입력(값 갈라짐 차단). 주보에선 읽기전용으로 표시.
+  //   설교·본문·찬송 = PPT에서 입력 / 대표기도 = 섬기는이들 표·PPT(자동)
+  const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: '자동' };
   return rows.map((r) => {
-    let detail = (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]);
-    if (r.id === 'special') detail = formatSpecial(detail);   // 특송 곡명·담당 사이 점 자동(#2)
+    const src = SHARED[r.id];
+    let detail = src ? defaults[r.id] : (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]);
+    if (r.id === 'special') detail = formatSpecial(detail);   // 특송 곡명·담당 사이 점 자동
     return {
       id: r.id, label: r.label, star: !!r.star,
-      bold: r.id === 'sermon',   // 설교 제목 자동 볼드(#4)
+      bold: r.id === 'sermon',   // 설교 제목 자동 볼드
       detail,
-      overridden: ov[r.id] !== undefined,
+      overridden: !src && ov[r.id] !== undefined,
+      readonly: !!src,
+      source: src || null,
     };
   });
 }

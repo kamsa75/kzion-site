@@ -195,6 +195,19 @@ body{
 .order-input.is-edited{color:var(--ui-gold-strong,#8A6D1E)}
 .order-input.order-bold{font-weight:800}
 .order-row:has(.order-input:focus){background:#fffdf5; border-radius:9px}
+/* 공유 필드 = 읽기전용 + 배지(값 갈라짐 차단) */
+.order-row.order-ro{background:#fbfaf7; border-radius:9px}
+.order-ro-val{display:flex; align-items:center; gap:8px; min-width:0; padding:7px 9px}
+.ro-text{flex:1; min-width:0; font-size:14px; font-weight:600; color:var(--ui-ink);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ro-text.empty{color:var(--ui-sub); font-weight:500}
+.ro-text.order-bold{font-weight:800}
+.order-badge{flex:none; font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px}
+.order-badge.ppt{color:#2b5a86; background:#e4f0fa; border:1px solid #bfd9ef}
+.order-badge.auto{color:#8A6D1E; background:var(--ui-gold-soft); border:1px solid #ebd9a6}
+.order-foot{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+.btn-ppt{align-self:flex-start; font-size:13px; padding:8px 14px; color:#2b5a86; border-color:#bfd9ef; text-decoration:none}
+.btn-ppt:hover{background:#eef6fc; border-color:#9cc6e8}
 
 /* ---------- 4주 표 (예배를 섬기는 이들 · 사랑의 나눔) ---------- */
 .grid4{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
