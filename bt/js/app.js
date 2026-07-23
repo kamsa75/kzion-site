@@ -925,11 +925,8 @@ function renderOrderCard(S) {
 
   const foot = el('div', 'order-foot');
   const note = el('p', 'hint');
-  note.innerHTML = '<b>설교·본문·찬송</b>은 PPT에서, <b>대표기도</b>는 섬기는이들 표에서 입력합니다(값이 갈라지지 않게 읽기전용). 나머지는 여기서 고칠 수 있어요.';
+  note.innerHTML = '<b>설교·본문·찬송</b>은 PPT에서, <b>대표기도</b>는 섬기는이들 표에서 입력합니다(값이 갈라지지 않게 읽기전용). 나머지는 여기서 고칠 수 있어요. PPT 입력은 상단 <b>PPT 작성</b> 버튼으로 여세요.';
   foot.appendChild(note);
-  const ppt = el('a', 'btn btn-line btn-ppt', 'PPT 목사님 화면 열기 →');
-  ppt.href = '../ppt/'; ppt.target = '_blank'; ppt.rel = 'noopener';
-  foot.appendChild(ppt);
   card.appendChild(foot);
   return card;
 }
