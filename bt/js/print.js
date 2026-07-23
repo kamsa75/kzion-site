@@ -87,20 +87,23 @@ function buildGate(S) {
 function buildSheets(S) {
   const root = document.getElementById('print-root');
   root.innerHTML = '';
+  // 모바일 축소용 래퍼 — 데스크톱/인쇄에선 display:contents로 투명(레이아웃 영향 없음),
+  // 모바일에선 래퍼가 축소된 크기를 차지해 잘림·겹침 없이 표시(#1)
+  const wrap = (sheet) => { const w = PE('div', 'sheet-scale'); w.appendChild(sheet); return w; };
 
   // A면 (겉)
   const a = PE('div', 'sheet-page');
   a.appendChild(panelSermonNote(S, 0));
   a.appendChild(panelSermonNote(S, 1));
   a.appendChild(panelPraiseServe(S));
-  root.appendChild(a);
+  root.appendChild(wrap(a));
 
   // B면 (속)
   const b = PE('div', 'sheet-page');
   b.appendChild(panelNews(S));
   b.appendChild(panelWeeklyInfo(S));
   b.appendChild(panelCover(S));
-  root.appendChild(b);
+  root.appendChild(wrap(b));
 }
 
 // ── 패널 공통: 상단 갈색 제목 바 ──
@@ -173,13 +176,12 @@ function serveTable(S) {
   const td = (cls, txt, span) => { const c = PE('td', cls, txt); if (span) c.colSpan = span; return c; };
 
   if ([senior, assoc, youth, music, elder].every((v) => v !== null)) {
+    // 협동목사도 뮤직디렉터처럼 [색상칸 라벨][이름칸] 구조(#5)
     const r1 = PE('tr');
     r1.appendChild(td('st-k', '담임목사'));
     r1.appendChild(td('st-v', senior));
-    const c1 = td('st-v', null, 2);
-    c1.appendChild(PE('span', 'st-il', '협동목사:'));
-    c1.appendChild(document.createTextNode(' ' + assoc));
-    r1.appendChild(c1);
+    r1.appendChild(td('st-k', '협동목사'));
+    r1.appendChild(td('st-v', assoc));
     t.appendChild(r1);
 
     const r2 = PE('tr');
@@ -189,9 +191,12 @@ function serveTable(S) {
     r2.appendChild(td('st-v', music));
     t.appendChild(r2);
 
+    // 시무장로 이름은 헌금 이름처럼 넓게(#4)
     const r3 = PE('tr');
     r3.appendChild(td('st-k', '시무장로'));
-    r3.appendChild(td('st-v', elder, 3));
+    const c3 = td('st-v', null, 3);
+    c3.appendChild(nameSpans(elder));
+    r3.appendChild(c3);
     t.appendChild(r3);
   } else {
     rows.forEach((r) => {
@@ -255,15 +260,26 @@ function panelWeeklyInfo(S) {
 
   const love = S.loveWindow || [];
 
-  // 사랑의 나눔 (4주)
+  // 사랑의 나눔 (4주) — 이번 주가 맨 앞, 그 뒤 지난 3주(#6)
   group('사랑의 나눔', (g) => {
+    const disp = love.slice().reverse();
     const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
-    love.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
+    disp.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
     lt.appendChild(lhr);
     [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
       const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
-      love.forEach((r) => tr.appendChild(PE('td', null, r[k] || '')));
+      disp.forEach((r) => {
+        const cell = PE('td', null);
+        const v = Array.isArray(r[k]) ? r[k].join(' ') : (r[k] || '');
+        // 친교헌금은 두 분이면 두 줄(#6-1)
+        if (k === 'love_offering' && v.trim()) {
+          v.trim().split(/\s+/).forEach((n) => cell.appendChild(PE('div', 'love-name', n)));
+        } else {
+          cell.textContent = v;
+        }
+        tr.appendChild(cell);
+      });
       lt.appendChild(tr);
     });
     g.appendChild(lt);

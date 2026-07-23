@@ -376,7 +376,15 @@ Deno.serve(async (req) => {
       const nowIso = new Date().toISOString();
 
       if (mode === "once" || r.startsWith("love_") || r === "usher") {
-        if (!name) return json({ error: "이름이 필요합니다" }, 400);
+        // 사랑의 나눔(친교헌금·봉사담당)은 빈칸 허용 → 비우면 이번 주 배정 삭제(#6-1)
+        if (!name) {
+          if (r.startsWith("love_")) {
+            await db.from("rotation_assignments").delete()
+              .eq("week_id", w).eq("role", r).is("locked_at", null);
+            return json({ ok: true });
+          }
+          return json({ error: "이름이 필요합니다" }, 400);
+        }
         const { error } = await db.from("rotation_assignments").upsert({
           week_id: w, role: r, assigned: name, is_manual: true, updated_at: nowIso,
         }, { onConflict: "week_id,role" });
