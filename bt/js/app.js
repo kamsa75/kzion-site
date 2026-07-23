@@ -850,11 +850,25 @@ function renderOrderCard(S) {
 
   const list = el('div', 'order-list');
   buildOrderRows(S).forEach((r) => {
-    const row = el('div', 'order-row');
+    const row = el('div', 'order-row' + (r.readonly ? ' order-ro' : ''));
     const l = el('div', 'order-label');
     if (r.star) l.appendChild(el('span', 'star', '※'));
-    l.appendChild(el('span', 'order-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤(#1)
+    l.appendChild(el('span', 'order-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤
     row.appendChild(l);
+
+    if (r.readonly) {
+      // 공유 필드 — 읽기전용 + 어디서 입력하는지 배지(값 갈라짐 차단)
+      const val = el('div', 'order-ro-val');
+      const isPPT = r.source === 'PPT';
+      const txt = el('span', 'ro-text' + (r.detail ? '' : ' empty') + (r.bold ? ' order-bold' : ''),
+        r.detail || (isPPT ? 'PPT에서 입력' : '섬기는이들 표에서'));
+      val.appendChild(txt);
+      val.appendChild(el('span', 'order-badge' + (isPPT ? ' ppt' : ' auto'),
+        isPPT ? 'PPT' : '자동'));
+      row.appendChild(val);
+      list.appendChild(row);
+      return;
+    }
 
     const inp = el('input', 'order-input' + (r.overridden ? ' is-edited' : '') + (r.bold ? ' order-bold' : ''));
     inp.type = 'text';
@@ -865,7 +879,7 @@ function renderOrderCard(S) {
       inp.classList.add('is-edited');
       queueSave();
     });
-    // 비우면 오버라이드 삭제 → 자동값 복귀 / 특송은 곡명·담당 사이 점 자동(#2)
+    // 비우면 오버라이드 삭제 → 자동값 복귀 / 특송은 곡명·담당 사이 점 자동
     inp.addEventListener('blur', () => {
       if (inp.value.trim() === '') {
         delete overrides()[r.id];
@@ -883,10 +897,14 @@ function renderOrderCard(S) {
   });
   card.appendChild(list);
 
+  const foot = el('div', 'order-foot');
   const note = el('p', 'hint');
-  note.style.margin = '8px 2px 0';
-  note.textContent = 'PPT·자동값이 기본으로 채워집니다. 고치면 주보에만 반영되고, 비우면 자동값으로 돌아갑니다.';
-  card.appendChild(note);
+  note.innerHTML = '<b>설교·본문·찬송</b>은 PPT에서, <b>대표기도</b>는 섬기는이들 표에서 입력합니다(값이 갈라지지 않게 읽기전용). 나머지는 여기서 고칠 수 있어요.';
+  foot.appendChild(note);
+  const ppt = el('a', 'btn btn-line btn-ppt', 'PPT 목사님 화면 열기 →');
+  ppt.href = '../ppt/'; ppt.target = '_blank'; ppt.rel = 'noopener';
+  foot.appendChild(ppt);
+  card.appendChild(foot);
   return card;
 }
 
