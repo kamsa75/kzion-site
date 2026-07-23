@@ -259,16 +259,15 @@ function panelWeeklyInfo(S) {
 
   const love = S.loveWindow || [];
 
-  // 사랑의 나눔 (4주) — 이번 주가 맨 앞, 그 뒤 지난 3주(#6)
+  // 사랑의 나눔 (4주) — 이번 주 + 다가올 3주(#후속1)
   group('사랑의 나눔', (g) => {
-    const disp = love.slice().reverse();
     const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
-    disp.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
+    love.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
     lt.appendChild(lhr);
     [['친교헌금', 'love_offering'], ['봉사담당', 'love_service']].forEach(([lab, k]) => {
       const tr = PE('tr'); tr.appendChild(PE('th', 'p-grid-rh', lab));
-      disp.forEach((r) => {
+      love.forEach((r) => {
         const cell = PE('td', null);
         const v = Array.isArray(r[k]) ? r[k].join(' ') : (r[k] || '');
         // 친교헌금은 두 분이면 두 줄(#6-1)
@@ -317,8 +316,8 @@ function panelWeeklyInfo(S) {
     g.appendChild(ev);
   });
 
-  // 지난 주 헌금
-  const prevW = love.length >= 2 ? fmtMD(love[love.length - 2].week) : '';
+  // 지난 주 헌금 — 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
+  const prevW = fmtMD(addDaysISO(S.weekId, -7));
   group(`지난 주 헌금 (${prevW})`, (g) => {
     const o = (S.bulletin && S.bulletin.offering) || {};
     const ot = PE('div', 'p-offering');
