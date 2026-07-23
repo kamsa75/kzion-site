@@ -129,6 +129,9 @@
 .po-k{font-weight:700; width:44px; flex:none;
   text-align:justify; text-align-last:justify; text-justify:inter-character}   /* 감사·십일조·주정·선교·합계 양끝맞춤(#7) */
 .po-v{flex:1; line-height:1.55}
+/* 이름을 고정 칸 그리드에 → 가변폭 폰트여도 열이 항상 정렬 */
+.po-names{display:grid; grid-template-columns:repeat(auto-fill, minmax(3.4em, 1fr)); gap:3px 6px}
+.po-name{white-space:nowrap; word-break:keep-all}
 /* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
