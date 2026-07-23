@@ -361,6 +361,7 @@ body{
 }
 .pool-name.on{background:var(--ui-dark); color:#fff; border-color:var(--ui-dark)}
 .pool-name:active{filter:brightness(.95)}
+.pool-name.pool-custom{color:#8A6D1E; background:var(--ui-gold-soft); border-color:#ebd9a6; font-weight:700}
 
 .love-inputs{margin-top:12px; padding-top:12px; border-top:1px dashed var(--ui-line)}
 

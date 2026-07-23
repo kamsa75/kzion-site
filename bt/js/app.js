@@ -303,9 +303,24 @@ function namePicker(opts) {
     ? (STATE.meta?.villages || [])
     : (STATE.members || []).map((m) => m.name);
 
+  function addCustom() {
+    const q = (search.value || '').trim();
+    if (!q || opts.selected.includes(q)) return;
+    if (opts.multi === false) opts.selected.length = 0;
+    opts.selected.push(q);
+    search.value = '';
+    paintChips(); paintPool(); opts.onChange();
+  }
+
   function paintPool() {
     const q = (search.value || '').trim();
     grid.innerHTML = '';
+    // 직접 입력 허용(친교헌금 등): 명단에 없는 이름을 타이핑해서 그대로 추가
+    if (opts.allowCustom && q && !candidates().includes(q) && !opts.selected.includes(q)) {
+      const add = el('button', 'pool-name pool-custom', "＋ '" + q + "' 직접 넣기");
+      add.addEventListener('click', addCustom);
+      grid.appendChild(add);
+    }
     candidates()
       .filter((n) => !q || n.includes(q))
       .forEach((name) => {
@@ -329,6 +344,12 @@ function namePicker(opts) {
     toggle.textContent = pool.hidden ? '＋ 명단에서 고르기' : '닫기';
     if (!pool.hidden) { paintPool(); search.focus(); }
   });
+  if (opts.allowCustom) {
+    search.placeholder = '이름 찾기 · 없으면 타이핑 후 Enter';
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); addCustom(); }
+    });
+  }
   search.addEventListener('input', paintPool);
 
   paintChips();
@@ -681,10 +702,10 @@ function openLoveEditor(week, key, label, onDone) {
     const row = (STATE.loveWindow || []).find((r) => r.week === week) || {};
     const cur = row[key];
     if (key === 'love_offering') {
-      body.appendChild(el('p', 'hint', '한두 분 · 없으면 비움 · 두 분이면 두 줄로 인쇄'));
+      body.appendChild(el('p', 'hint', '한두 분 · 명단에 없으면 직접 타이핑 · 없으면 비움 · 두 분이면 두 줄로 인쇄'));
       const sel = Array.isArray(cur) ? cur.slice() : (cur ? String(cur).trim().split(/\s+/).filter(Boolean) : []);
       body.appendChild(namePicker({
-        selected: sel, source: 'members', multi: true, placeholder: '명단에서 (두 분까지)',
+        selected: sel, source: 'members', multi: true, allowCustom: true, placeholder: '명단에서 고르거나 직접 입력',
         onChange: () => saveLove(week, 'love_offering', sel.join(' '), onDone),
       }));
     } else {
