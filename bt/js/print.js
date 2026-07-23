@@ -146,9 +146,8 @@ function panelPraiseServe(S) {
   } else if (praiseImg) {
     const img = PE('img', 'praise-img'); img.src = praiseImg;
     free.appendChild(img);
-  } else {
-    free.appendChild(PE('div', 'praise-empty', '예배찬양 (악보 이미지 또는 글 — 편집에서 넣기)'));
   }
+  // 비어 있으면 안내문구 없이 빈 공간(#3)
   p.appendChild(free);
 
   // 섬기는 사람들 (준고정) — 원본 주보 격자 구조(#6)
