@@ -106,13 +106,13 @@
 /* 예배를 섬기는 이들 — 날짜(세로축) 오른쪽 정렬(#4) */
 .cover-serve .p-grid-rh{text-align:right; padding-right:6px}
 
-/* 토요새벽 */
-.p-sat{padding:2px 2px 0; margin-bottom:4px}
+/* 토요새벽 — 라벨을 사랑의나눔 첫 칼럼과 동일 폭·정렬(송/교/도가 금/당에 맞게, #2후속) */
+.p-sat{padding:2px 0 0; margin-bottom:4px}
 .p-sat-when{text-align:right; font-size:8.7pt; color:#000; margin-bottom:3px}
-.p-sat-row{display:flex; gap:10px; font-size:9.9pt; padding:2.5px 2px; border-bottom:1px solid #f1ece2}
+.p-sat-row{display:flex; gap:10px; font-size:9.9pt; padding:2.5px 0; border-bottom:1px solid #f1ece2}
 .p-sat-row:last-child{border-bottom:none}
-.p-sat-k{font-weight:700; width:var(--info-c1); flex:none;
-  text-align:justify; text-align-last:justify; text-justify:inter-character}   /* 첫 칼럼 통일(#7) + 양끝맞춤(#6) */
+.p-sat-k{font-weight:700; width:var(--info-c1); flex:none; padding:0 6px;   /* 사랑의나눔 세로축과 동일 여백 */
+  text-align:justify; text-align-last:justify; text-justify:inter-character}
 
 /* 행사계획 */
 .p-events{width:100%; border-collapse:collapse; font-size:9.6pt; margin-bottom:4px}
