@@ -176,18 +176,21 @@ function offeringAt(anchors: Anchor[], pools: Pools, weekId: string): string | n
   return pool[(i + months) % pool.length];
 }
 
-// 봉사담당(마을) — 월 단위 순환 (봉헌위원과 동일 방식, pool 'love_service')
+// 봉사담당(마을) — 마을이 N주(기본 4주)씩 담당하는 블록 순환 (pool 'love_service')
+//   spec = { week: 기준주(블록 시작), name: 그 주의 마을, blockWeeks?: 4 }
 function loveServiceAt(anchors: Anchor[], pools: Pools, weekId: string): string | null {
   const a = anchorFor(anchors, weekId);
   const pool = pools["love_service"] || [];
   if (!a || !pool.length) return null;
-  const spec = a.spec as { month: string; name: string };
-  const [ay, am] = String(spec.month).split("-").map(Number);
-  const w = d(weekId);
-  const months = (w.getUTCFullYear() - ay) * 12 + (w.getUTCMonth() + 1 - am);
-  if (months < 0) return null;
+  const spec = a.spec as { week: string; name: string; blockWeeks?: number };
+  if (!spec.week) return null;
+  const bw = spec.blockWeeks || 4;
+  const weeks = Math.round((d(weekId).getTime() - d(spec.week).getTime()) / (7 * 86400000));
+  const block = Math.floor(weeks / bw);
   const i = Math.max(0, pool.indexOf(spec.name));
-  return pool[(i + months) % pool.length];
+  let idx = (i + block) % pool.length;
+  if (idx < 0) idx += pool.length;
+  return pool[idx];
 }
 
 // 그 주 전체 배정 — 오버라이드(수동·인쇄 스냅샷)가 계산보다 우선
