@@ -41,6 +41,7 @@ body{
   font-family:inherit; font-weight:700; font-size:15px;
   border:1px solid transparent; border-radius:12px;
   padding:11px 16px; cursor:pointer; -webkit-appearance:none;
+  white-space:nowrap;   /* 글자 중간 줄바꿈 방지(#1) */
   transition:filter .12s, background .12s;
 }
 .btn:active{filter:brightness(.95)}
@@ -77,11 +78,18 @@ body{
   padding:12px 16px; background:rgba(247,246,242,.92);
   backdrop-filter:blur(8px); border-bottom:1px solid var(--ui-line);
 }
-.topbar-left{display:flex; align-items:center; gap:10px; min-width:0}
-.topbar-title{font-weight:800; font-size:16px}
+.topbar-left{display:flex; align-items:center; gap:10px; min-width:0; flex:1 1 auto}
+.topbar-title{font-weight:800; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* 모바일: 상단바 액션 우선 — 제목은 숨기고(역할칩·본문으로 식별) 버튼 컴팩트하게(#1) */
+@media (max-width:560px){
+  .topbar{padding:10px 12px}
+  .topbar-title{display:none}
+  .topbar .btn{padding:8px 10px; font-size:13px; border-radius:10px}
+  .role-chip{font-size:11px; padding:2px 7px}
+}
 .role-chip{
-  font-size:12px; font-weight:700; color:var(--ui-gold);
-  background:var(--ui-gold-soft); padding:3px 9px; border-radius:999px;
+  font-size:12px; font-weight:700; color:var(--ui-gold); white-space:nowrap;   /* "목사님" 안 깨지게(#1) */
+  background:var(--ui-gold-soft); padding:3px 9px; border-radius:999px; flex:none;
 }
 .save-note{font-size:12px; color:var(--ui-ok); font-weight:600}
 
@@ -162,7 +170,7 @@ body{
 
 /* ---------- 4주 표 (예배를 섬기는 이들 · 사랑의 나눔) ---------- */
 .grid4{width:100%; border-collapse:collapse; font-size:13px; margin-top:4px}
-.grid4 th, .grid4 td{border:1px solid var(--ui-line); padding:7px 6px; text-align:center}
+.grid4 th, .grid4 td{border:1px solid var(--ui-line); padding:7px 6px; text-align:center; word-break:keep-all}   /* 이름 중간 줄바꿈 방지(#2) */
 .grid4 thead th{background:var(--ui-gold-soft); font-weight:700; color:var(--ui-ink)}
 .grid4 tbody th{background:#faf9f5; font-weight:700; text-align:left; padding-left:9px; white-space:nowrap}
 .grid4 td.thisweek{background:#fffdf5}
@@ -273,7 +281,7 @@ body{
 .picker-chips{display:flex; flex-wrap:wrap; gap:6px; min-height:30px; align-items:center; padding:2px}
 .picker-empty{color:var(--ui-sub); font-size:13px; padding:2px 4px}
 .picker-chip{
-  display:inline-flex; align-items:center; gap:5px;
+  display:inline-flex; align-items:center; gap:5px; word-break:keep-all;
   background:var(--ui-gold-soft); color:var(--ui-ink); font-weight:700; font-size:13px;
   padding:5px 8px 5px 10px; border-radius:999px;
 }

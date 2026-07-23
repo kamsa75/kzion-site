@@ -194,11 +194,16 @@
 .gate-override{display:flex; align-items:center; gap:7px; margin-top:6px; font-size:13px; font-weight:600; cursor:pointer}
 .gate-override input{width:17px; height:17px}
 
-/* ---------- 화면에서 축소 보기 (모바일) ---------- */
-@media (max-width:900px){
-  .sheet-page{transform:scale(calc(360 / 1344)); transform-origin:top left;
-    margin-bottom:calc(-8.5in * (1 - 360/1344))}
+/* ---------- 화면에서 축소 보기 (모바일) ----------
+   transform:scale은 레이아웃 박스(14in)가 그대로라 align-items:center가 화면 밖으로 밀어냈다.
+   zoom은 레이아웃 박스까지 줄여서 제대로 가운데 정렬·표시됨. 'screen'으로 인쇄엔 미적용(#3). */
+@media screen and (max-width:900px){
+  #print-root{padding:16px 8px 48px}
+  .sheet-page{zoom:0.5}
 }
+@media screen and (max-width:680px){ .sheet-page{zoom:0.38} }
+@media screen and (max-width:520px){ .sheet-page{zoom:0.26} }
+@media screen and (max-width:380px){ .sheet-page{zoom:0.24} }
 
 /* ============================================================
    인쇄 시 — 편집 UI 전부 숨기고 6패널만
