@@ -52,6 +52,15 @@ function orderTitleLabel(S, name) {
   if (t.indexOf('서리집사') >= 0) return '집사';
   return '';
 }
+// 특송 줄 정규화 — "곡제목 성가대"/"곡제목 OOO"처럼 점 없이 넣어도 마지막 낱말(담당) 앞에
+//   " · "를 기본으로 넣어준다("사도신경 · 다같이"처럼). 이미 · 있으면 그대로.
+function formatSpecial(s) {
+  const t = String(s == null ? '' : s).trim();
+  if (!t || t.indexOf('·') >= 0) return t;
+  const parts = t.split(/\s+/);
+  if (parts.length < 2) return t;   // 담당(마지막 낱말)이 없으면 그대로
+  return parts.slice(0, -1).join(' ') + ' · ' + parts[parts.length - 1];
+}
 // 특송/성가대 줄 — PPT 성가대 섹션(songs, role=choir) 값에서
 //   라벨이 이미 '특송'이므로 중복 없이: "곡명 · 성가대" 또는 "곡명 · OOO"
 function choirLine(S) {
@@ -120,12 +129,16 @@ function buildOrderRows(S) {
     const si = rows.findIndex((r) => r.id === 'sermon');
     rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
   }
-  return rows.map((r) => ({
-    id: r.id, label: r.label, star: !!r.star,
-    bold: r.id === 'sermon',   // 설교 제목 자동 볼드(#4)
-    detail: (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]),
-    overridden: ov[r.id] !== undefined,
-  }));
+  return rows.map((r) => {
+    let detail = (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]);
+    if (r.id === 'special') detail = formatSpecial(detail);   // 특송 곡명·담당 사이 점 자동(#2)
+    return {
+      id: r.id, label: r.label, star: !!r.star,
+      bold: r.id === 'sermon',   // 설교 제목 자동 볼드(#4)
+      detail,
+      overridden: ov[r.id] !== undefined,
+    };
+  });
 }
 
 // 연간 행사표 → 교회소식 자동 안내 (컨셉 락 §4 확장, A안)
