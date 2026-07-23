@@ -328,8 +328,9 @@ function panelWeeklyInfo(S) {
         if (!txt) return;
         const r = PE('div', 'po-row');
         r.appendChild(PE('span', 'po-k', lab));
-        const val = PE('span', 'po-v');
-        val.appendChild(nameSpans(txt));
+        // 이름을 그리드 고정 칸에 하나씩 → 가변폭 폰트여도 열이 완벽 정렬
+        const val = PE('div', 'po-v po-names');
+        txt.split(/\s+/).filter(Boolean).forEach((n) => val.appendChild(PE('span', 'po-name', n)));
         r.appendChild(val);
         ot.appendChild(r);
       });
