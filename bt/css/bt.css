@@ -86,6 +86,7 @@ body{
   .topbar-title{display:none}
   .topbar .btn{padding:8px 10px; font-size:13px; border-radius:10px}
   .role-chip{font-size:11px; padding:2px 7px}
+  .order-row{padding:7px 6px}   /* 모바일 예배순서 행간 축소(#1) */
 }
 .role-chip{
   font-size:12px; font-weight:700; color:var(--ui-gold); white-space:nowrap;   /* "목사님" 안 깨지게(#1) */
@@ -175,6 +176,8 @@ body{
 .grid4 tbody th{background:#faf9f5; font-weight:700; text-align:left; padding-left:9px; white-space:nowrap}
 .grid4 td.thisweek{background:#fffdf5}
 .grid4 .manual-dot{color:var(--ui-gold); font-size:10px; margin-left:3px}
+.grid4 .now-line{display:block; font-size:11px; font-weight:700; color:var(--ui-sub); margin-top:1px}   /* (이번 주) 다음 줄(#2) */
+.grid4 .serve-name{white-space:nowrap; line-height:1.35}   /* 사람마다 한 줄(#3) */
 /* 사랑의 나눔 표 — 인쇄 미리보기와 톤·간격 맞춤 + 칸 눌러 수정 */
 .love-grid{font-size:14px}
 .love-grid thead th{background:var(--ui-gold-soft); font-weight:800; padding:8px 6px; white-space:nowrap}

@@ -816,6 +816,19 @@ function renderOrderCard(S) {
   return card;
 }
 
+// 이름 문자열 → 사람 단위 배열. "박세영 김 정"처럼 두 글자 이름이 공백으로 나뉘어도
+// 연속된 한 글자 둘을 한 사람(김정)으로 묶는다(#3 두 줄 처리용).
+function peopleLines(text) {
+  const toks = String(text || '').trim().split(/\s+/).filter(Boolean);
+  const out = [];
+  for (let i = 0; i < toks.length; i++) {
+    if (toks[i].length === 1 && i + 1 < toks.length && toks[i + 1].length === 1) {
+      out.push(toks[i] + toks[i + 1]); i += 1;
+    } else out.push(toks[i]);
+  }
+  return out.length ? out : ['—'];
+}
+
 // ── 예배를 섬기는 이들 (4주 표: 이번 주 + 앞 3주) ──
 function renderServeCard(S) {
   const card = el('div', 'card');
@@ -829,7 +842,12 @@ function renderServeCard(S) {
   const thead = el('thead');
   const htr = el('tr');
   htr.appendChild(el('th', null, ''));
-  rows.forEach((r, i) => htr.appendChild(el('th', null, fmtMD(r.week) + (i === 0 ? ' (이번 주)' : ''))));
+  rows.forEach((r, i) => {
+    const th = el('th', null);
+    th.appendChild(document.createTextNode(fmtMD(r.week)));
+    if (i === 0) th.appendChild(el('span', 'now-line', '(이번 주)'));   // 다음 줄로(#2)
+    htr.appendChild(th);
+  });
   thead.appendChild(htr);
   table.appendChild(thead);
 
@@ -840,14 +858,18 @@ function renderServeCard(S) {
     tr.appendChild(el('th', null, label));
     rows.forEach((r, i) => {
       const td = el('td', 'tap' + (i === 0 ? ' thisweek' : ''));
-      td.appendChild(document.createTextNode(r[key] || '—'));
-      if (r.locked) {
-        const lk = el('span', 'lock-dot', '🔒'); lk.title = '인쇄 확정됨';
-        td.appendChild(lk);
-      } else if (r.manual && r.manual[key]) {
-        const dot = el('span', 'manual-dot', '●'); dot.title = '수동 지정';
-        td.appendChild(dot);
-      }
+      const names = r[key] ? peopleLines(r[key]) : ['—'];   // 사람마다 한 줄(#3)
+      names.forEach((n, j) => {
+        const d = el('div', 'serve-name', n);
+        if (j === names.length - 1) {
+          if (r.locked) {
+            const lk = el('span', 'lock-dot', '🔒'); lk.title = '인쇄 확정됨'; d.appendChild(lk);
+          } else if (r.manual && r.manual[key]) {
+            const dot = el('span', 'manual-dot', '●'); dot.title = '수동 지정'; d.appendChild(dot);
+          }
+        }
+        td.appendChild(d);
+      });
       if (!r.locked) {
         td.addEventListener('click', () => openRotationSheet(key, label.replace(/\s/g, ''), r));
       }
