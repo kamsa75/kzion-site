@@ -193,7 +193,7 @@ body{
 .order-row + .order-row{border-top:1px solid #f0efe9}
 .order-label{font-weight:700; font-size:14px; color:var(--ui-ink); display:flex; align-items:baseline}
 .order-label .star{color:var(--ui-gold); margin-right:2px; flex:none}
-.order-label .order-lab{flex:1; text-align:justify; text-align-last:justify; text-justify:inter-character}   /* ※ 제외, 라벨만 양끝맞춤(#1) */
+.order-label .order-lab{flex:1; text-align:left}   /* 편집창 라벨은 좌측정렬(다어절 라벨 과도 벌어짐 방지) */
 .order-detail{font-size:14px; color:var(--ui-sub)}
 .order-detail.filled{color:var(--ui-ink); font-weight:600}
 /* 인라인 편집 입력 */
