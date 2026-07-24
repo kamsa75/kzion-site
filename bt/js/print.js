@@ -242,7 +242,7 @@ function serveTable(S) {
 function panelNews(S) {
   const p = panel('p-news');
   p.appendChild(topMotto(S));
-  p.appendChild(panelHeadBar('교/회/소/식'));
+  p.appendChild(panelHeadBar('교회소식'));
   const list = PE('div', 'news-print');
   let n = 0;
   // 자동 안내 먼저 (연간 행사표 기반)
