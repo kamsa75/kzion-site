@@ -39,8 +39,10 @@
 .nm2 .nm2a{margin-right:0.26em}
 
 /* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
-.p-groups{flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:0}
+.p-groups{flex:1; display:flex; flex-direction:column; justify-content:flex-start; row-gap:18px; min-height:0}
 .p-group{flex:none}
+/* 마지막 덩어리(헌금·행사계획)를 패널 하단에 고정 */
+.p-group.pin-bottom{margin-top:auto}
 
 /* 갈색 제목 바 (실물 주보의 그 바) */
 .p-headbar{

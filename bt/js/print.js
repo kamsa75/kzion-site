@@ -125,6 +125,14 @@ function panelHeadBar(title) {
 }
 function panel(cls) { return PE('div', 'panel ' + (cls || '')); }
 
+// 갈색 제목바 + 내용 한 덩어리(그룹). pinBottom=true면 패널 하단에 고정(margin-top:auto)
+function buildGroup(title, buildInner, pinBottom) {
+  const g = PE('div', 'p-group' + (pinBottom ? ' pin-bottom' : ''));
+  g.appendChild(panelHeadBar(title));
+  buildInner(g);
+  return g;
+}
+
 // ── A-1·A-2 설교노트 — 제목 수정 가능 + 이미지·본문 선택(#3·#4). 비우면 손글씨용 빈 줄 ──
 function panelSermonNote(S, idx) {
   const p = panel('p-note');
@@ -251,6 +259,18 @@ function panelNews(S) {
     list.appendChild(item);
   });
   p.appendChild(list);
+
+  // 행사계획 — 공지 성격이라 교회소식과 같은 면 하단에 고정
+  p.appendChild(buildGroup('행사계획', (g) => {
+    const ev = PE('table', 'p-events');
+    bulletinEvents(S).forEach((e) => {
+      const tr = PE('tr');
+      tr.appendChild(PE('td', 'pe-date', e.dateText));
+      tr.appendChild(PE('td', 'pe-label', e.label));
+      ev.appendChild(tr);
+    });
+    g.appendChild(ev);
+  }, true));
   return p;
 }
 
@@ -260,19 +280,34 @@ function panelWeeklyInfo(S) {
   const p = panel('p-info');
   p.appendChild(topMotto(S));
 
-  const groups = PE('div', 'p-groups');   // 남은 세로를 4개 섹션이 고르게 채움
+  const groups = PE('div', 'p-groups');   // 토요새벽 → 사랑의 나눔 → 지난주 헌금(하단 고정)
   p.appendChild(groups);
-  const group = (title, buildInner) => {
-    const g = PE('div', 'p-group');
-    g.appendChild(panelHeadBar(title));
-    buildInner(g);
-    groups.appendChild(g);
-  };
 
   const love = S.loveWindow || [];
 
+  // 토요새벽예배 (제일 위) — 날짜 자동, 설교 본문·담당자
+  groups.appendChild(buildGroup('토요새벽예배', (g) => {
+    const sat = (S.bulletin && S.bulletin.saturday) || {};
+    const satBox = PE('div', 'p-sat');
+    const date = (sat.date && sat.date.trim()) || (saturdayOf(S) + ' 오전 7시');
+    satBox.appendChild(PE('div', 'p-sat-when', date));
+    const pastorName = ((S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [])
+      .find((r) => r.label === '담임목사');
+    const defPreacher = pastorName ? pastorName.value + ' 목사' : '';
+    const preacher = (sat.preacher && sat.preacher.trim()) || defPreacher;
+    const sermonLine = [sat.sermon, preacher].filter((x) => x && x.trim()).join(' · ');
+    [['찬송', sat.hymn || '다같이'], ['설교', sermonLine], ['합심기도', sat.pray || '다같이']]
+      .forEach(([k, v]) => {
+        const r = PE('div', 'p-sat-row');
+        r.appendChild(spreadLabel('p-sat-k', k));
+        r.appendChild(PE('span', 'p-sat-v', v));
+        satBox.appendChild(r);
+      });
+    g.appendChild(satBox);
+  }));
+
   // 사랑의 나눔 (4주) — 이번 주 + 다가올 3주(#후속1)
-  group('사랑의 나눔', (g) => {
+  groups.appendChild(buildGroup('사랑의 나눔', (g) => {
     const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
     love.forEach((r) => lhr.appendChild(PE('th', null, fmtMDKorean(r.week))));
@@ -294,66 +329,41 @@ function panelWeeklyInfo(S) {
       lt.appendChild(tr);
     });
     g.appendChild(lt);
-  });
+  }));
 
-  // 토요새벽예배 (#3 — 날짜 자동, 설교 본문·담당자)
-  group('토요새벽예배', (g) => {
-    const sat = (S.bulletin && S.bulletin.saturday) || {};
-    const satBox = PE('div', 'p-sat');
-    const date = (sat.date && sat.date.trim()) || (saturdayOf(S) + ' 오전 7시');
-    satBox.appendChild(PE('div', 'p-sat-when', date));
-    const pastorName = ((S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [])
-      .find((r) => r.label === '담임목사');
-    const defPreacher = pastorName ? pastorName.value + ' 목사' : '';
-    const preacher = (sat.preacher && sat.preacher.trim()) || defPreacher;
-    const sermonLine = [sat.sermon, preacher].filter((x) => x && x.trim()).join(' · ');
-    [['찬송', sat.hymn || '다같이'], ['설교', sermonLine], ['합심기도', sat.pray || '다같이']]
-      .forEach(([k, v]) => {
-        const r = PE('div', 'p-sat-row');
-        r.appendChild(spreadLabel('p-sat-k', k));
-        r.appendChild(PE('span', 'p-sat-v', v));
-        satBox.appendChild(r);
-      });
-    g.appendChild(satBox);
-  });
-
-  // 행사계획 — 기본 4개 + 수동 추가/삭제(#2)
-  group('행사계획', (g) => {
-    const ev = PE('table', 'p-events');
-    bulletinEvents(S).forEach((e) => {
-      const tr = PE('tr');
-      tr.appendChild(PE('td', 'pe-date', e.dateText));
-      tr.appendChild(PE('td', 'pe-label', e.label));
-      ev.appendChild(tr);
-    });
-    g.appendChild(ev);
-  });
-
-  // 지난 주 헌금 — 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
+  // 지난 주 헌금 (하단 고정) — 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
   const prevW = fmtMD(addDaysISO(S.weekId, -7));
-  group(`지난 주 헌금 (${prevW})`, (g) => {
+  groups.appendChild(buildGroup(`지난 주 헌금 (${prevW})`, (g) => {
     const o = (S.bulletin && S.bulletin.offering) || {};
     const ot = PE('div', 'p-offering');
     const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
+    // 이름을 그리드 고정 칸에 하나씩 → 가변폭 폰트여도 열이 완벽 정렬(기존 디자인 유지)
+    const poRow = (lab, txt) => {
+      const r = PE('div', 'po-row');
+      r.appendChild(spreadLabel('po-k', lab));
+      const val = PE('div', 'po-v po-names');
+      txt.split(/\s+/).filter(Boolean).forEach((n) => val.appendChild(PE('span', 'po-name', n)));
+      r.appendChild(val);
+      return r;
+    };
     [['감사', o.thanks], ['십일조', o.tithe], ['주정', o.weekly], ['선교', o.mission]]
       .forEach(([lab, v]) => {
         const txt = asStr(v).trim();
-        if (!txt) return;
-        const r = PE('div', 'po-row');
-        r.appendChild(spreadLabel('po-k', lab));
-        // 이름을 그리드 고정 칸에 하나씩 → 가변폭 폰트여도 열이 완벽 정렬
-        const val = PE('div', 'po-v po-names');
-        txt.split(/\s+/).filter(Boolean).forEach((n) => val.appendChild(PE('span', 'po-name', n)));
-        r.appendChild(val);
-        ot.appendChild(r);
+        if (txt) ot.appendChild(poRow(lab, txt));
       });
+    // 특별헌금(맥추·친교 등) — 수동 추가분, 선교 다음·합계 위
+    (o.extras || []).forEach((ex) => {
+      const lab = ((ex && ex.label) || '').trim();
+      const txt = asStr(ex && ex.names).trim();
+      if (lab || txt) ot.appendChild(poRow(lab, txt));
+    });
     const tot = PE('div', 'po-row po-total');
     tot.appendChild(spreadLabel('po-k', '합계'));
     const totVal = String(o.total || '').replace(/\$/g, '').trim();   // 사용자가 $ 넣어도 중복 방지
     tot.appendChild(PE('span', 'po-v', totVal ? '$' + totVal : ''));
     ot.appendChild(tot);
     g.appendChild(ot);
-  });
+  }, true));   // 헌금 = 패널 하단 고정
   return p;
 }
 
