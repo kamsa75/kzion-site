@@ -153,7 +153,7 @@
 .cover-en{font-size:6.8pt; font-weight:600; color:#000; letter-spacing:.03em; text-align:center}
 /* 슬로건 배지 + 성구 — 한 줄에 [배지] 성구 (원본 주보 배치, #4) */
 .cover-tagline{display:flex; align-items:center; justify-content:flex-start; gap:6px;
-  flex-wrap:nowrap; margin:3px 0 2px; padding-left:2px}   /* www와 같은 좌측 인셋 */
+  flex-wrap:nowrap; margin:9px 0 3px; padding-left:2px}   /* 위: 교회영문명과 간격, 아래: www띠와 간격 / www와 같은 좌측 인셋 */
 .cover-badge{
   display:inline-block; box-sizing:border-box; font-size:6.8pt; font-weight:800; color:#fff; background:var(--orange);
   padding:2px 4px; border-radius:999px; text-align:center; white-space:nowrap; flex:none;
@@ -164,7 +164,7 @@
 /* www · 권호 · 날짜 바 */
 .cover-meta{
   display:grid; grid-template-columns:1fr auto 1fr; align-items:center;   /* 권호=정중앙(예배순서와 정렬) */
-  font-size:8pt; color:#000; padding:3px 2px; margin-top:6px;   /* 성구 띠와 간격(#3) */
+  font-size:8pt; color:#000; padding:3px 2px; margin-top:11px;   /* 배지 줄과 간격 더 확보 */
   border-top:1.5px solid var(--orange); border-bottom:1.5px solid var(--orange);
 }
 .cover-meta > :first-child{justify-self:start}
@@ -175,7 +175,7 @@
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘(#5) → 아래 ※안내·섬기는이들이 바닥으로.
    마스트헤드·안내문·섬기는이들 표를 압축해 이 영역에 최대한 공간을 몰아줌 */
 /* 예배순서: 고정 줄간격(약간 좁게, #4). 남는 세로는 섬기는이들 표를 바닥으로 밀어 확보 */
-.cover-order{flex:0 1 auto; display:flex; flex-direction:column; gap:4px; margin-bottom:3px; min-height:0}
+.cover-order{flex:1 1 auto; display:flex; flex-direction:column; justify-content:space-between; gap:4px; margin-bottom:3px; min-height:0}   /* 남은 세로를 예배순서 줄 사이에 고르게 분배(#3) */
 .co-row{display:grid; grid-template-columns:74px 1fr; gap:21px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}   /* 순서명↔내용 간격(#2→0.5배 더) */
 .co-k{font-weight:800; display:flex; align-items:baseline}
 .co-lab{flex:1}
@@ -190,7 +190,7 @@
   padding-top:3px; margin-bottom:3px; line-height:1.32}
 .cover-serve-h{text-align:center; font-weight:800; font-size:10pt; color:var(--sky-ink); background:var(--sky);
   border:1px solid var(--sky-line); border-bottom:none; border-radius:5px 5px 0 0; padding:3px; margin-bottom:0;
-  margin-top:auto}   /* 섬기는이들 표를 패널 바닥으로(#4) */
+  margin-top:6px}   /* 예배순서가 flex:1로 채우므로 표는 자연히 바닥. auto 제거(그래야 순서 줄이 벌어짐) */
 .cover-serve{margin-top:0; font-size:9pt; table-layout:fixed}
 .cover-serve td, .cover-serve th{padding:1.6px 5px}   /* 섬기는이들 표 압축 → 예배순서에 공간 확보(#5) */
 /* 날짜칸(양옆 여백↑)·기도칸(살짝↓) — 안내·봉헌위원은 나머지 자동 배분(#3·후속#1) */
