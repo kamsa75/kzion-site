@@ -77,8 +77,6 @@ async function enter() {
   $('#bt-body').innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
     STATE = await BT_API.call('getBulletin');
-    $('#bt-role').textContent =
-      STATE.role === 'pastor' ? '목사님' : (STATE.role === 'owner' ? '본부장' : '관리자');
     render();
   } catch (err) {
     if (err.status === 401) { BT_API.clearToken(); show('#screen-pin'); return; }
