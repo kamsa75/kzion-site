@@ -636,13 +636,13 @@ function renderOfferingCard(S) {
     card.appendChild(f);
   });
 
-  // 특별헌금(맥추·친교 등) — 있을 때만 제목+이름 수동 추가. 인쇄 표엔 선교 다음·합계 위에 나옴
+  // 기타헌금(맥추·친교 등) — 있을 때만 제목+이름 수동 추가. 인쇄 표엔 선교 다음·합계 위에 나옴
   o.extras = Array.isArray(o.extras) ? o.extras : [];
   const exWrap = el('div', 'field');
-  exWrap.appendChild(el('label', null, '특별헌금 (선택)'));
+  exWrap.appendChild(el('label', null, '기타헌금 (선택)'));
   const exHint = el('p', 'hint');
   exHint.style.margin = '0 2px 8px';
-  exHint.textContent = '맥추·친교 등 특별헌금이 있을 때만 추가하세요. 제목은 2~3자 권장(감사·십일조와 같은 칸에 정렬됩니다).';
+  exHint.textContent = '맥추·친교 등 기타헌금이 있을 때만 추가하세요. 제목은 2~3자 권장(감사·십일조와 같은 칸에 정렬됩니다).';
   exWrap.appendChild(exHint);
   const exList = el('div', 'ex-list');
   function paintExtras() {
@@ -661,7 +661,7 @@ function renderOfferingCard(S) {
   }
   paintExtras();
   exWrap.appendChild(exList);
-  const exAdd = el('button', 'btn btn-line ex-add', '＋ 특별헌금 추가'); exAdd.type = 'button';
+  const exAdd = el('button', 'btn btn-line ex-add', '＋ 기타헌금 추가'); exAdd.type = 'button';
   exAdd.addEventListener('click', () => { o.extras.push({ label: '', names: '' }); queueSave(); paintExtras(); });
   exWrap.appendChild(exAdd);
   card.appendChild(exWrap);
