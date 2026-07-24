@@ -306,7 +306,7 @@ function panelWeeklyInfo(S) {
     g.appendChild(satBox);
   }));
 
-  // 사랑의 나눔 (4주) — 이번 주 + 다가올 3주(#후속1)
+  // 사랑의 나눔 (4주) — 헌금과 한 세트로 하단에 붙도록 여기서부터 하단 고정
   groups.appendChild(buildGroup('사랑의 나눔', (g) => {
     const lt = PE('table', 'p-grid p-love');
     const lhr = PE('tr'); lhr.appendChild(PE('th', null, ''));
@@ -329,9 +329,9 @@ function panelWeeklyInfo(S) {
       lt.appendChild(tr);
     });
     g.appendChild(lt);
-  }));
+  }, true));   // 사랑나눔부터 하단 고정 → 헌금과 세트로 아래에 붙음
 
-  // 지난 주 헌금 (하단 고정) — 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
+  // 지난 주 헌금 — 사랑의 나눔 바로 아래(세트). 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
   const prevW = fmtMD(addDaysISO(S.weekId, -7));
   groups.appendChild(buildGroup(`지난 주 헌금 (${prevW})`, (g) => {
     const o = (S.bulletin && S.bulletin.offering) || {};
@@ -363,7 +363,7 @@ function panelWeeklyInfo(S) {
     tot.appendChild(PE('span', 'po-v', totVal ? '$' + totVal : ''));
     ot.appendChild(tot);
     g.appendChild(ot);
-  }, true));   // 헌금 = 패널 하단 고정
+  }));   // 사랑나눔이 하단 고정이라 헌금은 그 아래에 자연히 붙음
   return p;
 }
 
