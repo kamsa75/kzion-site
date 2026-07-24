@@ -605,8 +605,7 @@ function renderSaturdayCard(S) {
 function renderOfferingCard(S) {
   const card = el('div', 'card');
   const h = el('div', 'card-h');
-  const prevWeek = fmtMD((S.loveWindow && S.loveWindow.length >= 2)
-    ? S.loveWindow[S.loveWindow.length - 2].week : '');
+  const prevWeek = fmtMDKorean(addDaysISO(S.weekId, -7));   // 지난 주일(이번주−7일) = 예: 7월 19일
   h.appendChild(el('h2', null, '지난 주 헌금'));
   if (prevWeek) h.appendChild(el('span', 'sub', prevWeek));
   card.appendChild(h);

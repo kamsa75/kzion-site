@@ -341,8 +341,8 @@ function panelWeeklyInfo(S) {
   }, true));   // 사랑나눔부터 하단 고정 → 헌금과 세트로 아래에 붙음
 
   // 지난 주 헌금 — 사랑의 나눔 바로 아래(세트). 이번 주의 지난 주(사랑의나눔 창이 미래라 독립 계산)
-  const prevW = fmtMD(addDaysISO(S.weekId, -7));
-  groups.appendChild(buildGroup(`지난 주 헌금 (${prevW})`, (g) => {
+  const prevW = fmtMDKorean(addDaysISO(S.weekId, -7));   // 예: 7월 19일
+  groups.appendChild(buildGroup(`지난 주 헌금 · ${prevW}`, (g) => {
     const o = (S.bulletin && S.bulletin.offering) || {};
     const ot = PE('div', 'p-offering');
     const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
