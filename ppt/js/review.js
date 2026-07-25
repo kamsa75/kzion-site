@@ -429,12 +429,12 @@ const Review = (function () {
     seq.innerHTML = '';
 
     if (!s.order.length) {
-      // AI 추천 순서 — 비파괴(버튼으로 적용). 빈 상태로 시작하지 않게 (⭐ 최대 절감)
+      // 기본 순서(붙여넣은 그대로) — 비파괴(버튼으로 적용). 빈 상태로 시작하지 않게 (⭐ 최대 절감)
       const suggest = suggestOrder(s);
       if (suggest.length) {
         const apply = document.createElement('button');
         apply.className = 'obar-suggest';
-        apply.innerHTML = '✨ AI 추천 순서 적용 <em>('
+        apply.innerHTML = '↻ 붙여넣은 순서대로 담기 <em>('
           + suggest.map(id => { const b = s.blocks.find(x => x.id === id); return b ? b.label : '?'; }).join(' → ')
           + ')</em>';
         apply.addEventListener('click', () => {
@@ -491,15 +491,10 @@ const Review = (function () {
     fitFilm(strip);
   }
 
-  // AI 추천 부르는 순서: 절 → 후렴 반복 (후렴 공유 곡의 기본, 지침 12-3).
-  // 서버 추출이 순서를 따로 주기 전까지의 클라이언트 휴리스틱.
+  // 기본 부르는 순서 = 입력한(붙여넣은) 블록 순서 그대로.
+  // 후렴 자동 반복 삽입 금지 — 반복은 사람이 직접 담을 때만 생긴다.
   function suggestOrder(s) {
-    const chorus = (s.blocks || []).find(b => b.type === 'chorus');
-    const verses = (s.blocks || []).filter(b => b !== chorus);
-    const order = [];
-    verses.forEach(v => { order.push(v.id); if (chorus) order.push(chorus.id); });
-    if (!order.length && s.blocks && s.blocks[0]) order.push(s.blocks[0].id);
-    return order;
+    return (s.blocks || []).map(b => b.id);
   }
 
   /* ================= 진입/이벤트 ================= */

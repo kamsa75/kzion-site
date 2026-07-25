@@ -225,13 +225,10 @@ const Pastor = (function () {
     });
   }
 
-  // 기본 부르는 순서 — 후렴이 정확히 1개면 각 절 뒤에(마지막 절 뒤에도) 후렴 반복. 아니면 블록 순서 그대로 (#1·#2·#4)
+  // 기본 부르는 순서 = 붙여넣은 블록 순서 그대로.
+  // 후렴을 절마다 자동 삽입하지 않는다 — 반복은 아래 '+ 후렴' 버튼으로 직접 담을 때만.
   function hymnDefaultOrder(blocks) {
-    const choruses = blocks.filter(b => b.type === 'chorus');
-    if (choruses.length !== 1) return blocks.map(b => b.id);
-    const c = choruses[0], order = [];
-    blocks.forEach(b => { if (b.type === 'chorus') return; order.push(b.id); order.push(c.id); });
-    return order.length ? order : blocks.map(b => b.id);
+    return blocks.map(b => b.id);
   }
 
   // 라벨을 눌러 편집(후렴/절) — 라벨에 '후렴/렴/chorus'면 chorus로 (#4)
@@ -286,7 +283,7 @@ const Pastor = (function () {
       pal.appendChild(add);
     });
     const reset = document.createElement('button'); reset.type = 'button'; reset.className = 'hymn-pal-btn hymn-reset';
-    reset.textContent = '↻ 기본 순서 (매 절 뒤 후렴)';
+    reset.textContent = '↻ 붙여넣은 순서대로';
     reset.addEventListener('click', () => { data.hymn.order = hymnDefaultOrder(blocks); save(); renderHymnPreview(); });
     pal.appendChild(reset);
     arr.appendChild(pal);
@@ -346,7 +343,7 @@ const Pastor = (function () {
     data.hymn.blocks.forEach(b => { b.breaks = Songs.twoLineBreaks(b.lines.length); }); // 항상 2줄씩(AI가 한 줄씩 줘도 강제)
     if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
     $('#hymn-name').value = data.hymn.title || '';
-    data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(매 절 뒤 후렴) 재설정
+    data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(붙여넣은 그대로) 재설정
   }
 
   // 절 번호 표기 정리(D38): "(1) 가사"·"[1] 가사"·"1. 가사"·"1) 가사"를 → 빈 줄 + "1절" 라벨 줄 + 가사로 변환.

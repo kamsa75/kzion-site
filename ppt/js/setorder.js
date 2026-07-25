@@ -86,14 +86,10 @@ const SetOrder = (function () {
 
   /* ---------- 편곡(arrange) 상태 ---------- */
 
-  // AI 추천 부르는 순서: 절 → 후렴 반복 (review.suggestOrder와 동일 휴리스틱)
+  // 기본 부르는 순서 = 입력한(붙여넣은) 블록 순서 그대로.
+  // 후렴을 절마다 자동 삽입하지 않는다 — 반복은 리더가 세트 화면에서 직접 담거나 ×N으로만 지정.
   function suggest(song) {
-    const chorus = (song.blocks || []).find(b => b.type === 'chorus');
-    const verses = (song.blocks || []).filter(b => b !== chorus);
-    const order = [];
-    verses.forEach(v => { order.push(v.id); if (chorus) order.push(chorus.id); });
-    if (!order.length && song.blocks && song.blocks[0]) order.push(song.blocks[0].id);
-    return order;
+    return (song.blocks || []).map(b => b.id);
   }
 
   // arrange가 없으면 order(부르는 순서)·추천에서 1회차로 자동 이관(seed)
@@ -381,6 +377,22 @@ const SetOrder = (function () {
       render();
     });
     pal.appendChild(addPass);
+
+    // 붙여넣은 가사 순서 그대로 되돌리기 — 잘못 들어간 반복(×N·중복 칩) 일괄 정리
+    const resetOrder = document.createElement('button');
+    resetOrder.type = 'button';
+    resetOrder.className = 'so-add-pass so-reset-order';
+    resetOrder.textContent = '↻ 가사 순서대로';
+    resetOrder.title = '반복을 모두 지우고 붙여넣은 가사 블록 순서 그대로 되돌립니다';
+    resetOrder.addEventListener('click', () => {
+      if (!confirm('부르는 순서를 붙여넣은 가사 순서 그대로 되돌릴까요?\n(반복·×N이 모두 지워집니다)')) return;
+      song.arrange = [{ items: suggest(song).map(bid => ({ block: bid, times: 1 })) }];
+      activePass[song.id] = 0;
+      syncStatus(song);
+      SongStore.save();
+      render();
+    });
+    pal.appendChild(resetOrder);
 
     body.appendChild(pal);
     card.appendChild(body);

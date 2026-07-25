@@ -149,7 +149,7 @@ const Generate = (function () {
           if (out.length) return out; // 제목만 있고 가사 없음
           return [{ label: '찬송가 가사', slide: { layout: 'band', lyrics: ['(찬송가 가사 미입력)'] }, missing: true }];
         }
-        bandFromBlocks(blocks, (p.hymn || {}).order).forEach((sl, i) => out.push({ label: '찬송가 ' + (i + 1), slide: sl })); // 부르는 순서(매 절 뒤 후렴)
+        bandFromBlocks(blocks, (p.hymn || {}).order).forEach((sl, i) => out.push({ label: '찬송가 ' + (i + 1), slide: sl })); // 부르는 순서(기본=붙여넣은 그대로)
         return out;
       }
       case 'passage_long': {
