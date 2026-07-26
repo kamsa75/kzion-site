@@ -152,12 +152,12 @@
 .cover-name{font-size:17pt; font-weight:900; color:#000; letter-spacing:.01em; line-height:1.08; text-align:center; margin-top:1px}
 .cover-en{font-size:6.8pt; font-weight:600; color:#000; letter-spacing:.03em; text-align:center}
 /* 슬로건 배지 + 성구 — 한 줄에 [배지] 성구 (원본 주보 배치, #4) */
-.cover-tagline{display:flex; align-items:center; justify-content:flex-start; gap:6px;
-  flex-wrap:nowrap; margin:9px 0 3px; padding-left:2px}   /* 위: 교회영문명과 간격, 아래: www띠와 간격 / www와 같은 좌측 인셋 */
+.cover-tagline{display:flex; align-items:center; justify-content:flex-start; gap:11px;
+  flex-wrap:nowrap; margin:9px 0 3px; padding-left:2px}   /* 위: 교회영문명과 간격, 아래: www띠와 간격 / www와 같은 좌측 인셋 / gap=성구를 오른쪽으로 */
 .cover-badge{
   display:inline-block; box-sizing:border-box; font-size:6.8pt; font-weight:800; color:#fff; background:var(--orange);
-  padding:2px 4px; border-radius:999px; text-align:center; white-space:nowrap; flex:none;
-}   /* 폭은 JS가 www.kzion.net 실측 폭으로 맞춤(양끝 정렬) */
+  padding:2px 6px; border-radius:999px; text-align:center; white-space:nowrap; flex:none;
+}   /* min-width(JS)=www 폭에 맞춤. 글자 더 넓으면 배지가 늘어나 안 삐져나옴 */
 .cover-head{text-align:center}
 /* 성구는 한 줄에 쏙(줄바꿈 금지, #1) */
 .cover-verse{font-size:6.8pt; color:#000; line-height:1.25; text-align:left; white-space:nowrap}
