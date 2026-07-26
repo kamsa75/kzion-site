@@ -117,13 +117,13 @@ function buildSheets(S) {
   b.appendChild(panelCover(S));
   root.appendChild(wrap(b));
 
-  // 슬로건 배지 폭을 www.kzion.net 실측 폭에 맞춤(양끝 정렬) — 폰트에 무관하게 정확.
-  // goPrint가 화면을 먼저 띄운 뒤 build하므로 이 시점에 레이아웃이 잡혀 동기 측정 가능.
-  // offsetWidth = 레이아웃 폭이라 모바일 transform:scale 영향 없음. 숨김(0)이면 건너뜀(CSS 기본).
+  // 슬로건 배지 폭을 www.kzion.net에 맞춤 — min-width로 주면 www만큼 넓히되(매칭),
+  // 글자가 더 넓은 폰트에선 배지가 늘어나 절대 안 삐져나옴(잘림 없음·안정적).
+  // offsetWidth = 레이아웃 폭이라 모바일 transform:scale 영향 없음. goPrint가 화면 먼저 띄운 뒤 build.
   root.querySelectorAll('.p-cover').forEach((cover) => {
     const www = cover.querySelector('.cover-meta > :first-child');
     const badge = cover.querySelector('.cover-badge');
-    if (www && badge && www.offsetWidth > 0) badge.style.width = www.offsetWidth + 'px';
+    if (www && badge && www.offsetWidth > 0) badge.style.minWidth = www.offsetWidth + 'px';
   });
 }
 
