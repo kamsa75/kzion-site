@@ -77,11 +77,40 @@ async function enter() {
   $('#bt-body').innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
     STATE = await BT_API.call('getBulletin');
+    try { await carryForwardPraise(); } catch (e) { /* 이월 실패해도 로드는 계속 */ }
     render();
   } catch (err) {
     if (err.status === 401) { BT_API.clearToken(); show('#screen-pin'); return; }
     $('#bt-body').innerHTML =
       `<p class="center-note">불러오지 못했습니다.<br>${err.message || ''}</p>`;
+  }
+}
+
+// ---------- 예배찬양 악보 이월 (매주 유지 · 교체 전까지) ----------
+// 새 주차는 빈 상태로 생성되므로 예배찬양 악보가 매주 사라진다. 이번 주가 비어 있으면
+// 가장 최근에 넣어둔 주에서 불러와 이번 주에 복제·저장한다(사용자가 새로 올리면 그게 유지됨).
+function hasPraise(b) {
+  const pp = (b && b.praise_panel) || {};
+  return !!(pp.image_data || pp.image_url || (pp.text && String(pp.text).trim()));
+}
+async function carryForwardPraise() {
+  if (!STATE || !STATE.weekId) return;
+  if (hasPraise(STATE.bulletin)) return;              // 이미 있으면 그대로
+  for (let k = 1; k <= 5; k++) {                      // 최근 몇 주를 거슬러 탐색
+    const prevWeek = addDaysISO(STATE.weekId, -7 * k);
+    const prev = await BT_API.call('getBulletin', { weekId: prevWeek });
+    if (hasPraise(prev.bulletin)) {
+      STATE.bulletin = STATE.bulletin || {};
+      STATE.bulletin.praise_panel = prev.bulletin.praise_panel;   // 이월(이미지 또는 글)
+      try {                                            // 이번 주에 저장 → 다음 주도 이어서 이월
+        const r = await BT_API.call('saveBulletin', {
+          data: STATE.bulletin,
+          baseUpdatedAt: STATE.bulletinUpdatedAt || undefined,
+        });
+        STATE.bulletinUpdatedAt = r.updatedAt;
+      } catch (e) { /* 저장 실패(충돌·잠금 등)해도 이번 주 화면·인쇄엔 반영됨 */ }
+      return;
+    }
   }
 }
 
