@@ -73,9 +73,10 @@ function choirLine(S) {
     return nm ? nm + ' · ' + tail : tail;
   }).filter(Boolean).join(' / ');
 }
-// 그 주 토요일 날짜 'M월 D일' (weekId=일요일 → 전날 토요일, 주보 원본 표기)
+// 토요새벽예배 날짜 'M월 D일' — 이번 주일(weekId) 다음의 다가오는 토요일(주일+6일)
+//   예: 주일 8/2 → 토요 8/8. (주보는 주일에 배부되므로 지나간 전날 토요일이 아닌 다음 토요일)
 function saturdayOf(S) {
-  const sat = addDaysISO(S.weekId, -1);
+  const sat = addDaysISO(S.weekId, 6);
   const [, m, d] = sat.split('-').map(Number);
   return `${m}월 ${d}일`;
 }
