@@ -50,6 +50,22 @@ body{
 .btn-line{background:#fff; color:var(--ui-ink); border-color:var(--ui-line)}
 .btn-wide{width:100%}
 .btn:disabled{opacity:.45; cursor:default}
+/* 예배순서 수동 조정(3단계) — 이번 주 추가/빼기 */
+.order-changes{font-size:12.5px; font-weight:700; color:#8A6D1E; background:var(--ui-warn-bg);
+  border:1px solid #E6D3A0; border-radius:10px; padding:7px 10px; margin-bottom:10px; line-height:1.45}
+.order-editwrap{display:flex; gap:6px; align-items:center; min-width:0}
+.order-editwrap .order-input{flex:1; min-width:0}
+.order-del{flex:none; width:30px; height:34px; border:1px solid var(--ui-line); border-radius:9px;
+  background:#fff; color:var(--ui-sub); font-size:13px; line-height:1; cursor:pointer}
+.order-del:hover{color:var(--ui-danger); background:#fdf6f5}
+.order-extra .order-lab{color:#8A6D1E}
+.order-removed{display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:10px}
+.order-removed-lab{font-size:12px; font-weight:800; color:var(--ui-sub)}
+.order-restore{font-family:inherit; font-size:12.5px; font-weight:700; padding:6px 11px; border-radius:999px;
+  border:1px dashed var(--ui-line); background:#fff; color:var(--ui-sub); cursor:pointer}
+.order-restore:hover{color:var(--ui-ink); border-color:var(--ui-gold)}
+.order-warn{color:#8A6D1E; font-weight:700; margin:8px 2px 0}
+
 /* 연간 일정 관리 (annual_events) */
 .ev-years{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px}
 .year-chip{font-family:inherit; font-size:13px; font-weight:700; padding:5px 13px; border-radius:999px;

@@ -93,6 +93,14 @@ function buildGate(S) {
     box.appendChild(wrap);
   }
   gate.appendChild(box);
+
+  // 이번 주 순서가 기본과 다르면 인쇄 직전 마지막 확인 줄(3단계 — 몰랐던 변화 방지)
+  const chg = orderChangeSummary(S);
+  if (chg) {
+    const ln = PE('div', 'gate-order');
+    ln.textContent = '🔔 이번 주 예배순서 (' + buildOrderRows(S).length + '개): ' + chg;
+    gate.appendChild(ln);
+  }
 }
 
 // ---------- 6패널 ----------
