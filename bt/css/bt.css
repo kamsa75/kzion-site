@@ -50,6 +50,31 @@ body{
 .btn-line{background:#fff; color:var(--ui-ink); border-color:var(--ui-line)}
 .btn-wide{width:100%}
 .btn:disabled{opacity:.45; cursor:default}
+/* 연간 일정 관리 (annual_events) */
+.ev-years{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px}
+.year-chip{font-family:inherit; font-size:13px; font-weight:700; padding:5px 13px; border-radius:999px;
+  border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub); cursor:pointer}
+.year-chip.on{color:#fff; background:var(--ui-gold); border-color:var(--ui-gold)}
+.evm-list{display:flex; flex-direction:column; gap:8px}
+.evm-row{padding:9px; border:1px solid var(--ui-line); border-radius:12px; background:#fff}
+.evm-row.off{opacity:.55; background:#faf9f5}
+.evm-main{display:flex; gap:6px; align-items:center}
+.evm-date{flex:none; width:142px; font-family:inherit; font-size:14px; padding:9px 8px;
+  border:1px solid var(--ui-line); border-radius:10px; background:#fff; color:var(--ui-ink)}
+.evm-label{flex:1; min-width:0; font-family:inherit; font-size:14px; padding:9px 10px;
+  border:1px solid var(--ui-line); border-radius:10px; background:#fff; color:var(--ui-ink)}
+.evm-date:focus, .evm-label:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
+.evm-label::placeholder{color:#9A8F78; font-weight:500}
+.evm-show{flex:none; font-family:inherit; font-size:12px; font-weight:700; padding:7px 10px;
+  border-radius:999px; border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub);
+  cursor:pointer; white-space:nowrap}
+.evm-row:not(.off) .evm-show{color:#2c6b3b; border-color:#bfe0c4; background:#f3f9f4}
+.evm-preview{margin:7px 2px 0; font-size:12.5px; color:var(--ui-sub); line-height:1.5}
+@media (max-width:560px){
+  .evm-main{flex-wrap:wrap}
+  .evm-date{width:100%}
+}
+
 /* 성찬 위원 안내 넣기 — 성찬식 전 주에만 나타나는 제안 버튼(눈에 띄게 골드) */
 .btn-communion{margin-top:8px; background:var(--ui-gold-soft); color:var(--ui-gold);
   border-color:#E7D9C0; font-weight:800}
