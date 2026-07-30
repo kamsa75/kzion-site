@@ -218,7 +218,7 @@ function render() {
   body.appendChild(head);
 
   // ── 성찬식 자동삽입 (§6-4) — 예정 주간이면 설교 뒤에 자동 추가, 이번 주만 뺄 수 있음 ──
-  if (S.communionThisWeek) {
+  if (isCommunionWeek(S)) {   // 플래그 + label '성찬' 감지(buildOrderRows와 동일 판정)
     const hidden = !!bd().hideCommunion;
     const n = el('div', 'notice');
     n.appendChild(el('span', null, hidden
