@@ -110,7 +110,7 @@ function buildOrderRows(S) {
     closing: (meta.closing_hymn && meta.closing_hymn.title) || '',
     benediction: pastorNameOf(S),
   };
-  const rows = [
+  let rows = [
     { id: 'call', label: '예배의 부름' },
     { id: 'creed', label: '신앙고백' },
     { id: 'praise', label: '다함께 찬양' },
@@ -132,10 +132,26 @@ function buildOrderRows(S) {
     const si = rows.findIndex((r) => r.id === 'sermon');
     rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
   }
+  // 이번 주만 수동 조정(3단계) — 뺀 순서 제외 + 추가 순서 삽입.
+  //   주차 데이터(bulletin)에만 저장되므로 다음 주엔 자동으로 기본 순서로 원복.
+  const bws = S.bulletin || {};
+  const removedSet = new Set(bws.orderRemoved || []);
+  if (removedSet.size) rows = rows.filter((r) => !removedSet.has(r.id));
+  (bws.orderExtras || []).forEach((x) => {
+    if (!x || !String(x.label || '').trim()) return;
+    const marker = { id: x.id, label: x.label, _extra: x };
+    const i = rows.findIndex((r) => r.id === x.afterId);
+    if (i >= 0) rows.splice(i + 1, 0, marker); else rows.push(marker);
+  });
   // 공유 필드 = 한 곳에서만 입력(값 갈라짐 차단). 주보에선 읽기전용으로 표시.
   //   설교·본문·찬송·대표기도 = PPT에서 입력(PPT 값 없으면 로테이션 자동값으로 대체)
   const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: 'PPT' };
   return rows.map((r) => {
+    if (r._extra) {   // 이번 주 수동 추가 순서 — 내용은 orderExtras에 저장(편집 화면에서 바인딩)
+      return { id: r.id, label: r.label, star: false, bold: false,
+        detail: String(r._extra.detail || ''), overridden: false, readonly: false,
+        source: null, extra: true };
+    }
     const src = SHARED[r.id];
     let detail = src ? defaults[r.id] : (ov[r.id] !== undefined ? ov[r.id] : defaults[r.id]);
     if (r.id === 'special') detail = formatSpecial(detail);   // 특송 곡명·담당 사이 점 자동
@@ -206,6 +222,24 @@ function isCommunionWeek(S) {
   if (S.communionThisWeek) return true;
   return (S.events || []).some((e) =>
     e.display_week === S.weekId && !e.event_date && String(e.label || '').indexOf('성찬') >= 0);
+}
+
+// 기본 순서 id → 표시 이름 (뺀 순서 칩·변경 요약용)
+const ORDER_LABELS = { call: '예배의 부름', creed: '신앙고백', praise: '다함께 찬양',
+  together: '합심기도', blessing: '축복', hymn: '찬송', prayer: '대표기도', special: '특송',
+  offering: '봉헌', news: '교회소식', reading: '성경봉독', sermon: '설교',
+  communion: '성찬식', closing: '찬송(폐회)', benediction: '축도' };
+
+// 이번 주 순서가 기본과 어떻게 다른지 요약(편집 배지·인쇄 게이트용). 변화 없으면 ''
+function orderChangeSummary(S) {
+  const parts = [];
+  const b = S.bulletin || {};
+  if (isCommunionWeek(S) && !b.hideCommunion) parts.push('성찬식 자동 추가');
+  (b.orderExtras || []).forEach((x) => {
+    if (x && String(x.label || '').trim()) parts.push(`${x.label} 추가`);
+  });
+  (b.orderRemoved || []).forEach((id) => parts.push(`${ORDER_LABELS[id] || id} 뺌`));
+  return parts.join(' · ');
 }
 
 // 연간 행사표 → 교회소식 자동 안내 (컨셉 락 §4 확장, A안)

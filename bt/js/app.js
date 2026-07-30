@@ -972,7 +972,15 @@ function renderOrderCard(S) {
   h.appendChild(el('span', 'sub', S.meta?.service_times?.sunday || '오전10:45'));
   card.appendChild(h);
 
+  // 이번 주 순서가 기본과 다르면 배지(사라지지 않는 알림 — 다음 주 자동 원복)
+  const changes = orderChangeSummary(S);
+  if (changes) {
+    card.appendChild(el('div', 'order-changes',
+      '🔔 이번 주 순서 변경: ' + changes + ' — 다음 주엔 기본 순서로 자동 복귀'));
+  }
+
   const overrides = () => { const d = bd(); d.orderOverrides = d.orderOverrides || {}; return d.orderOverrides; };
+  const repaint = () => card.replaceWith(renderOrderCard(S));
 
   const list = el('div', 'order-list');
   buildOrderRows(S).forEach((r) => {
@@ -983,7 +991,7 @@ function renderOrderCard(S) {
     row.appendChild(l);
 
     if (r.readonly) {
-      // 공유 필드 — 읽기전용 + 어디서 입력하는지 배지(값 갈라짐 차단)
+      // 공유 필드 — 읽기전용 + 어디서 입력하는지 배지(값 갈라짐 차단). 빼기 없음(안전)
       const val = el('div', 'order-ro-val');
       const isPPT = r.source === 'PPT';
       const txt = el('span', 'ro-text' + (r.detail ? '' : ' empty') + (r.bold ? ' order-bold' : ''),
@@ -992,6 +1000,27 @@ function renderOrderCard(S) {
       val.appendChild(el('span', 'order-badge' + (isPPT ? ' ppt' : ' auto'),
         isPPT ? 'PPT' : '자동'));
       row.appendChild(val);
+      list.appendChild(row);
+      return;
+    }
+
+    if (r.extra) {
+      // 이번 주 수동 추가 순서 — 내용은 orderExtras에 직접 저장, ✕로 삭제
+      row.classList.add('order-extra');
+      const x = (bd().orderExtras || []).find((e) => e.id === r.id);
+      const wrapE = el('div', 'order-editwrap');
+      const inpE = el('input', 'order-input is-edited');
+      inpE.type = 'text'; inpE.value = (x && x.detail) || '';
+      inpE.placeholder = '내용 (예: 집례: 담임목사)';
+      inpE.addEventListener('input', () => { if (x) { x.detail = inpE.value; queueSave(); } });
+      wrapE.appendChild(inpE);
+      const delE = el('button', 'order-del', '✕'); delE.type = 'button'; delE.title = '이 순서 삭제';
+      delE.addEventListener('click', () => {
+        bd().orderExtras = (bd().orderExtras || []).filter((e) => e.id !== r.id);
+        queueSave(); repaint();
+      });
+      wrapE.appendChild(delE);
+      row.appendChild(wrapE);
       list.appendChild(row);
       return;
     }
@@ -1018,10 +1047,59 @@ function renderOrderCard(S) {
         if (f !== inp.value) { inp.value = f; overrides()[r.id] = f; queueSave(); }
       }
     });
-    row.appendChild(inp);
+    // 이번 주만 빼기(✕) — 성찬식은 기존 hideCommunion, 나머지는 orderRemoved. 되살리기 칩으로 복구
+    const wrapB = el('div', 'order-editwrap');
+    wrapB.appendChild(inp);
+    const delB = el('button', 'order-del', '✕'); delB.type = 'button';
+    delB.title = '이번 주만 순서에서 빼기';
+    delB.addEventListener('click', () => {
+      if (r.id === 'communion') { bd().hideCommunion = true; }
+      else {
+        const rm = bd().orderRemoved = bd().orderRemoved || [];
+        if (!rm.includes(r.id)) rm.push(r.id);
+      }
+      queueSave(); repaint();
+    });
+    wrapB.appendChild(delB);
+    row.appendChild(wrapB);
     list.appendChild(row);
   });
   card.appendChild(list);
+
+  // 뺀 순서 되살리기 칩
+  const removedIds = bd().orderRemoved || [];
+  if (removedIds.length) {
+    const rc = el('div', 'order-removed');
+    rc.appendChild(el('span', 'order-removed-lab', '이번 주 뺀 순서:'));
+    removedIds.forEach((id) => {
+      const chip = el('button', 'order-restore', (ORDER_LABELS[id] || id) + ' 되살리기');
+      chip.type = 'button';
+      chip.addEventListener('click', () => {
+        bd().orderRemoved = (bd().orderRemoved || []).filter((x) => x !== id);
+        queueSave(); repaint();
+      });
+      rc.appendChild(chip);
+    });
+    card.appendChild(rc);
+  }
+
+  // 순서 추가 — 17개부터 경고, 18개면 차단(인쇄 잘림 방지 가드레일)
+  const rowCount = buildOrderRows(S).length;
+  if (rowCount >= 17) {
+    card.appendChild(el('p', 'hint order-warn',
+      `⚠️ 순서가 ${rowCount}개라 인쇄 줄간격이 좁아집니다 (한계 18개)`));
+  }
+  const addOrder = el('button', 'btn btn-line btn-wide', '＋ 이번 주 순서 추가 (세례식 등)');
+  addOrder.type = 'button';
+  addOrder.style.marginTop = '8px';
+  addOrder.addEventListener('click', () => {
+    if (buildOrderRows(S).length >= 18) {
+      toast('순서가 18개를 넘으면 인쇄에서 잘려요 — 더 추가할 수 없습니다');
+      return;
+    }
+    openOrderAdd(S, () => repaint());
+  });
+  card.appendChild(addOrder);
 
   const foot = el('div', 'order-foot');
   const note = el('p', 'hint');
@@ -1029,6 +1107,43 @@ function renderOrderCard(S) {
   foot.appendChild(note);
   card.appendChild(foot);
   return card;
+}
+
+// 이번 주 순서 추가 바텀시트 — 이름·내용·위치만 적으면 그 주에만 삽입(다음 주 자동 원복)
+function openOrderAdd(S, onDone) {
+  openSheet('이번 주 순서 추가', (body) => {
+    const f1 = el('div', 'field');
+    f1.appendChild(el('label', null, '순서 이름'));
+    const li = el('input'); li.type = 'text'; li.placeholder = '예: 세례식';
+    f1.appendChild(li);
+
+    const f2 = el('div', 'field');
+    f2.appendChild(el('label', null, '내용 (오른쪽 칸 — 비워도 됨)'));
+    const di = el('input'); di.type = 'text'; di.placeholder = '예: 집례: 담임목사';
+    f2.appendChild(di);
+
+    const f3 = el('div', 'field');
+    f3.appendChild(el('label', null, '어느 순서 뒤에 넣을까요?'));
+    const sel = el('select');
+    buildOrderRows(S).forEach((r) => {
+      const o = el('option', null, r.label + ' 뒤'); o.value = r.id; sel.appendChild(o);
+    });
+    if ([...sel.options].some((o) => o.value === 'sermon')) sel.value = 'sermon';   // 기본: 설교 뒤
+    f3.appendChild(sel);
+
+    const go = el('button', 'btn btn-primary btn-wide', '추가');
+    go.type = 'button';
+    go.addEventListener('click', () => {
+      const label = li.value.trim();
+      if (!label) { toast('순서 이름을 적어주세요'); li.focus(); return; }
+      const ex = bd().orderExtras = bd().orderExtras || [];
+      ex.push({ id: 'x' + Date.now(), label, detail: di.value.trim(), afterId: sel.value });
+      queueSave(); closeSheet(); onDone();
+      toast('「' + label + '」 순서를 넣었습니다 — 이번 주에만 적용돼요');
+    });
+    body.appendChild(f1); body.appendChild(f2); body.appendChild(f3); body.appendChild(go);
+    setTimeout(() => li.focus(), 50);
+  });
 }
 
 // 이름 문자열 → 사람 단위 배열. "박세영 김 정"처럼 두 글자 이름이 공백으로 나뉘어도

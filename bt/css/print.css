@@ -213,6 +213,9 @@
   padding:3px 10px; margin:0 5px 5px 0; font-size:12.5px; font-weight:700}
 .gate-override{display:flex; align-items:center; gap:7px; margin-top:6px; font-size:13px; font-weight:600; cursor:pointer}
 .gate-override input{width:17px; height:17px}
+/* 이번 주 순서 변경 요약(3단계) — 인쇄 직전 마지막 확인 줄 */
+.gate-order{margin-top:8px; padding:8px 12px; border-radius:10px; font-size:13px; font-weight:700;
+  color:#8A6D1E; background:#FBF3DA; border:1px solid #E6D3A0}
 
 /* ---------- 화면에서 축소 보기 (모바일) ----------
    래퍼(.sheet-scale)가 '축소된 실제 크기'를 차지하고 그 안의 시트를 transform:scale로 줄인다.
