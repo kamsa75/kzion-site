@@ -32,8 +32,9 @@ function addDaysISO(iso, n) {
   return dt.toISOString().slice(0, 10);
 }
 // 한글 받침에 따라 조사 선택 (이/가, 은/는 …)
+//   끝의 괄호부는 통째로 떼고 판단 — "고난주간(3/30-4/4)"→'주간' 기준 '이', "공동의회(…)"→'회' 기준 '가'
 function pickJosa(text, withBatchim, without) {
-  const t = String(text).replace(/[)\s\d]+$/, '');   // 끝의 괄호·공백·숫자 무시
+  const t = String(text).replace(/\([^()]*\)\s*$/, '').replace(/[)\s\d]+$/, '');
   const c = t.charCodeAt(t.length - 1);
   if (c >= 0xAC00 && c <= 0xD7A3) return ((c - 0xAC00) % 28 !== 0) ? withBatchim : without;
   return without;
@@ -126,7 +127,8 @@ function buildOrderRows(S) {
     { id: 'benediction', label: '축도', star: true },
   ];
   // 성찬식 = 성찬식 예정 주간이면 설교 뒤에 자동삽입(§6-4). 이번 주만 빼면 hideCommunion.
-  if (S.communionThisWeek && !(S.bulletin && S.bulletin.hideCommunion)) {
+  //   플래그(is_communion) 외에 label의 '성찬' 단어로도 감지(플래그 깜빡 대비, isCommunionWeek)
+  if (isCommunionWeek(S) && !(S.bulletin && S.bulletin.hideCommunion)) {
     const si = rows.findIndex((r) => r.id === 'sermon');
     rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
   }
@@ -163,16 +165,53 @@ function communionNoticeBody(dateText) {
  세척 및 보관: 일반 식기와 섞이지 않도록 성찬기 전용 세척 도구를 사용하며, 세척 후 물기를 완전히 제거하여 전용 보관함에 은밀하고 안전하게 보관합니다.
  이동 시 주의: 떡과 포도주를 담은 후 이동할 때는 반드시 두 손으로 소중히 받쳐 들고 이동합니다.`;
 }
-// 다음 주일이 성찬식이면 그 날짜('11월 1일')를, 아니면 null
+// 다음 주일이 성찬식이면 그 날짜('11월 1일')를, 아니면 null — 플래그 + label 단어 감지
 function communionNextWeekDate(S) {
   const nextWk = addDaysISO(S.weekId, 7);
-  const hit = (S.events || []).some((e) => e.display_week === nextWk && e.is_communion);
+  const hit = (S.events || []).some((e) => e.display_week === nextWk
+    && (e.is_communion || String(e.label || '').indexOf('성찬') >= 0));
   return hit ? fmtMDKorean(nextWk) : null;
+}
+
+// 행사 문구 분리 — 괄호 밖 쉼표만 기준(괄호 안 쉼표 보호).
+//   "일광절약시간 종료, 성찬식" → 2건 / "공동의회(예산, 결산…)" → 1건 그대로
+function splitEventLabel(label) {
+  const s = String(label == null ? '' : label);
+  const parts = []; let buf = ''; let depth = 0;
+  for (const ch of s) {
+    if (ch === '(' || ch === '[') depth++;
+    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    if (ch === ',' && depth === 0) { parts.push(buf); buf = ''; } else buf += ch;
+  }
+  parts.push(buf);
+  const out = parts.map((p) => p.trim()).filter(Boolean);
+  return out.length ? out : [s.trim()].filter(Boolean);
+}
+
+// 일광절약시간 전용 문구 — label의 시작/종료 우선, 없으면 월로 판단(상반기=시작).
+//   전 주에만 안내하고 당일엔 생략(이미 지난 안내) — autoNewsItems에서 처리
+function dstNoticeText(part, weekIso) {
+  const p = String(part || '');
+  if (p.indexOf('일광절약') < 0 && p.indexOf('서머타임') < 0) return null;
+  const [, m] = weekIso.split('-').map(Number);
+  const start = p.indexOf('시작') >= 0 ? true : (p.indexOf('종료') >= 0 ? false : m <= 6);
+  const d = fmtMDKorean(weekIso);
+  return start
+    ? `${d}, 일광 절약 시간이 시작됩니다. 잠들기 전, 시계를 1시간 앞으로 돌려주세요.`
+    : `${d}, 일광 절약 시간이 종료됩니다. 잠들기 전, 시계를 1시간 뒤로 돌려주세요.`;
+}
+
+// 이번 주가 성찬식 주간인가 — 서버 플래그 + label 단어 감지(플래그를 깜빡해도 자동)
+function isCommunionWeek(S) {
+  if (S.communionThisWeek) return true;
+  return (S.events || []).some((e) =>
+    e.display_week === S.weekId && !e.event_date && String(e.label || '').indexOf('성찬') >= 0);
 }
 
 // 연간 행사표 → 교회소식 자동 안내 (컨셉 락 §4 확장, A안)
 //  · 주일 당일 행사(event_date 없음): 그 전 주 "다음 주일은…" + 당일 "오늘은…있는 날입니다"
 //  · 주중 행사(event_date 있음): 그 주 "이번 주 …"
+//  · 한 행사에 여러 건(쉼표)이면 각각 별도 소식으로 분리, "~주일" 행사는 "…입니다"로
 function autoNewsItems(S) {
   const items = [];
   const thisWk = S.weekId;
@@ -181,22 +220,33 @@ function autoNewsItems(S) {
   const edits = (S.bulletin && S.bulletin.autoNewsEdits) || {};   // 사용자 수정·추가분(#5)
   (S.events || []).forEach((e) => {
     const sundayEvent = !e.event_date;   // 당일이 주일
-    let text = null; let key = null;
-    if (e.display_week === thisWk) {
-      if (sundayEvent) {
-        text = `오늘은 ${e.label}${pickJosa(e.label, '이', '가')} 있는 날입니다`;
-        key = 'today|' + e.display_week;
+    let mode = null;                     // 'today' | 'thisweek' | 'next'
+    if (e.display_week === thisWk) mode = sundayEvent ? 'today' : 'thisweek';
+    else if (e.display_week === nextWk && sundayEvent) mode = 'next';
+    if (!mode) return;
+    const parts = splitEventLabel(e.label);
+    const multi = parts.length > 1;
+    parts.forEach((part) => {
+      let text;
+      const dst = dstNoticeText(part, e.display_week);
+      if (dst) {
+        if (mode !== 'next') return;     // 일광절약: 전 주에만 안내, 당일·주중 생략
+        text = dst;
+      } else if (mode === 'today') {
+        text = /주일$/.test(part) ? `오늘은 ${part}입니다`
+          : `오늘은 ${part}${pickJosa(part, '이', '가')} 있는 날입니다`;
+      } else if (mode === 'thisweek') {
+        text = `이번 주 ${part}`;
       } else {
-        text = `이번 주 ${e.label}`;
-        key = 'thisweek|' + e.display_week;
+        text = /주일$/.test(part) ? `다음 주일(${fmtMD(e.display_week)})은 ${part}입니다`
+          : `다음 주일(${fmtMD(e.display_week)})은 ${part}${pickJosa(part, '이', '가')} 있습니다`;
       }
-    } else if (e.display_week === nextWk && sundayEvent) {
-      text = `다음 주일(${fmtMD(e.display_week)})은 ${e.label}${pickJosa(e.label, '이', '가')} 있습니다`;
-      key = 'next|' + e.display_week;
-    }
-    if (!text || hidden.has(key)) return;
-    const shown = edits[key] !== undefined ? edits[key] : text;   // 수정본 우선
-    if (shown.trim()) items.push({ key, text: shown });
+      const base = (mode === 'today' ? 'today|' : mode === 'thisweek' ? 'thisweek|' : 'next|') + e.display_week;
+      const key = multi ? base + '|' + part : base;   // 1건짜리는 기존 키 그대로(숨김·수정 기록 보존)
+      if (hidden.has(key)) return;
+      const shown = edits[key] !== undefined ? edits[key] : text;   // 수정본 우선
+      if (shown.trim()) items.push({ key, text: shown });
+    });
   });
   return items;
 }
