@@ -78,6 +78,14 @@ async function enter() {
   try {
     STATE = await BT_API.call('getBulletin');
     try { await carryForwardPraise(); } catch (e) { /* 이월 실패해도 로드는 계속 */ }
+    // 12월이면 내년 연간 일정이 비었는지 확인 → 새 일람 입력 리마인더 배너(깜빡 방지)
+    try {
+      if (Number(STATE.weekId.slice(5, 7)) === 12) {
+        const r = await BT_API.call('getAnnualEvents');
+        const ny = String(Number(STATE.weekId.slice(0, 4)) + 1);
+        STATE.nextYearEmpty = !(r.events || []).some((e) => String(e.display_week || '').slice(0, 4) === ny);
+      }
+    } catch (e) { /* 확인 실패해도 로드는 계속 */ }
     render();
   } catch (err) {
     if (err.status === 401) { BT_API.clearToken(); show('#screen-pin'); return; }
@@ -205,6 +213,16 @@ function render() {
 
   // ── 이번 주 현황 (무엇이 남았나 한눈에) ──
   body.appendChild(renderStatusCard(S));
+
+  // ── 12월: 내년 연간 일정 입력 리마인더 (깜빡 방지 — 시스템이 먼저 알림) ──
+  if (S.nextYearEmpty) {
+    const n = el('div', 'notice');
+    n.appendChild(el('span', null, '내년 연간 일정이 아직 비어 있어요. 새 교회일람이 나오면 넣어주세요.'));
+    const b = el('button', 'btn btn-line', '연간 일정 열기');
+    b.addEventListener('click', openEvents);
+    n.appendChild(b);
+    body.appendChild(n);
+  }
 
   // ── 주차 헤더 (권/호·날짜 자동) ──
   const head = el('div', 'week-head');
@@ -1192,6 +1210,7 @@ async function openRoster() {
   $('#bt-heading').textContent = '명단 · 순서';
   $('#btn-nav-back').hidden = false;
   $('#btn-roster').hidden = true;
+  $('#btn-events').hidden = false;
   const body = $('#bt-body');
   body.innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
@@ -1207,7 +1226,165 @@ function backToBt() {
   $('#bt-heading').textContent = '주보 만들기';
   $('#btn-nav-back').hidden = true;
   $('#btn-roster').hidden = false;
+  $('#btn-events').hidden = false;
+  // 연간 일정을 고쳤으면 주보를 새로 계산(성찬식·예고·행사표 반영)
+  if (EVENTS_DIRTY) { EVENTS_DIRTY = false; enter(); return; }
   render();
+}
+
+// ============================================================
+// 연간 일정 관리 — annual_events (성찬식·일광절약 자동 감지의 원천)
+//   교회일람을 그대로 받아적기만 하면 됨(체크박스 없음, 글자로 자동 판별)
+// ============================================================
+let EVENTS = null;          // getAnnualEvents 응답 캐시
+let EVENTS_DIRTY = false;   // 수정했으면 주보로 돌아갈 때 다시 불러오기
+let EVENTS_YEAR = null;     // 연도 필터
+let EVENTS_NEW = [];        // 아직 저장 안 된 새 줄(날짜+내용 채우면 저장)
+
+async function openEvents() {
+  VIEW = 'events';
+  $('#bt-heading').textContent = '연간 일정';
+  $('#btn-nav-back').hidden = false;
+  $('#btn-events').hidden = true;
+  $('#btn-roster').hidden = false;
+  const body = $('#bt-body');
+  body.innerHTML = '<p class="center-note">불러오는 중…</p>';
+  try {
+    const r = await BT_API.call('getAnnualEvents');
+    EVENTS = r.events || [];
+    renderEvents();
+  } catch (err) {
+    body.innerHTML = `<p class="center-note">불러오지 못했습니다.<br>${err.message || ''}</p>`;
+  }
+}
+
+// 입력 중 실시간 미리보기 — 교회소식에 몇 건으로 나뉘는지 + 자동 처리 표시
+function evPreview(label) {
+  const s = String(label || '').trim();
+  if (!s) return '';
+  const parts = splitEventLabel(s);
+  let t = (parts.length > 1 ? `교회소식 ${parts.length}건으로 나뉨: ` : '교회소식 1건: ')
+    + parts.map((p) => '「' + p + '」').join(' ');
+  const extra = [];
+  if (parts.some((p) => p.indexOf('성찬') >= 0)) extra.push('✝️ 성찬식 자동(예배순서·전주 예고)');
+  if (parts.some((p) => p.indexOf('일광절약') >= 0 || p.indexOf('서머타임') >= 0)) extra.push('🕐 시계 안내 자동');
+  return t + (extra.length ? ' · ' + extra.join(' · ') : '');
+}
+
+function renderEvents() {
+  const body = $('#bt-body');
+  body.innerHTML = '';
+  const card = el('div', 'card');
+  card.appendChild(cardHead('연간 일정', '교회일람을 그대로 받아적으면 자동 반영'));
+
+  const hint = el('p', 'hint');
+  hint.style.margin = '0 2px 10px';
+  hint.innerHTML = '내용에 <b>성찬식</b>·<b>일광절약시간</b> 단어가 들어가면 예배순서 삽입·시계 안내가 자동 처리됩니다.<br>'
+    + '쉼표(,)로 이으면 교회소식에 각각 나뉘어 실립니다 — 아래 미리보기로 바로 확인돼요.';
+  card.appendChild(hint);
+
+  // 연도 칩 (올해·내년 + 데이터에 있는 연도)
+  const nowY = Number(String((STATE && STATE.weekId) || new Date().getFullYear()).slice(0, 4));
+  const years = new Set([nowY, nowY + 1]);
+  (EVENTS || []).forEach((e) => {
+    const y = Number(String(e.display_week || '').slice(0, 4));
+    if (y) years.add(y);
+  });
+  if (!EVENTS_YEAR || !years.has(EVENTS_YEAR)) EVENTS_YEAR = nowY;
+  const yrow = el('div', 'ev-years');
+  [...years].sort().forEach((y) => {
+    const c = el('button', 'year-chip' + (y === EVENTS_YEAR ? ' on' : ''), y + '년');
+    c.addEventListener('click', () => { EVENTS_YEAR = y; renderEvents(); });
+    yrow.appendChild(c);
+  });
+  card.appendChild(yrow);
+
+  const list = el('div', 'evm-list');
+  const rows = (EVENTS || [])
+    .filter((e) => Number(String(e.display_week || '').slice(0, 4)) === EVENTS_YEAR)
+    .sort((a, b) => String(a.display_week).localeCompare(String(b.display_week)));
+  if (!rows.length && !EVENTS_NEW.length) {
+    list.appendChild(el('p', 'center-note', EVENTS_YEAR + '년 일정이 아직 없습니다. 아래에서 추가하세요.'));
+  }
+  rows.forEach((ev) => list.appendChild(evmRow(ev)));
+  EVENTS_NEW.forEach((ev) => list.appendChild(evmRow(ev)));   // 새 줄은 항상 아래에
+  card.appendChild(list);
+
+  const add = el('button', 'btn btn-line btn-wide', '＋ 일정 추가');
+  add.style.marginTop = '10px';
+  add.addEventListener('click', () => {
+    EVENTS_NEW.push({ _new: true, display_week: '', label: '', show_in_bulletin: true });
+    renderEvents();
+    const inputs = $('#bt-body').querySelectorAll('.evm-row .evm-date');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+  card.appendChild(add);
+  body.appendChild(card);
+}
+
+function evmRow(ev) {
+  const row = el('div', 'evm-row' + (ev.show_in_bulletin === false ? ' off' : ''));
+  const main = el('div', 'evm-main');
+  const d = el('input', 'evm-date'); d.type = 'date'; d.value = ev.display_week || '';
+  if (ev._new) d.title = '주일 날짜';
+  const t = el('input', 'evm-label'); t.type = 'text';
+  t.placeholder = '예: 부활주일, 성찬식 — 단어만 적으면 자동 처리';
+  t.value = ev.label || '';
+  main.appendChild(d); main.appendChild(t);
+
+  if (!ev._new) {
+    const tog = el('button', 'evm-show', ev.show_in_bulletin === false ? '주보에 안 나감' : '주보에 나감');
+    tog.title = '누르면 주보 표시/숨김이 바뀝니다';
+    tog.addEventListener('click', () => {
+      ev.show_in_bulletin = ev.show_in_bulletin === false;
+      tog.textContent = ev.show_in_bulletin === false ? '주보에 안 나감' : '주보에 나감';
+      row.classList.toggle('off', ev.show_in_bulletin === false);
+      markSaving();
+      BT_API.call('saveAnnualEvent', { event: { id: ev.id, show_in_bulletin: ev.show_in_bulletin } })
+        .then(() => { EVENTS_DIRTY = true; markSaved(); })
+        .catch((e) => toast('저장 실패: ' + (e.message || '')));
+    });
+    main.appendChild(tog);
+  }
+  row.appendChild(main);
+
+  const prev = el('div', 'evm-preview');
+  const paintPrev = () => {
+    const txt = evPreview(t.value);
+    prev.textContent = txt; prev.hidden = !txt;
+  };
+  paintPrev();
+  row.appendChild(prev);
+
+  // 자동 저장(0.8초 디바운스). 새 줄은 날짜+내용 둘 다 있어야 저장
+  let timer = null;
+  const commit = () => {
+    const week = d.value, label = t.value.trim();
+    if (!week || !label) return;
+    ev.display_week = week; ev.label = label;
+    const detect = label.indexOf('성찬') >= 0;   // 플래그 자동(체크박스 없음)
+    markSaving();
+    if (ev._new) {
+      BT_API.call('saveAnnualEvent', { event: { display_week: week, label, is_communion: detect } })
+        .then(async () => {
+          EVENTS_DIRTY = true;
+          EVENTS_NEW = EVENTS_NEW.filter((x) => x !== ev);
+          const r = await BT_API.call('getAnnualEvents');   // id 받으러 다시 로드
+          EVENTS = r.events || [];
+          markSaved(); renderEvents();
+        })
+        .catch((e) => toast('저장 실패: ' + (e.message || '')));
+    } else {
+      BT_API.call('saveAnnualEvent', { event: { id: ev.id, display_week: week, label,
+        is_communion: detect, show_in_bulletin: ev.show_in_bulletin !== false } })
+        .then(() => { EVENTS_DIRTY = true; markSaved(); })
+        .catch((e) => toast('저장 실패: ' + (e.message || '')));
+    }
+  };
+  const queue = () => { clearTimeout(timer); timer = setTimeout(commit, 800); };
+  d.addEventListener('change', queue);
+  t.addEventListener('input', () => { paintPrev(); queue(); });
+  return row;
 }
 
 const TITLE_ORDER = ['담임목사', '협동목사', '교육간사', '반주자', '시무장로', '장로',
@@ -1466,6 +1643,7 @@ async function unlockWeek() {
 // ---------- 네비게이션 ----------
 function initNav() {
   $('#btn-roster').addEventListener('click', openRoster);
+  $('#btn-events').addEventListener('click', openEvents);
   $('#btn-nav-back').addEventListener('click', backToBt);
   $('#btn-print').addEventListener('click', goPrint);
   $('#btn-print-back').addEventListener('click', backFromPrint);
