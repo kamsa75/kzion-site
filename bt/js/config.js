@@ -86,7 +86,7 @@ function pastorNameOf(S) {
   return (staff.find((r) => r.label === '담임목사') || {}).value || '';
 }
 // 예배순서 행 — app(편집)·print(인쇄) 공용. detail = 사용자 오버라이드 ?? 자동 기본값
-function buildOrderRows(S) {
+function buildOrderRows(S, opts) {
   const p = S.pastor || {};
   const meta = S.meta || {};
   const tw = (S.serveWindow || [])[0] || {};
@@ -126,17 +126,28 @@ function buildOrderRows(S) {
     { id: 'closing', label: '찬송', star: true },
     { id: 'benediction', label: '축도', star: true },
   ];
+  // 편집 화면 전용 옵션: 뺀 순서를 지우지 않고 제자리에 removed 표시로 남김(바로 되살리기)
+  const includeRemoved = !!(opts && opts.includeRemoved);
   // 성찬식 = 성찬식 예정 주간이면 설교 뒤에 자동삽입(§6-4). 이번 주만 빼면 hideCommunion.
   //   플래그(is_communion) 외에 label의 '성찬' 단어로도 감지(플래그 깜빡 대비, isCommunionWeek)
-  if (isCommunionWeek(S) && !(S.bulletin && S.bulletin.hideCommunion)) {
-    const si = rows.findIndex((r) => r.id === 'sermon');
-    rows.splice(si + 1, 0, { id: 'communion', label: '성찬식' });
+  if (isCommunionWeek(S)) {
+    const hideC = !!(S.bulletin && S.bulletin.hideCommunion);
+    if (!hideC || includeRemoved) {
+      const si = rows.findIndex((r) => r.id === 'sermon');
+      const cRow = { id: 'communion', label: '성찬식' };
+      if (hideC) cRow._removed = true;   // 편집 화면에선 제자리에 '뺌' 표시
+      rows.splice(si + 1, 0, cRow);
+    }
   }
   // 이번 주만 수동 조정(3단계) — 뺀 순서 제외 + 추가 순서 삽입.
   //   주차 데이터(bulletin)에만 저장되므로 다음 주엔 자동으로 기본 순서로 원복.
   const bws = S.bulletin || {};
   const removedSet = new Set(bws.orderRemoved || []);
-  if (removedSet.size) rows = rows.filter((r) => !removedSet.has(r.id));
+  if (removedSet.size) {
+    rows = includeRemoved
+      ? rows.map((r) => (removedSet.has(r.id) ? Object.assign({}, r, { _removed: true }) : r))
+      : rows.filter((r) => !removedSet.has(r.id));
+  }
   (bws.orderExtras || []).forEach((x) => {
     if (!x || !String(x.label || '').trim()) return;
     const marker = { id: x.id, label: x.label, _extra: x };
@@ -147,6 +158,9 @@ function buildOrderRows(S) {
   //   설교·본문·찬송·대표기도 = PPT에서 입력(PPT 값 없으면 로테이션 자동값으로 대체)
   const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: 'PPT' };
   return rows.map((r) => {
+    if (r._removed) {   // 편집 화면 전용 — 제자리에 '뺌' 표시로 남겨 바로 되살리기(인쇄엔 안 나감)
+      return { id: r.id, label: r.label, star: !!r.star, removed: true };
+    }
     if (r._extra) {   // 이번 주 수동 추가 순서 — 내용은 orderExtras에 저장(편집 화면에서 바인딩)
       return { id: r.id, label: r.label, star: false, bold: false,
         detail: String(r._extra.detail || ''), overridden: false, readonly: false,
