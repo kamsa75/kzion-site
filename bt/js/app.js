@@ -983,12 +983,32 @@ function renderOrderCard(S) {
   const repaint = () => card.replaceWith(renderOrderCard(S));
 
   const list = el('div', 'order-list');
-  buildOrderRows(S).forEach((r) => {
+  buildOrderRows(S, { includeRemoved: true }).forEach((r) => {
     const row = el('div', 'order-row' + (r.readonly ? ' order-ro' : ''));
     const l = el('div', 'order-label');
     if (r.star) l.appendChild(el('span', 'star', '※'));
     l.appendChild(el('span', 'order-lab', r.label));   // ※ 제외, 라벨만 양끝맞춤
     row.appendChild(l);
+
+    if (r.removed) {
+      // 뺀 순서 — 제자리에 흐리게 남기고 바로 옆에서 되살리기(찾아다닐 필요 없음)
+      row.classList.add('order-removed-row');
+      const wrapR = el('div', 'order-ro-val');
+      wrapR.appendChild(el('span', 'order-removed-note', '이번 주 뺌'));
+      const rb = el('button', 'order-restore', '되살리기'); rb.type = 'button';
+      rb.addEventListener('click', () => {
+        if (r.id === 'communion') { delete bd().hideCommunion; queueSave(); render(); }   // 상단 안내 카드도 갱신
+        else {
+          bd().orderRemoved = (bd().orderRemoved || []).filter((x) => x !== r.id);
+          queueSave(); repaint();
+        }
+        toast('「' + r.label + '」' + pickJosa(r.label, '을', '를') + ' 되살렸어요');
+      });
+      wrapR.appendChild(rb);
+      row.appendChild(wrapR);
+      list.appendChild(row);
+      return;
+    }
 
     if (r.readonly) {
       // 공유 필드 — 읽기전용 + 어디서 입력하는지 배지(값 갈라짐 차단). 빼기 없음(안전)
@@ -1054,37 +1074,20 @@ function renderOrderCard(S) {
     const delB = el('button', 'order-del', '✕'); delB.type = 'button';
     delB.title = '이번 주만 순서에서 빼기';
     delB.addEventListener('click', () => {
-      if (r.id === 'communion') { bd().hideCommunion = true; }
+      if (r.id === 'communion') { bd().hideCommunion = true; queueSave(); render(); }   // 상단 안내 카드도 갱신
       else {
         const rm = bd().orderRemoved = bd().orderRemoved || [];
         if (!rm.includes(r.id)) rm.push(r.id);
+        queueSave(); repaint();
       }
-      queueSave(); repaint();
       toast('「' + r.label + '」' + pickJosa(r.label, '을', '를')
-        + ' 이번 주만 뺐어요 — 아래 되살리기로 복구됩니다');
+        + ' 이번 주만 뺐어요 — 그 자리의 되살리기로 복구됩니다');
     });
     wrapB.appendChild(delB);
     row.appendChild(wrapB);
     list.appendChild(row);
   });
   card.appendChild(list);
-
-  // 뺀 순서 되살리기 칩
-  const removedIds = bd().orderRemoved || [];
-  if (removedIds.length) {
-    const rc = el('div', 'order-removed');
-    rc.appendChild(el('span', 'order-removed-lab', '이번 주 뺀 순서:'));
-    removedIds.forEach((id) => {
-      const chip = el('button', 'order-restore', (ORDER_LABELS[id] || id) + ' 되살리기');
-      chip.type = 'button';
-      chip.addEventListener('click', () => {
-        bd().orderRemoved = (bd().orderRemoved || []).filter((x) => x !== id);
-        queueSave(); repaint();
-      });
-      rc.appendChild(chip);
-    });
-    card.appendChild(rc);
-  }
 
   // 순서 추가 — 17개부터 경고, 18개면 차단(인쇄 잘림 방지 가드레일)
   const rowCount = buildOrderRows(S).length;
