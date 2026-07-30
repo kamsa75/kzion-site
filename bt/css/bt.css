@@ -50,6 +50,10 @@ body{
 .btn-line{background:#fff; color:var(--ui-ink); border-color:var(--ui-line)}
 .btn-wide{width:100%}
 .btn:disabled{opacity:.45; cursor:default}
+/* 성찬 위원 안내 넣기 — 성찬식 전 주에만 나타나는 제안 버튼(눈에 띄게 골드) */
+.btn-communion{margin-top:8px; background:var(--ui-gold-soft); color:var(--ui-gold);
+  border-color:#E7D9C0; font-weight:800}
+@media(hover:hover){ .btn-communion:not(:disabled):hover{background:#EFE2CC; border-color:#DCC9A6} }
 /* 앱 간 이동 링크(주보↔PPT) — 골드 소프트 알약 */
 .btn-cross{
   display:inline-flex; align-items:center; justify-content:center; gap:6px;

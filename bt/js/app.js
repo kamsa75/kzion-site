@@ -480,6 +480,22 @@ function renderNewsCard(S) {
   add.style.marginTop = '8px';
   add.addEventListener('click', () => { data.news.push({ title: '', body: '' }); paint(); queueSave(); });
   card.appendChild(add);
+
+  // 성찬 위원 안내 — 다음 주일이 성찬식인 주에만 버튼 노출(누르면 지침 전문 삽입, 이후 자유 수정)
+  const comDate = communionNextWeekDate(S);
+  if (comDate) {
+    const already = data.news.some((n) => (n.title || '') === COMMUNION_NOTICE_TITLE);
+    const cbtn = el('button', 'btn btn-wide btn-communion',
+      already ? '✓ 성찬 위원 안내 넣음' : '＋ 성찬 위원 안내 넣기');
+    cbtn.disabled = already;
+    cbtn.addEventListener('click', () => {
+      data.news.push({ title: COMMUNION_NOTICE_TITLE, body: communionNoticeBody(comDate) });
+      paint(); queueSave();
+      cbtn.disabled = true; cbtn.textContent = '✓ 성찬 위원 안내 넣음';
+      toast('성찬 위원 안내를 넣었습니다 — 내용은 자유롭게 고치세요');
+    });
+    card.appendChild(cbtn);
+  }
   return card;
 }
 
