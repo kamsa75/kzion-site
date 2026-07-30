@@ -1018,6 +1018,7 @@ function renderOrderCard(S) {
       delE.addEventListener('click', () => {
         bd().orderExtras = (bd().orderExtras || []).filter((e) => e.id !== r.id);
         queueSave(); repaint();
+        toast('「' + r.label + '」 추가 순서를 삭제했어요');
       });
       wrapE.appendChild(delE);
       row.appendChild(wrapE);
@@ -1059,6 +1060,8 @@ function renderOrderCard(S) {
         if (!rm.includes(r.id)) rm.push(r.id);
       }
       queueSave(); repaint();
+      toast('「' + r.label + '」' + pickJosa(r.label, '을', '를')
+        + ' 이번 주만 뺐어요 — 아래 되살리기로 복구됩니다');
     });
     wrapB.appendChild(delB);
     row.appendChild(wrapB);
@@ -1320,12 +1323,17 @@ async function refreshRotation() {
 let VIEW = 'bt';          // 'bt' | 'roster'
 let ROSTER = null;        // getMembers 응답
 
+// 상단바 탭 강조 — 버튼은 항상 5개 유지, 현재 화면만 강조(사라지는 메뉴 없음)
+function setNav(view) {
+  $('#btn-roster').classList.toggle('on', view === 'roster');
+  $('#btn-events').classList.toggle('on', view === 'events');
+}
+
 async function openRoster() {
   VIEW = 'roster';
   $('#bt-heading').textContent = '명단 · 순서';
   $('#btn-nav-back').hidden = false;
-  $('#btn-roster').hidden = true;
-  $('#btn-events').hidden = false;
+  setNav('roster');
   const body = $('#bt-body');
   body.innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
@@ -1340,8 +1348,7 @@ function backToBt() {
   VIEW = 'bt';
   $('#bt-heading').textContent = '주보 만들기';
   $('#btn-nav-back').hidden = true;
-  $('#btn-roster').hidden = false;
-  $('#btn-events').hidden = false;
+  setNav('bt');
   // 연간 일정을 고쳤으면 주보를 새로 계산(성찬식·예고·행사표 반영)
   if (EVENTS_DIRTY) { EVENTS_DIRTY = false; enter(); return; }
   render();
@@ -1360,8 +1367,7 @@ async function openEvents() {
   VIEW = 'events';
   $('#bt-heading').textContent = '연간 일정';
   $('#btn-nav-back').hidden = false;
-  $('#btn-events').hidden = true;
-  $('#btn-roster').hidden = false;
+  setNav('events');
   const body = $('#bt-body');
   body.innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
