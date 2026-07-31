@@ -1300,14 +1300,34 @@ function pickAndApply(role, weekId, mode, source) {
   });
 }
 
-async function applyShift(role, weekId, curName) {
-  if (!confirm(`${curName} 님을 건너뛰고 순서를 당길까요?`)) return;
-  try {
-    await BT_API.call('overrideRotation', { weekId, role, mode: 'shift' });
-    closeSheet();
-    await refreshRotation();
-    toast('순서를 당겼습니다');
-  } catch (err) { toast('실패: ' + (err.message || '')); }
+// 건너뛰고 순서 당기기 — 네이티브 confirm은 폰 인앱 브라우저에서 막히는 일이 있어
+//   시트 안에서 확인받는다(그래서 '아무 일도 안 일어나는' 현상이 없다)
+function applyShift(role, weekId, curName) {
+  openSheet('건너뛰고 순서 당기기', (body) => {
+    const p = el('p', 'sheet-cur');
+    p.innerHTML = `<b>${curName || '이번 담당자'}</b> 님을 건너뛰고, 다음 분부터 한 칸씩 앞으로 당깁니다.`;
+    body.appendChild(p);
+    const go = el('button', 'btn btn-primary btn-wide', '건너뛰고 당기기');
+    go.type = 'button';
+    go.style.marginTop = '12px';
+    go.addEventListener('click', async () => {
+      go.disabled = true; go.textContent = '적용 중…';
+      try {
+        await BT_API.call('overrideRotation', { weekId, role, mode: 'shift' });
+        closeSheet();
+        await refreshRotation();
+        toast('순서를 당겼습니다');
+      } catch (err) {
+        toast('실패: ' + (err.message || ''));
+        go.disabled = false; go.textContent = '건너뛰고 당기기';
+      }
+    });
+    body.appendChild(go);
+    const cancel = el('button', 'btn btn-line btn-wide', '취소');
+    cancel.type = 'button'; cancel.style.marginTop = '8px';
+    cancel.addEventListener('click', closeSheet);
+    body.appendChild(cancel);
+  });
 }
 
 // 로테이션만 다시 계산해 표 갱신 (전체 리로드 없이)
@@ -1323,8 +1343,9 @@ async function refreshRotation() {
 // ============================================================
 // 3-3 명단 관리 (직분별 목록 + 풀 소속 토글 + 순서)
 // ============================================================
-let VIEW = 'bt';          // 'bt' | 'roster'
+let VIEW = 'bt';          // 'bt' | 'roster' | 'events'
 let ROSTER = null;        // getMembers 응답
+let ROSTER_DIRTY = false; // 명단·풀을 고쳤으면 주보 복귀 시 로테이션 재계산
 
 // 상단바 탭 강조 — 버튼은 항상 5개 유지, 현재 화면만 강조(사라지는 메뉴 없음)
 function setNav(view) {
@@ -1352,8 +1373,8 @@ function backToBt() {
   $('#bt-heading').textContent = '주보 만들기';
   $('#btn-nav-back').hidden = true;
   setNav('bt');
-  // 연간 일정을 고쳤으면 주보를 새로 계산(성찬식·예고·행사표 반영)
-  if (EVENTS_DIRTY) { EVENTS_DIRTY = false; enter(); return; }
+  // 연간 일정·명단을 고쳤으면 주보를 새로 계산(성찬식·예고·행사표·로테이션 반영)
+  if (EVENTS_DIRTY || ROSTER_DIRTY) { EVENTS_DIRTY = false; ROSTER_DIRTY = false; enter(); return; }
   render();
 }
 
@@ -1606,7 +1627,7 @@ function renderPool(p) {
 
   function save() {
     BT_API.call('savePool', { id: p.id, memberNames: p.member_names })
-      .then(() => toast('순서 저장됨'))
+      .then(() => { ROSTER_DIRTY = true; toast('순서 저장됨'); })   // 주보로 돌아갈 때 재계산
       .catch((e) => toast('저장 실패: ' + (e.message || '')));
   }
   function paint() {
@@ -1697,6 +1718,7 @@ function openMemberEdit(m) {
         : { id: m.id, name, title: ts.value, active: m._cb.checked };
       try {
         await BT_API.call('saveMember', { member });
+        ROSTER_DIRTY = true;   // 주보로 돌아갈 때 섬기는이들 표 재계산
         closeSheet();
         ROSTER = await BT_API.call('getMembers');
         renderRoster();
