@@ -1471,18 +1471,29 @@ function evmRow(ev, isPast) {
   main.appendChild(d); main.appendChild(t);
 
   if (!ev._new) {
-    const tog = el('button', 'evm-show', ev.show_in_bulletin === false ? '주보에 안 나감' : '주보에 나감');
-    tog.title = '누르면 주보 표시/숨김이 바뀝니다';
-    tog.addEventListener('click', () => {
-      ev.show_in_bulletin = ev.show_in_bulletin === false;
-      tog.textContent = ev.show_in_bulletin === false ? '주보에 안 나감' : '주보에 나감';
-      row.classList.toggle('off', ev.show_in_bulletin === false);
-      markSaving();
-      BT_API.call('saveAnnualEvent', { event: { id: ev.id, show_in_bulletin: ev.show_in_bulletin } })
-        .then(() => { EVENTS_DIRTY = true; markSaved(); })
-        .catch((e) => toast('저장 실패: ' + (e.message || '')));
-    });
-    main.appendChild(tog);
+    // 게재 상태 — 시제 혼동 없게 3가지:
+    //   미래: '게재 예정' ⟷ '게재 불필요'(눌러서 전환) / 지난: '게재 완료'·'게재 안 함'(자동, 클릭 불가)
+    if (isPast) {
+      const done = ev.show_in_bulletin === false ? '게재 안 함' : '게재 완료';
+      const badge = el('span', 'evm-state done', done);
+      badge.title = '지난 일정입니다 (자동 표시)';
+      main.appendChild(badge);
+    } else {
+      const label = () => (ev.show_in_bulletin === false ? '게재 불필요' : '게재 예정');
+      const tog = el('button', 'evm-state evm-toggle', label());
+      tog.type = 'button';
+      tog.title = '누르면 주보 게재 여부가 바뀝니다';
+      tog.addEventListener('click', () => {
+        ev.show_in_bulletin = ev.show_in_bulletin === false;
+        tog.textContent = label();
+        row.classList.toggle('off', ev.show_in_bulletin === false);
+        markSaving();
+        BT_API.call('saveAnnualEvent', { event: { id: ev.id, show_in_bulletin: ev.show_in_bulletin } })
+          .then(() => { EVENTS_DIRTY = true; markSaved(); })
+          .catch((e) => toast('저장 실패: ' + (e.message || '')));
+      });
+      main.appendChild(tog);
+    }
   }
   row.appendChild(main);
 
