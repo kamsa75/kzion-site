@@ -1365,6 +1365,7 @@ let EVENTS = null;          // getAnnualEvents 응답 캐시
 let EVENTS_DIRTY = false;   // 수정했으면 주보로 돌아갈 때 다시 불러오기
 let EVENTS_YEAR = null;     // 연도 필터
 let EVENTS_NEW = [];        // 아직 저장 안 된 새 줄(날짜+내용 채우면 저장)
+let EVENTS_SHOW_PAST = false;   // 지난 일정 펼침 여부(기본 접힘)
 
 async function openEvents() {
   VIEW = 'events';
@@ -1418,7 +1419,7 @@ function renderEvents() {
   const yrow = el('div', 'ev-years');
   [...years].sort().forEach((y) => {
     const c = el('button', 'year-chip' + (y === EVENTS_YEAR ? ' on' : ''), y + '년');
-    c.addEventListener('click', () => { EVENTS_YEAR = y; renderEvents(); });
+    c.addEventListener('click', () => { EVENTS_YEAR = y; EVENTS_SHOW_PAST = false; renderEvents(); });
     yrow.appendChild(c);
   });
   card.appendChild(yrow);
@@ -1430,7 +1431,19 @@ function renderEvents() {
   if (!rows.length && !EVENTS_NEW.length) {
     list.appendChild(el('p', 'center-note', EVENTS_YEAR + '년 일정이 아직 없습니다. 아래에서 추가하세요.'));
   }
-  rows.forEach((ev) => list.appendChild(evmRow(ev)));
+  // 지난 일정은 기본으로 접어둠(다음 일정이 바로 보이게) — 펼치면 회색으로 표시·수정 가능
+  const todayIso = (STATE && STATE.weekId) || '';
+  const past = rows.filter((e) => todayIso && String(e.display_week) < todayIso);
+  const upcoming = rows.filter((e) => !todayIso || String(e.display_week) >= todayIso);
+  if (past.length) {
+    const tog = el('button', 'evm-past-toggle',
+      (EVENTS_SHOW_PAST ? '지난 일정 숨기기 ▴' : `지난 일정 ${past.length}건 보기 ▾`));
+    tog.type = 'button';
+    tog.addEventListener('click', () => { EVENTS_SHOW_PAST = !EVENTS_SHOW_PAST; renderEvents(); });
+    list.appendChild(tog);
+    if (EVENTS_SHOW_PAST) past.forEach((ev) => list.appendChild(evmRow(ev, true)));
+  }
+  upcoming.forEach((ev) => list.appendChild(evmRow(ev)));
   EVENTS_NEW.forEach((ev) => list.appendChild(evmRow(ev)));   // 새 줄은 항상 아래에
   card.appendChild(list);
 
@@ -1446,8 +1459,9 @@ function renderEvents() {
   body.appendChild(card);
 }
 
-function evmRow(ev) {
-  const row = el('div', 'evm-row' + (ev.show_in_bulletin === false ? ' off' : ''));
+function evmRow(ev, isPast) {
+  const row = el('div', 'evm-row' + (ev.show_in_bulletin === false ? ' off' : '')
+    + (isPast ? ' past' : ''));
   const main = el('div', 'evm-main');
   const d = el('input', 'evm-date'); d.type = 'date'; d.value = ev.display_week || '';
   if (ev._new) d.title = '주일 날짜';
