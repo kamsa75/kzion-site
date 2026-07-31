@@ -593,6 +593,28 @@ Deno.serve(async (req) => {
     // ---------- 이 주 수동 로테이션 초기화 (#9 되돌리기) ----------
     // 이 주에 넣은 수동 배정(이번 주만·안내·사랑나눔·끼워넣기)만 삭제한다.
     // 인쇄 확정(locked_at)된 것은 건드리지 않고, 앵커(당기기·봉헌 월지정)는 보존한다(로테이션 기준선 보호).
+    // ---------- 그 주 로테이션 손댄 것 되돌리기 (건너뛰기·대타·끼워넣기 취소) ----------
+    case "undoRotation": {
+      const r = String(body.role || "prayer");
+      const { data: locked } = await db.from("rotation_assignments")
+        .select("locked_at").eq("week_id", weekId).eq("role", r).maybeSingle();
+      if (locked?.locked_at) return json({ error: "이미 인쇄 확정된 주간입니다" }, 409);
+      // 이 주에 심은 기준점(건너뛰기·끼워넣기) + 수동 배정을 지우면 원래 자동 순서로 복귀
+      //   prayer는 그 주일에, offering은 그 달 1일에 기준점을 심는다(각각의 자리에서 제거)
+      const anchorAt = r === "offering" ? `${weekId.slice(0, 7)}-01` : weekId;
+      const a = await db.from("rotation_anchors")
+        .delete().eq("role", r).eq("effective_from", anchorAt).select("role");
+      const nextW = iso(addDays(d(weekId), 7));
+      const a2 = await db.from("rotation_anchors")            // 끼워넣기가 만든 다음 주 기준점
+        .delete().eq("role", r).eq("effective_from", nextW)
+        .like("note", "%끼워넣어%").select("role");
+      const b = await db.from("rotation_assignments")
+        .delete().eq("week_id", weekId).eq("role", r).eq("is_manual", true)
+        .is("locked_at", null).select("role");
+      const n = (a.data?.length || 0) + (a2.data?.length || 0) + (b.data?.length || 0);
+      return json({ ok: true, removed: n });
+    }
+
     case "resetRotations": {
       const { error } = await db.from("rotation_assignments")
         .delete().eq("week_id", weekId).eq("is_manual", true).is("locked_at", null);
