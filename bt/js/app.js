@@ -1261,6 +1261,43 @@ function openRotationSheet(role, roleLabel, row) {
         '이번 주에 다른 분을 넣고, 원래 담당자는 다음으로 밀립니다.',
         () => pickAndApply('prayer', row.week, 'insert', 'members')));
     }
+    if (!isUsher) {
+      // 옵션 4: 이 주에 손댄 것(건너뛰기·대타·끼워넣기) 전부 취소 → 자동 순서로 복귀
+      body.appendChild(sheetOption('↩ 이 주 바꾼 것 되돌리기',
+        '건너뛰기·대타·끼워넣기를 취소하고 원래 자동 순서로 되돌립니다.',
+        () => applyUndo(role, row.week)));
+    }
+  });
+}
+
+// 그 주 로테이션 수동 개입 취소 — 원래 자동 순서로 복귀
+function applyUndo(role, weekId) {
+  openSheet('이 주 바꾼 것 되돌리기', (body) => {
+    const p = el('p', 'sheet-cur');
+    p.innerHTML = '이 주에 <b>건너뛰기·대타·끼워넣기</b>로 바꾼 것을 취소하고<br>원래 자동 순서로 되돌립니다.';
+    body.appendChild(p);
+    const go = el('button', 'btn btn-primary btn-wide', '되돌리기');
+    go.type = 'button'; go.style.marginTop = '12px';
+    go.addEventListener('click', async () => {
+      go.disabled = true; go.textContent = '되돌리는 중…';
+      try {
+        const r = await BT_API.call('undoRotation', { weekId, role });
+        closeSheet();
+        await refreshRotation();
+        toast(r && r.removed === 0 ? '바꾼 내역이 없습니다 (이미 자동 순서)' : '원래 순서로 되돌렸습니다');
+      } catch (err) {
+        const m = err.message || '';
+        toast(m.indexOf('알 수 없는') >= 0
+          ? '되돌리기는 서버 업데이트 후 쓸 수 있어요 (관리자에게 문의)'
+          : '실패: ' + m);
+        go.disabled = false; go.textContent = '되돌리기';
+      }
+    });
+    body.appendChild(go);
+    const cancel = el('button', 'btn btn-line btn-wide', '취소');
+    cancel.type = 'button'; cancel.style.marginTop = '8px';
+    cancel.addEventListener('click', closeSheet);
+    body.appendChild(cancel);
   });
 }
 
