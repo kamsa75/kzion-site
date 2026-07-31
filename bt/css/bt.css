@@ -87,10 +87,14 @@ body{
   border:1px solid var(--ui-line); border-radius:10px; background:#fff; color:var(--ui-ink)}
 .evm-date:focus, .evm-label:focus{outline:2px solid var(--ui-gold); outline-offset:0; border-color:transparent}
 .evm-label::placeholder{color:#9A8F78; font-weight:500}
-.evm-show{flex:none; font-family:inherit; font-size:12px; font-weight:700; padding:7px 10px;
+/* 게재 상태 — 미래=버튼(예정/불필요 전환), 지난=배지(완료/안 함, 클릭 불가) */
+.evm-state{flex:none; display:inline-flex; align-items:center; justify-content:center;
+  font-family:inherit; font-size:12px; font-weight:700; padding:7px 10px;
   border-radius:999px; border:1px solid var(--ui-line); background:#fff; color:var(--ui-sub);
-  cursor:pointer; white-space:nowrap}
-.evm-row:not(.off) .evm-show{color:#2c6b3b; border-color:#bfe0c4; background:#f3f9f4}
+  white-space:nowrap}
+.evm-toggle{cursor:pointer}
+.evm-row:not(.off) .evm-toggle{color:#2c6b3b; border-color:#bfe0c4; background:#f3f9f4}
+.evm-state.done{background:#f4f3ef; color:#8b8577; border-style:dashed; cursor:default}
 .evm-preview{margin:7px 2px 0; font-size:12.5px; color:var(--ui-sub); line-height:1.5}
 /* 지난 일정 — 기본 접힘, 펼치면 회색으로(수정은 그대로 가능) */
 .evm-past-toggle{font-family:inherit; font-size:13px; font-weight:700; color:var(--ui-sub);
