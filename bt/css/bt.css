@@ -57,13 +57,11 @@ body{
   border:1px solid #E6D3A0; border-radius:10px; padding:7px 10px; margin-bottom:10px; line-height:1.45}
 .order-editwrap{display:flex; gap:6px; align-items:center; min-width:0; flex-wrap:wrap}
 .order-editwrap .order-input{flex:1; min-width:0}
-/* 특송 출처 표시 — PPT 성가대 값인지, 직접 고친 값인지 */
-.order-src{flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:5px}
-.order-src-t{font-size:11.5px; color:var(--ui-sub); line-height:1.4}
-.order-src-t.warn{color:#8A6D1E}
-.order-src-back{font-family:inherit; font-size:11.5px; font-weight:700; color:var(--ui-sub);
+/* 특송 출처 — 다른 행과 같은 [PPT] 배지, 직접 고쳤을 땐 [직접 입력] + 되돌리기(같은 줄) */
+.order-editwrap .order-badge{flex:none}
+.order-src-back{flex:none; font-family:inherit; font-size:11.5px; font-weight:700; color:var(--ui-sub);
   background:#fff; border:1px dashed var(--ui-line); border-radius:999px;
-  padding:3px 9px; cursor:pointer}
+  padding:4px 9px; cursor:pointer; white-space:nowrap}
 .order-src-back:hover{color:var(--ui-ink); border-color:var(--ui-gold)}
 .order-del{flex:none; width:30px; height:34px; border:1px solid var(--ui-line); border-radius:9px;
   background:#fff; color:var(--ui-sub); font-size:13px; line-height:1; cursor:pointer}
@@ -180,6 +178,8 @@ body{
   .topbar-nav::-webkit-scrollbar{display:none}
   .topbar-nav > *{flex:none}
   .topbar-left:has(#btn-nav-back[hidden]){display:none}   /* 뒤로가기 없으면 1층 생략 */
+  /* 특송처럼 배지가 붙는 편집 행은 폰에서 값이 잘리므로 값을 한 줄 통째로 준다 */
+  .order-editwrap:has(.order-badge) .order-input{flex-basis:100%}
   .role-chip{font-size:11px; padding:2px 7px}
   .order-row{padding:7px 6px}   /* 모바일 예배순서 행간 축소(#1) */
 }
