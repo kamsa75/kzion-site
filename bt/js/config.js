@@ -74,6 +74,24 @@ function choirLine(S) {
     return nm ? nm + ' · ' + tail : tail;
   }).filter(Boolean).join(' / ');
 }
+// 특송 출처 — 성가대가 PPT에 넣은 '이번 주' 곡인지 한눈에(존재 여부 + 마지막 입력일).
+//   서버가 week_id로만 조회하므로 지난주 곡이 섞일 수 없다. updated_at은 UTC라 PT 날짜로 변환.
+function choirMeta(S) {
+  const songs = (S.choirSongs || []).filter((s) => String(s.name || '').trim());
+  if (!songs.length) return { has: false, when: '' };
+  let latest = '';
+  songs.forEach((s) => { const u = String(s.updated_at || ''); if (u > latest) latest = u; });
+  let when = '';
+  if (latest) {
+    const dt = new Date(latest);
+    if (!isNaN(dt.getTime())) {
+      when = dt.toLocaleDateString('ko-KR',
+        { timeZone: 'America/Los_Angeles', month: 'long', day: 'numeric' });
+    }
+  }
+  return { has: true, when };
+}
+
 // 토요새벽예배 날짜 'M월 D일' — 이번 주일(weekId) 다음의 다가오는 토요일(주일+6일)
 //   예: 주일 8/2 → 토요 8/8. (주보는 주일에 배부되므로 지나간 전날 토요일이 아닌 다음 토요일)
 function saturdayOf(S) {
