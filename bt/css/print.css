@@ -175,7 +175,8 @@
 /* 예배순서가 남은 세로를 채우며 줄간격을 넓힘(#5) → 아래 ※안내·섬기는이들이 바닥으로.
    마스트헤드·안내문·섬기는이들 표를 압축해 이 영역에 최대한 공간을 몰아줌 */
 /* 예배순서: 고정 줄간격(약간 좁게, #4). 남는 세로는 섬기는이들 표를 바닥으로 밀어 확보 */
-.cover-order{flex:1 1 auto; display:flex; flex-direction:column; justify-content:space-between; gap:4px; margin-bottom:3px; min-height:0}   /* 남은 세로를 예배순서 줄 사이에 고르게 분배(#3) */
+.cover-order{flex:1 1 auto; display:flex; flex-direction:column; justify-content:space-between; gap:4px; margin-bottom:3px; min-height:0;
+  padding-left:12px}   /* 남은 세로를 예배순서 줄 사이에 고르게 분배(#3) + ※ 매달림 폭(11.1px)만큼 들여써 패널 밖으로 안 나가게 */
 .co-row{display:grid; grid-template-columns:74px 1fr; gap:21px; padding:2.4px 0; font-size:10.3pt; align-items:baseline}   /* 순서명↔내용 간격(#2→0.5배 더) */
 .co-k{font-weight:800; display:flex; align-items:baseline}
 .co-lab{flex:1}
