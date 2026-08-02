@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
         assignmentsFor(ahead),
         volNo(weekId),
         // 성가대 곡 — 특송/성가대 줄을 예배순서에 자동 반영 (PPT 성가대 섹션)
-        db.from("songs").select("name, song_type, song_performer, position")
+        db.from("songs").select("name, song_type, song_performer, position, updated_at")
           .eq("week_id", weekId).eq("role", "choir").order("position"),
       ]);
 

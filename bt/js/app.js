@@ -1071,6 +1071,34 @@ function renderOrderCard(S) {
     // 이번 주만 빼기(✕) — 성찬식은 기존 hideCommunion, 나머지는 orderRemoved. 되살리기 칩으로 복구
     const wrapB = el('div', 'order-editwrap');
     wrapB.appendChild(inp);
+    let srcNote = null;
+
+    // 특송 — 이 값이 '성가대가 PPT에 넣은 이번 주 곡'인지, 내가 고친 값인지 눈에 보이게
+    if (r.id === 'special') {
+      const cm = choirMeta(S);
+      const note = el('div', 'order-src');
+      if (r.overridden) {
+        note.appendChild(el('span', 'order-badge auto', '직접 입력'));
+        const back = el('button', 'order-src-back', '↩ 성가대 곡으로');
+        back.type = 'button';
+        back.title = '직접 입력한 값을 지우고 PPT 성가대 곡으로 되돌립니다';
+        back.addEventListener('click', () => {
+          delete overrides()[r.id];
+          queueSave(); repaint();
+          toast(cm.has ? '성가대 곡으로 되돌렸습니다' : '자동값으로 되돌렸습니다 (성가대 미입력)');
+        });
+        note.appendChild(back);
+      } else if (cm.has) {
+        note.appendChild(el('span', 'order-badge ppt', 'PPT 성가대'));
+        note.appendChild(el('span', 'order-src-t',
+          '성가대가 PPT에 넣은 이번 주 곡' + (cm.when ? ` · ${cm.when} 입력` : '')));
+      } else {
+        inp.placeholder = '성가대가 아직 입력하지 않았어요';
+        note.appendChild(el('span', 'order-src-t warn',
+          '성가대가 PPT에 곡을 넣으면 자동으로 여기 표시됩니다 (직접 적으면 자동 표시가 멈춰요)'));
+      }
+      srcNote = note;   // ✕ 뒤에 붙인다(입력칸·✕는 같은 줄, 안내는 아랫줄)
+    }
     const delB = el('button', 'order-del', '✕'); delB.type = 'button';
     delB.title = '이번 주만 순서에서 빼기';
     delB.addEventListener('click', () => {
@@ -1084,6 +1112,7 @@ function renderOrderCard(S) {
         + ' 이번 주만 뺐어요 — 그 자리의 되살리기로 복구됩니다');
     });
     wrapB.appendChild(delB);
+    if (srcNote) wrapB.appendChild(srcNote);   // 안내는 맨 아래 줄
     row.appendChild(wrapB);
     list.appendChild(row);
   });

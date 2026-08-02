@@ -55,8 +55,16 @@ body{
 /* 예배순서 수동 조정(3단계) — 이번 주 추가/빼기 */
 .order-changes{font-size:12.5px; font-weight:700; color:#8A6D1E; background:var(--ui-warn-bg);
   border:1px solid #E6D3A0; border-radius:10px; padding:7px 10px; margin-bottom:10px; line-height:1.45}
-.order-editwrap{display:flex; gap:6px; align-items:center; min-width:0}
+.order-editwrap{display:flex; gap:6px; align-items:center; min-width:0; flex-wrap:wrap}
 .order-editwrap .order-input{flex:1; min-width:0}
+/* 특송 출처 표시 — PPT 성가대 값인지, 직접 고친 값인지 */
+.order-src{flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:5px}
+.order-src-t{font-size:11.5px; color:var(--ui-sub); line-height:1.4}
+.order-src-t.warn{color:#8A6D1E}
+.order-src-back{font-family:inherit; font-size:11.5px; font-weight:700; color:var(--ui-sub);
+  background:#fff; border:1px dashed var(--ui-line); border-radius:999px;
+  padding:3px 9px; cursor:pointer}
+.order-src-back:hover{color:var(--ui-ink); border-color:var(--ui-gold)}
 .order-del{flex:none; width:30px; height:34px; border:1px solid var(--ui-line); border-radius:9px;
   background:#fff; color:var(--ui-sub); font-size:13px; line-height:1; cursor:pointer}
 .order-del:hover{color:var(--ui-danger); background:#fdf6f5}
