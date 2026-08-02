@@ -1105,7 +1105,8 @@ function renderOrderCard(S) {
     });
     if (srcBack) wrapB.appendChild(srcBack);   // 값 → (되돌리기) → 배지 → ✕ 한 줄
     if (srcBadge) wrapB.appendChild(srcBadge);
-    wrapB.appendChild(delB);
+    // 특송은 늘 있는 순서 → ✕ 없음(실수 방지). 비면 인쇄에서 자동 제외되므로 뺄 필요가 없다
+    if (r.id !== 'special') wrapB.appendChild(delB);
     row.appendChild(wrapB);
     list.appendChild(row);
   });
