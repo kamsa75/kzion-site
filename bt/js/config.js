@@ -144,7 +144,8 @@ function buildOrderRows(S, opts) {
     { id: 'closing', label: '찬송', star: true },
     { id: 'benediction', label: '축도', star: true },
   ];
-  // 편집 화면 전용 옵션: 뺀 순서를 지우지 않고 제자리에 removed 표시로 남김(바로 되살리기)
+  // 편집 화면 전용 옵션: 뺀 순서를 지우지 않고 제자리에 removed 표시로 남김(바로 되살리기),
+  //   특송이 비어 있어도 편집 화면엔 칸을 보여준다(인쇄에서는 자동 제외 — 아래 emptySpecial)
   const includeRemoved = !!(opts && opts.includeRemoved);
   // 성찬식 = 성찬식 예정 주간이면 설교 뒤에 자동삽입(§6-4). 이번 주만 빼면 hideCommunion.
   //   플래그(is_communion) 외에 label의 '성찬' 단어로도 감지(플래그 깜빡 대비, isCommunionWeek)
@@ -175,6 +176,12 @@ function buildOrderRows(S, opts) {
   // 공유 필드 = 한 곳에서만 입력(값 갈라짐 차단). 주보에선 읽기전용으로 표시.
   //   설교·본문·찬송·대표기도 = PPT에서 입력(PPT 값 없으면 로테이션 자동값으로 대체)
   const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: 'PPT' };
+  // 특송이 비어 있으면 인쇄에선 줄째 제외(빈 줄 방지). 편집 화면(includeRemoved)에는 그대로 보여
+  //   성가대가 넣으면 자동으로 다시 나타난다. 미입력은 인쇄 확인 화면이 따로 알려준다.
+  if (!includeRemoved) {
+    const spDetail = ov.special !== undefined ? ov.special : defaults.special;
+    if (!String(spDetail || '').trim()) rows = rows.filter((r) => r.id !== 'special');
+  }
   return rows.map((r) => {
     if (r._removed) {   // 편집 화면 전용 — 제자리에 '뺌' 표시로 남겨 바로 되살리기(인쇄엔 안 나감)
       return { id: r.id, label: r.label, star: !!r.star, removed: true };

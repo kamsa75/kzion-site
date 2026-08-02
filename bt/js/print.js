@@ -94,6 +94,13 @@ function buildGate(S) {
   }
   gate.appendChild(box);
 
+  // 특송이 비면 인쇄에서 자동 제외되므로, 성가대 미입력을 조용히 넘기지 않도록 알림
+  if (!buildOrderRows(S).some((r) => r.id === 'special')) {
+    const sp = PE('div', 'gate-order');
+    sp.textContent = '🎵 특송이 비어 있어 이번 주 주보에서 빠집니다 — 성가대가 PPT에 곡을 넣으면 자동으로 들어옵니다';
+    gate.appendChild(sp);
+  }
+
   // 이번 주 순서가 기본과 다르면 인쇄 직전 마지막 확인 줄(3단계 — 몰랐던 변화 방지)
   const chg = orderChangeSummary(S);
   if (chg) {
