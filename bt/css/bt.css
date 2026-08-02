@@ -58,7 +58,8 @@ body{
 .order-editwrap{display:flex; gap:6px; align-items:center; min-width:0; flex-wrap:wrap}
 .order-editwrap .order-input{flex:1; min-width:0}
 /* 특송 출처 — 다른 행과 같은 [PPT] 배지, 직접 고쳤을 땐 [직접 입력] + 되돌리기(같은 줄) */
-.order-editwrap .order-badge{flex:none}
+/*   읽기전용 행(.order-ro-val)은 padding-right 9px이라 배지가 9px 안쪽 → 같은 세로선에 맞춤 */
+.order-editwrap .order-badge{flex:none; margin-right:9px}
 .order-src-back{flex:none; font-family:inherit; font-size:11.5px; font-weight:700; color:var(--ui-sub);
   background:#fff; border:1px dashed var(--ui-line); border-radius:999px;
   padding:4px 9px; cursor:pointer; white-space:nowrap}
