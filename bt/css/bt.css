@@ -179,10 +179,8 @@ body{
   .topbar-nav::-webkit-scrollbar{display:none}
   .topbar-nav > *{flex:none}
   .topbar-left:has(#btn-nav-back[hidden]){display:none}   /* 뒤로가기 없으면 1층 생략 */
-  /* 특송처럼 배지가 붙는 편집 행은 폰에서 값이 잘리므로 값을 한 줄 통째로 준다 */
-  .order-editwrap:has(.order-badge) .order-input{flex-basis:100%}
   .role-chip{font-size:11px; padding:2px 7px}
-  .order-row{padding:7px 6px}   /* 모바일 예배순서 행간 축소(#1) */
+  /* .order-row 모바일 조정은 기본 정의 뒤(아래쪽)에 둔다 — 여기 두면 기본값에 덮어써짐 */
 }
 .role-chip{
   font-size:12px; font-weight:700; color:var(--ui-gold); white-space:nowrap;   /* "목사님" 안 깨지게(#1) */
@@ -283,6 +281,11 @@ body{
   padding:12px 6px; border-radius:9px;
 }
 .order-row + .order-row{border-top:1px solid #f0efe9}
+/* 폰: 행간 축소 + 순서명 칸을 글자폭(최대 64px)에 맞춰 줄여 값·배지가 한 줄에 들어가게
+   (기본 .order-row 정의 뒤에 와야 적용됨) */
+@media (max-width:560px){
+  .order-row{padding:7px 6px; grid-template-columns:76px 1fr; gap:8px}
+}
 .order-label{font-weight:700; font-size:14px; color:var(--ui-ink); display:flex; align-items:baseline}
 .order-label .star{color:var(--ui-gold); margin-right:2px; flex:none}
 .order-label .order-lab{flex:1; text-align:left}   /* 편집창 라벨은 좌측정렬(다어절 라벨 과도 벌어짐 방지) */
