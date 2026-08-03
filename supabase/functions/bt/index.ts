@@ -196,46 +196,194 @@ function loveServiceAt(anchors: Anchor[], pools: Pools, weekId: string): string 
   return pool[idx];
 }
 
-// 그 주 전체 배정 — 오버라이드(수동·인쇄 스냅샷)가 계산보다 우선
-async function assignmentsFor(weekIds: string[]) {
+// ============================================================
+// 배정 엔진 v2 (2026-08-02) — "다음 담당자 = 마지막 담당자의, 명단상 바로 다음 사람"
+//
+//  · 한 번 저장된 주는 명단을 고쳐도 바뀌지 않는다 (과거는 기록, 미래만 계산).
+//  · 주보에 실리는 4주는 조회할 때 자동으로 저장(확정)된다 → 종이와 화면이 안 어긋난다.
+//  · 저장 이력이 아직 없으면 아래 구(舊) 계산(prayerStateAt·offeringAt·loveServiceAt)으로
+//    시드한다 → 엔진을 바꾸는 순간에 화면 값이 튀지 않는다. 그래서 구 함수를 남겨 둔다.
+//  · 앵커(rotation_anchors)는 이제 '세트 위치(장로2+안집권사1)'와 시드에만 쓴다.
+//    명단 순서·길이는 더 이상 지난 배정을 흔들지 못한다.
+// ============================================================
+
+// 기도 세트 위치 — 최초 기준점에서 주 수만 센다(명단과 무관 → 절대 안 흔들림)
+function prayerPhaseAt(anchors: Anchor[], weekId: string): number | null {
+  const a = anchors[0];
+  if (!a) return null;
+  const p0 = Number((a.spec as { phase?: number }).phase) || 0;
+  const n = weeksBetween(d(a.effective_from), d(weekId));
+  return (((p0 + n) % 3) + 3) % 3;
+}
+const prayerPoolId = (phase: number) => (phase === 2 ? "prayer_deacons" : "prayer_elders");
+
+// 봉사담당 블록 번호 (몇 번째 4주 덩어리인가)
+function lsBlockAt(anchors: Anchor[], weekId: string): number | null {
+  const a = anchorFor(anchors, weekId);
+  const spec = (a?.spec || {}) as { week?: string; blockWeeks?: number };
+  if (!spec.week) return null;
+  const bw = spec.blockWeeks || 4;
+  return Math.floor(weeksBetween(d(spec.week), d(weekId)) / bw);
+}
+
+// 명단에서 바로 다음 사람 (명단에 없으면 "" — 호출부가 더 거슬러 올라간다)
+function nextInPool(pool: string[], last: string): string {
+  if (!pool.length || !last) return "";
+  const i = pool.indexOf(last);
+  return i < 0 ? "" : pool[(i + 1) % pool.length];
+}
+
+// 그 역할이 그 주에 쓰는 명단 id
+function poolIdForRole(r: string, weekId: string, pAnch: Anchor[]): string | null {
+  if (r === "prayer") {
+    const ph = prayerPhaseAt(pAnch, weekId);
+    return ph === null ? null : prayerPoolId(ph);
+  }
+  if (r === "offering") return "offering";
+  if (r === "love_service") return "love_service";
+  return null;
+}
+
+// 그 역할의 '다음 차례' 주 (기도=같은 풀 차례 / 봉헌=다음 달 / 봉사=다음 블록)
+function nextTurnWeek(r: string, weekId: string, pAnch: Anchor[], lsAnch: Anchor[]): string | null {
+  for (let k = 1; k <= 8; k++) {
+    const nw = iso(addDays(d(weekId), 7 * k));
+    if (r === "prayer") {
+      const a = prayerPhaseAt(pAnch, weekId), b = prayerPhaseAt(pAnch, nw);
+      if (a !== null && b !== null && prayerPoolId(a) === prayerPoolId(b)) return nw;
+    } else if (r === "offering") {
+      if (nw.slice(0, 7) !== weekId.slice(0, 7)) return nw;
+    } else if (r === "love_service") {
+      const a = lsBlockAt(lsAnch, weekId), b = lsBlockAt(lsAnch, nw);
+      if (a !== null && b !== null && a !== b) return nw;
+    }
+  }
+  return null;
+}
+
+type Stored = { assigned: string; manual: boolean; locked: boolean };
+
+// 그 주 전체 배정. persist=true면 계산 결과를 저장해 그 주를 확정한다(주보에 실리는 4주).
+async function assignmentsFor(weekIds: string[], persist = false) {
   const pools = await loadPools();
   const [pAnch, oAnch, lsAnch] = await Promise.all([
     loadAnchors("prayer"), loadAnchors("offering"), loadAnchors("love_service"),
   ]);
-  const { data: overrides } = await db
+
+  const sorted = [...weekIds].sort();
+  const firstW = sorted[0];
+  const lastW = sorted[sorted.length - 1];
+  const histFrom = iso(addDays(d(firstW), -371));   // 1년치 이력이면 충분
+
+  const { data: rows } = await db
     .from("rotation_assignments")
     .select("week_id, role, assigned, is_manual, locked_at")
-    .in("week_id", weekIds);
+    .gte("week_id", histFrom).lte("week_id", lastW).order("week_id");
 
-  const ovMap = new Map<string, string>();
-  const lockMap = new Map<string, boolean>();
-  (overrides || []).forEach((r: {
+  const store = new Map<string, Stored>();
+  (rows || []).forEach((r: {
     week_id: string; role: string; assigned: string; is_manual: boolean; locked_at: string | null;
   }) => {
-    ovMap.set(`${r.week_id}|${r.role}`, r.assigned);
-    if (r.locked_at) lockMap.set(`${r.week_id}|${r.role}`, true);
+    store.set(`${r.week_id}|${r.role}`, {
+      assigned: r.assigned, manual: !!r.is_manual, locked: !!r.locked_at,
+    });
   });
+
+  const nowIso = new Date().toISOString();
+  const fresh: Array<Record<string, unknown>> = [];
+  const put = (w: string, role: string, name: string) => {
+    store.set(`${w}|${role}`, { assigned: name, manual: false, locked: false });
+    if (name) fresh.push({ week_id: w, role, assigned: name, is_manual: false, updated_at: nowIso });
+  };
+
+  // 기도 — 같은 풀의 직전 배정 다음 사람
+  const fillPrayer = (w: string) => {
+    if (store.has(`${w}|prayer`)) return;
+    const ph = prayerPhaseAt(pAnch, w);
+    if (ph === null) return;
+    const poolId = prayerPoolId(ph);
+    const pool = pools[poolId] || [];
+    if (!pool.length) return;
+    for (let back = 1; back <= 60; back++) {
+      const pw = iso(addDays(d(w), -7 * back));
+      if (pw < histFrom) break;
+      const p2 = prayerPhaseAt(pAnch, pw);
+      if (p2 === null || prayerPoolId(p2) !== poolId) continue;
+      const prev = store.get(`${pw}|prayer`);
+      if (!prev || !prev.assigned) continue;
+      const nx = nextInPool(pool, prev.assigned);
+      if (nx) { put(w, "prayer", nx); return; }
+      // 직전 담당자가 명단에서 빠졌다 → 더 거슬러 올라가 남아 있는 분을 찾는다
+    }
+    const seed = prayerStateAt(pAnch, pools, w);   // 이력이 없을 때만: 구 계산으로 시드
+    put(w, "prayer", seed?.assigned || pool[0] || "");
+  };
+
+  // 봉헌위원 — 달 단위(같은 달은 같은 사람)
+  const fillOffering = (w: string) => {
+    if (store.has(`${w}|offering`)) return;
+    const pool = pools["offering"] || [];
+    if (!pool.length) return;
+    const mon = w.slice(0, 7);
+    for (let back = 1; back <= 60; back++) {
+      const pw = iso(addDays(d(w), -7 * back));
+      if (pw < histFrom) break;
+      const prev = store.get(`${pw}|offering`);
+      if (!prev || !prev.assigned) continue;
+      if (pw.slice(0, 7) === mon) { put(w, "offering", prev.assigned); return; }
+      const nx = nextInPool(pool, prev.assigned);
+      if (nx) { put(w, "offering", nx); return; }
+    }
+    put(w, "offering", offeringAt(oAnch, pools, w) || pool[0] || "");
+  };
+
+  // 봉사담당(마을) — 블록 단위(같은 블록은 같은 마을)
+  const fillLoveService = (w: string) => {
+    if (store.has(`${w}|love_service`)) return;
+    const pool = pools["love_service"] || [];
+    if (!pool.length) return;
+    const blk = lsBlockAt(lsAnch, w);
+    if (blk === null) { put(w, "love_service", loveServiceAt(lsAnch, pools, w) || ""); return; }
+    for (let back = 1; back <= 60; back++) {
+      const pw = iso(addDays(d(w), -7 * back));
+      if (pw < histFrom) break;
+      const prev = store.get(`${pw}|love_service`);
+      if (!prev || !prev.assigned) continue;
+      if (lsBlockAt(lsAnch, pw) === blk) { put(w, "love_service", prev.assigned); return; }
+      const nx = nextInPool(pool, prev.assigned);
+      if (nx) { put(w, "love_service", nx); return; }
+    }
+    put(w, "love_service", loveServiceAt(lsAnch, pools, w) || pool[0] || "");
+  };
+
+  sorted.forEach((w) => { fillPrayer(w); fillOffering(w); fillLoveService(w); });
+
+  // 주보에 실리는 4주만 확정 저장. 이미 있는 행은 절대 덮어쓰지 않는다(ignoreDuplicates).
+  if (persist && fresh.length) {
+    await db.from("rotation_assignments")
+      .upsert(fresh, { onConflict: "week_id,role", ignoreDuplicates: true });
+  }
 
   const { data: usherMeta } = await db
     .from("bulletin_meta").select("value").eq("key", "usher_current").maybeSingle();
   const usherNames = ((usherMeta?.value as { names?: string[] })?.names) || [];
 
   return weekIds.map((w) => {
-    const pick = (role: string, computed: string | null) =>
-      ovMap.get(`${w}|${role}`) ?? computed ?? "";
-    const st = prayerStateAt(pAnch, pools, w);
+    const g = (role: string) => store.get(`${w}|${role}`);
+    const pr = g("prayer"), of = g("offering"), us = g("usher");
+    const lo = g("love_offering"), ls = g("love_service");
     return {
       week: w,
-      prayer: pick("prayer", st?.assigned ?? null),
-      offering: pick("offering", offeringAt(oAnch, pools, w)),
-      usher: pick("usher", usherNames.join(" ")),
-      love_offering: ovMap.get(`${w}|love_offering`) ?? "",   // 친교헌금 = 손입력(B5)
-      love_service: ovMap.get(`${w}|love_service`) ?? loveServiceAt(lsAnch, pools, w) ?? "",   // 봉사담당 = 월 순환 자동 + 수동
-      locked: lockMap.has(`${w}|prayer`),
+      prayer: (pr && pr.assigned) || "",
+      offering: (of && of.assigned) || "",
+      usher: (us && us.assigned) || usherNames.join(" "),
+      love_offering: (lo && lo.assigned) || "",   // 친교헌금 = 손입력(B5)
+      love_service: (ls && ls.assigned) || "",
+      locked: !!(pr && pr.locked),
       manual: {
-        prayer: ovMap.has(`${w}|prayer`),
-        offering: ovMap.has(`${w}|offering`),
-        usher: ovMap.has(`${w}|usher`),
+        prayer: !!(pr && pr.manual),
+        offering: !!(of && of.manual),
+        usher: !!(us && us.manual),
       },
     };
   });
@@ -292,7 +440,7 @@ Deno.serve(async (req) => {
         db.from("bulletin_meta").select("key, value"),
         db.from("members").select("id, name, title, active").eq("active", true)
           .order("name"),
-        assignmentsFor(ahead),
+        assignmentsFor(ahead, true),   // 주보에 실리는 4주는 여기서 확정 저장(엔진 v2)
         volNo(weekId),
         // 성가대 곡 — 특송/성가대 줄을 예배순서에 자동 반영 (PPT 성가대 섹션)
         db.from("songs").select("name, song_type, song_performer, position, updated_at")
@@ -377,102 +525,81 @@ Deno.serve(async (req) => {
       return json({ ok: true, updatedAt: nowIso, data: merged });
     }
 
-    // ---------- 로테이션 수동 개입 3종 (B3-1) ----------
-    // mode 'once'   이번 주만 대타 — 뒤 주차 불변
-    // mode 'shift'  이 사람 건너뛰고 순서 당기기 — 이 주부터 새 앵커
-    // mode 'insert' 중간에 끼워넣기 — 이번 주는 지정한 사람, 원래 담당자는 다음으로 밀림
+    // ---------- 로테이션 수동 개입 (B3-1 · 엔진 v2) ----------
+    // 엔진 v2에서는 '그 주에 저장된 이름'이 곧 순서의 기준이다. 그래서 앵커를 더 심지 않는다.
+    // mode 'once'   이 주 담당자를 지정 — 이후 주는 그분 다음 순서로 이어짐
+    // mode 'shift'  이 분 건너뛰기 — 이 주를 명단상 다음 분으로
+    // mode 'insert' 끼워넣기 — 이 주는 지정한 분, 원래 담당자는 '다음 차례' 주로 예약
     case "overrideRotation": {
       const r = String(body.role || "prayer");           // prayer / offering / usher / love_*
       const mode = String(body.mode || "once");
       const name = String(body.name || "");
       const w = weekId;
-
-      // 인쇄 확정된 주차는 건드리지 않는다 (B3-2)
-      const { data: locked } = await db.from("rotation_assignments")
-        .select("locked_at").eq("week_id", w).eq("role", r).maybeSingle();
-      if (locked?.locked_at) return json({ error: "이미 인쇄 확정된 주간입니다" }, 409);
-
       const nowIso = new Date().toISOString();
 
-      if (mode === "once" || r.startsWith("love_") || r === "usher") {
-        // 사랑의 나눔(친교헌금·봉사담당)은 빈칸 허용 → 비우면 이번 주 배정 삭제(#6-1)
-        if (!name) {
-          if (r.startsWith("love_")) {
-            await db.from("rotation_assignments").delete()
-              .eq("week_id", w).eq("role", r).is("locked_at", null);
-            return json({ ok: true });
-          }
-          return json({ error: "이름이 필요합니다" }, 400);
-        }
-        const { error } = await db.from("rotation_assignments").upsert({
-          week_id: w, role: r, assigned: name, is_manual: true, updated_at: nowIso,
+      // 인쇄 확정된 주차는 건드리지 않는다 (B3-2)
+      const { data: lockRow } = await db.from("rotation_assignments")
+        .select("locked_at").eq("week_id", w).eq("role", r).maybeSingle();
+      if (lockRow?.locked_at) return json({ error: "이미 인쇄 확정된 주간입니다" }, 409);
+
+      const setWeek = async (wk: string, who: string) => {
+        const res = await db.from("rotation_assignments").upsert({
+          week_id: wk, role: r, assigned: who, is_manual: true, updated_at: nowIso,
         }, { onConflict: "week_id,role" });
+        // 봉헌위원은 달 단위 — 같은 달의 다른 주도 함께 맞춘다(구 엔진의 월 지정과 동일)
+        if (!res.error && r === "offering") {
+          const mon = wk.slice(0, 7);
+          await db.from("rotation_assignments")
+            .update({ assigned: who, is_manual: true, updated_at: nowIso })
+            .eq("role", "offering").gte("week_id", `${mon}-01`).lte("week_id", `${mon}-31`)
+            .is("locked_at", null);
+        }
+        return res;
+      };
+
+      // 사랑의 나눔(친교헌금·봉사담당)은 빈칸 허용 → 비우면 이번 주 배정 삭제(#6-1)
+      if (!name && mode !== "shift") {
+        if (r.startsWith("love_")) {
+          await db.from("rotation_assignments").delete()
+            .eq("week_id", w).eq("role", r).is("locked_at", null);
+          return json({ ok: true });
+        }
+        return json({ error: "이름이 필요합니다" }, 400);
+      }
+
+      if (mode === "shift") {
+        const [pools, pAnch] = await Promise.all([loadPools(), loadAnchors("prayer")]);
+        const poolId = poolIdForRole(r, w, pAnch);
+        if (!poolId) return json({ error: "이 순서는 건너뛰기를 쓸 수 없습니다" }, 400);
+        const cur = (await assignmentsFor([w]))[0] as unknown as Record<string, string>;
+        const nx = nextInPool(pools[poolId] || [], String(cur[r] || ""));
+        if (!nx) return json({ error: "명단에서 다음 분을 찾지 못했습니다" }, 400);
+        const { error } = await setWeek(w, nx);
         if (error) return json({ error: "저장 실패" }, 500);
+        return json({ ok: true, assigned: nx });
+      }
+
+      if (mode === "insert") {
+        const [pAnch, lsAnch] = await Promise.all([
+          loadAnchors("prayer"), loadAnchors("love_service"),
+        ]);
+        const cur = (await assignmentsFor([w]))[0] as unknown as Record<string, string>;
+        const curName = String(cur[r] || "");
+        const e1 = await setWeek(w, name);
+        if (e1.error) return json({ error: "저장 실패" }, 500);
+        // 원래 담당자를 다음 차례로 밀어 준다 (그 주가 인쇄 확정이면 건드리지 않음)
+        const nw = nextTurnWeek(r, w, pAnch, lsAnch);
+        if (curName && nw) {
+          const { data: lk } = await db.from("rotation_assignments")
+            .select("locked_at").eq("week_id", nw).eq("role", r).maybeSingle();
+          if (!lk?.locked_at) await setWeek(nw, curName);
+        }
         return json({ ok: true });
       }
 
-      const pools = await loadPools();
-
-      if (r === "prayer") {
-        const anchors = await loadAnchors("prayer");
-        const st = prayerStateAt(anchors, pools, w);
-        if (!st) return json({ error: "기준점을 찾을 수 없습니다" }, 400);
-        const elders = pools["prayer_elders"] || [];
-        const deacons = pools["prayer_deacons"] || [];
-
-        if (mode === "shift") {
-          // 건너뛰기: 이번 주 슬롯의 풀 포인터를 한 칸 전진시킨 앵커를 이 주에 심는다
-          const spec = st.phase === 2
-            ? { phase: st.phase, elder: st.elder,
-                deacon: deacons[(deacons.indexOf(st.deacon) + 1) % deacons.length] }
-            : { phase: st.phase, deacon: st.deacon,
-                elder: elders[(elders.indexOf(st.elder) + 1) % elders.length] };
-          const { error } = await db.from("rotation_anchors").upsert({
-            role: "prayer", effective_from: w, spec,
-            note: `${st.assigned} 건너뜀 (순서 당김)`,
-          }, { onConflict: "role,effective_from" });
-          if (error) return json({ error: "저장 실패" }, 500);
-          return json({ ok: true });
-        }
-
-        if (mode === "insert") {
-          if (!name) return json({ error: "끼워넣을 분을 골라주세요" }, 400);
-          // 이번 주 = 지정한 사람(오버라이드), 다음 주부터 = 원래 순서 그대로 (포인터 불변)
-          const next = iso(addDays(d(w), 7));
-          const e1 = await db.from("rotation_assignments").upsert({
-            week_id: w, role: "prayer", assigned: name, is_manual: true, updated_at: nowIso,
-            note: "끼워넣기",
-          }, { onConflict: "week_id,role" });
-          const e2 = await db.from("rotation_anchors").upsert({
-            role: "prayer", effective_from: next,
-            spec: { phase: (st.phase + 1) % 3, elder: st.elder, deacon: st.deacon },
-            note: `${name} 끼워넣어 ${st.assigned} 이후로 밀림`,
-          }, { onConflict: "role,effective_from" });
-          if (e1.error || e2.error) return json({ error: "저장 실패" }, 500);
-          return json({ ok: true });
-        }
-      }
-
-      if (r === "offering") {
-        const anchors = await loadAnchors("offering");
-        const pool = pools["offering"] || [];
-        const cur = offeringAt(anchors, pools, w);
-        if (!cur) return json({ error: "기준점을 찾을 수 없습니다" }, 400);
-        const month = w.slice(0, 7);
-        const target = mode === "shift"
-          ? pool[(pool.indexOf(cur) + 1) % pool.length]
-          : name;
-        if (!target) return json({ error: "이름이 필요합니다" }, 400);
-        const { error } = await db.from("rotation_anchors").upsert({
-          role: "offering", effective_from: `${month}-01`,
-          spec: { month, name: target },
-          note: mode === "shift" ? `${cur} 건너뜀` : `${month} 수동 지정`,
-        }, { onConflict: "role,effective_from" });
-        if (error) return json({ error: "저장 실패" }, 500);
-        return json({ ok: true });
-      }
-
-      return json({ error: "알 수 없는 요청" }, 400);
+      const { error } = await setWeek(w, name);
+      if (error) return json({ error: "저장 실패" }, 500);
+      return json({ ok: true });
     }
 
     // ---------- 앞으로 N주 미리보기 (명단 편집 결과 확인용) ----------
@@ -599,22 +726,18 @@ Deno.serve(async (req) => {
     // ---------- 그 주 로테이션 손댄 것 되돌리기 (건너뛰기·대타·끼워넣기 취소) ----------
     case "undoRotation": {
       const r = String(body.role || "prayer");
-      const { data: locked } = await db.from("rotation_assignments")
+      const { data: lockRow } = await db.from("rotation_assignments")
         .select("locked_at").eq("week_id", weekId).eq("role", r).maybeSingle();
-      if (locked?.locked_at) return json({ error: "이미 인쇄 확정된 주간입니다" }, 409);
-      // 이 주에 심은 기준점(건너뛰기·끼워넣기) + 수동 배정을 지우면 원래 자동 순서로 복귀
-      //   prayer는 그 주일에, offering은 그 달 1일에 기준점을 심는다(각각의 자리에서 제거)
-      const anchorAt = r === "offering" ? `${weekId.slice(0, 7)}-01` : weekId;
-      const a = await db.from("rotation_anchors")
-        .delete().eq("role", r).eq("effective_from", anchorAt).select("role");
-      const nextW = iso(addDays(d(weekId), 7));
-      const a2 = await db.from("rotation_anchors")            // 끼워넣기가 만든 다음 주 기준점
-        .delete().eq("role", r).eq("effective_from", nextW)
-        .like("note", "%끼워넣어%").select("role");
+      if (lockRow?.locked_at) return json({ error: "이미 인쇄 확정된 주간입니다" }, 409);
+      // 엔진 v2: 이 주 지정을 지우고, 이후의 '자동 저장분'도 지워 다시 계산되게 한다.
+      //   인쇄 확정(locked_at)된 주와, 사람이 직접 지정한 미래 주는 건드리지 않는다.
+      //   ※ 앵커는 이제 세트 위치(장로2+권사1)의 기준이므로 절대 지우지 않는다.
+      const a = await db.from("rotation_assignments")
+        .delete().eq("role", r).eq("week_id", weekId).is("locked_at", null).select("role");
       const b = await db.from("rotation_assignments")
-        .delete().eq("week_id", weekId).eq("role", r).eq("is_manual", true)
-        .is("locked_at", null).select("role");
-      const n = (a.data?.length || 0) + (a2.data?.length || 0) + (b.data?.length || 0);
+        .delete().eq("role", r).gt("week_id", weekId)
+        .eq("is_manual", false).is("locked_at", null).select("role");
+      const n = (a.data?.length || 0) + (b.data?.length || 0);
       return json({ ok: true, removed: n });
     }
 
