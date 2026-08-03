@@ -50,13 +50,16 @@ function weeksBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / (7 * DAY));
 }
 
-// 다가오는 주일 (시애틀 PT 기준 — 오늘이 일요일이면 오늘). api의 currentWeekId와 동일 규칙.
+// 다가오는 주일 (시애틀 PT 기준). 주보는 예배가 끝나는 주일 오후 1시(PT)에 다음 주로 넘어간다.
+// (PPT 엔진 api/index.ts의 currentWeekId는 종전대로 월요일 0시 기준 — 일부러 다르게 둠)
 function currentWeekId(): string {
   const pt = new Date(
     new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
   );
+  let add = (7 - pt.getDay()) % 7;                          // 다가오는 주일까지 남은 일수
+  if (pt.getDay() === 0 && pt.getHours() >= 13) add = 7;    // 주일 13시(PT) 넘으면 다음 주로
   const target = new Date(
-    Date.UTC(pt.getFullYear(), pt.getMonth(), pt.getDate() + ((7 - pt.getDay()) % 7), 12),
+    Date.UTC(pt.getFullYear(), pt.getMonth(), pt.getDate() + add, 12),
   );
   return iso(target);
 }
