@@ -217,14 +217,8 @@ function prayerPhaseAt(anchors: Anchor[], weekId: string): number | null {
 }
 const prayerPoolId = (phase: number) => (phase === 2 ? "prayer_deacons" : "prayer_elders");
 
-// 봉사담당 블록 번호 (몇 번째 4주 덩어리인가)
-function lsBlockAt(anchors: Anchor[], weekId: string): number | null {
-  const a = anchorFor(anchors, weekId);
-  const spec = (a?.spec || {}) as { week?: string; blockWeeks?: number };
-  if (!spec.week) return null;
-  const bw = spec.blockWeeks || 4;
-  return Math.floor(weeksBetween(d(spec.week), d(weekId)) / bw);
-}
+// 봉헌위원·봉사담당은 '달 단위' — 그 달 안에서는 주가 4주든 5주든 같은 담당(2026-08-02 확정)
+const MONTHLY_ROLES = ["offering", "love_service"];
 
 // 명단에서 바로 다음 사람 (명단에 없으면 "" — 호출부가 더 거슬러 올라간다)
 function nextInPool(pool: string[], last: string): string {
@@ -244,18 +238,15 @@ function poolIdForRole(r: string, weekId: string, pAnch: Anchor[]): string | nul
   return null;
 }
 
-// 그 역할의 '다음 차례' 주 (기도=같은 풀 차례 / 봉헌=다음 달 / 봉사=다음 블록)
-function nextTurnWeek(r: string, weekId: string, pAnch: Anchor[], lsAnch: Anchor[]): string | null {
+// 그 역할의 '다음 차례' 주 (기도=같은 풀 차례 / 봉헌·봉사=다음 달 첫 주)
+function nextTurnWeek(r: string, weekId: string, pAnch: Anchor[]): string | null {
   for (let k = 1; k <= 8; k++) {
     const nw = iso(addDays(d(weekId), 7 * k));
     if (r === "prayer") {
       const a = prayerPhaseAt(pAnch, weekId), b = prayerPhaseAt(pAnch, nw);
       if (a !== null && b !== null && prayerPoolId(a) === prayerPoolId(b)) return nw;
-    } else if (r === "offering") {
+    } else if (MONTHLY_ROLES.indexOf(r) >= 0) {
       if (nw.slice(0, 7) !== weekId.slice(0, 7)) return nw;
-    } else if (r === "love_service") {
-      const a = lsBlockAt(lsAnch, weekId), b = lsBlockAt(lsAnch, nw);
-      if (a !== null && b !== null && a !== b) return nw;
     }
   }
   return null;
@@ -319,49 +310,66 @@ async function assignmentsFor(weekIds: string[], persist = false) {
     put(w, "prayer", seed?.assigned || pool[0] || "");
   };
 
-  // 봉헌위원 — 달 단위(같은 달은 같은 사람)
-  const fillOffering = (w: string) => {
-    if (store.has(`${w}|offering`)) return;
-    const pool = pools["offering"] || [];
+  // 봉헌위원·봉사담당 — 달 단위. 그 달은 주가 4주든 5주든 같은 담당(2026-08-02 확정).
+  const fixes: Array<{ week: string; role: string; assigned: string }> = [];
+  const fillMonthly = (role: string, poolId: string, w: string, seed: (wk: string) => string) => {
+    const pool = pools[poolId] || [];
     if (!pool.length) return;
     const mon = w.slice(0, 7);
+
+    // 같은 달에 이미 정해진 값 (사람이 지정했거나 인쇄 확정된 값이 최우선)
+    let monthVal = "";
+    for (let back = 1; back <= 6; back++) {
+      const pw = iso(addDays(d(w), -7 * back));
+      if (pw.slice(0, 7) !== mon) break;
+      const prev = store.get(`${pw}|${role}`);
+      if (!prev || !prev.assigned) continue;
+      if (prev.manual || prev.locked) { monthVal = prev.assigned; break; }
+      if (!monthVal) monthVal = prev.assigned;
+    }
+
+    const cur = store.get(`${w}|${role}`);
+    if (cur) {
+      if (cur.manual || cur.locked) return;                      // 사람이 정한 값은 그대로
+      if (monthVal && cur.assigned !== monthVal) {               // 자동값이 같은 달과 어긋나면 바로잡는다
+        store.set(`${w}|${role}`, { ...cur, assigned: monthVal });
+        fixes.push({ week: w, role, assigned: monthVal });
+      }
+      return;
+    }
+    if (monthVal) { put(w, role, monthVal); return; }
+
+    // 새 달 — 지난 달 마지막 담당의 다음 사람
     for (let back = 1; back <= 60; back++) {
       const pw = iso(addDays(d(w), -7 * back));
       if (pw < histFrom) break;
-      const prev = store.get(`${pw}|offering`);
+      const prev = store.get(`${pw}|${role}`);
       if (!prev || !prev.assigned) continue;
-      if (pw.slice(0, 7) === mon) { put(w, "offering", prev.assigned); return; }
       const nx = nextInPool(pool, prev.assigned);
-      if (nx) { put(w, "offering", nx); return; }
+      if (nx) { put(w, role, nx); return; }
     }
-    put(w, "offering", offeringAt(oAnch, pools, w) || pool[0] || "");
+    put(w, role, seed(w) || pool[0] || "");
   };
 
-  // 봉사담당(마을) — 블록 단위(같은 블록은 같은 마을)
-  const fillLoveService = (w: string) => {
-    if (store.has(`${w}|love_service`)) return;
-    const pool = pools["love_service"] || [];
-    if (!pool.length) return;
-    const blk = lsBlockAt(lsAnch, w);
-    if (blk === null) { put(w, "love_service", loveServiceAt(lsAnch, pools, w) || ""); return; }
-    for (let back = 1; back <= 60; back++) {
-      const pw = iso(addDays(d(w), -7 * back));
-      if (pw < histFrom) break;
-      const prev = store.get(`${pw}|love_service`);
-      if (!prev || !prev.assigned) continue;
-      if (lsBlockAt(lsAnch, pw) === blk) { put(w, "love_service", prev.assigned); return; }
-      const nx = nextInPool(pool, prev.assigned);
-      if (nx) { put(w, "love_service", nx); return; }
-    }
-    put(w, "love_service", loveServiceAt(lsAnch, pools, w) || pool[0] || "");
-  };
-
-  sorted.forEach((w) => { fillPrayer(w); fillOffering(w); fillLoveService(w); });
+  sorted.forEach((w) => {
+    fillPrayer(w);
+    fillMonthly("offering", "offering", w, (wk) => offeringAt(oAnch, pools, wk) || "");
+    fillMonthly("love_service", "love_service", w, (wk) => loveServiceAt(lsAnch, pools, wk) || "");
+  });
 
   // 주보에 실리는 4주만 확정 저장. 이미 있는 행은 절대 덮어쓰지 않는다(ignoreDuplicates).
   if (persist && fresh.length) {
     await db.from("rotation_assignments")
       .upsert(fresh, { onConflict: "week_id,role", ignoreDuplicates: true });
+  }
+  // 달 단위 어긋남 교정 — 자동으로 넣은 값만, 사람이 정했거나 인쇄 확정된 행은 절대 안 건드린다
+  if (persist) {
+    for (const f of fixes) {
+      await db.from("rotation_assignments")
+        .update({ assigned: f.assigned, updated_at: nowIso })
+        .eq("week_id", f.week).eq("role", f.role)
+        .eq("is_manual", false).is("locked_at", null);
+    }
   }
 
   const { data: usherMeta } = await db
@@ -546,12 +554,12 @@ Deno.serve(async (req) => {
         const res = await db.from("rotation_assignments").upsert({
           week_id: wk, role: r, assigned: who, is_manual: true, updated_at: nowIso,
         }, { onConflict: "week_id,role" });
-        // 봉헌위원은 달 단위 — 같은 달의 다른 주도 함께 맞춘다(구 엔진의 월 지정과 동일)
-        if (!res.error && r === "offering") {
+        // 봉헌위원·봉사담당은 달 단위 — 같은 달의 다른 주도 함께 맞춘다(4주든 5주든)
+        if (!res.error && MONTHLY_ROLES.indexOf(r) >= 0) {
           const mon = wk.slice(0, 7);
           await db.from("rotation_assignments")
             .update({ assigned: who, is_manual: true, updated_at: nowIso })
-            .eq("role", "offering").gte("week_id", `${mon}-01`).lte("week_id", `${mon}-31`)
+            .eq("role", r).gte("week_id", `${mon}-01`).lte("week_id", `${mon}-31`)
             .is("locked_at", null);
         }
         return res;
@@ -580,15 +588,13 @@ Deno.serve(async (req) => {
       }
 
       if (mode === "insert") {
-        const [pAnch, lsAnch] = await Promise.all([
-          loadAnchors("prayer"), loadAnchors("love_service"),
-        ]);
+        const pAnch = await loadAnchors("prayer");
         const cur = (await assignmentsFor([w]))[0] as unknown as Record<string, string>;
         const curName = String(cur[r] || "");
         const e1 = await setWeek(w, name);
         if (e1.error) return json({ error: "저장 실패" }, 500);
         // 원래 담당자를 다음 차례로 밀어 준다 (그 주가 인쇄 확정이면 건드리지 않음)
-        const nw = nextTurnWeek(r, w, pAnch, lsAnch);
+        const nw = nextTurnWeek(r, w, pAnch);
         if (curName && nw) {
           const { data: lk } = await db.from("rotation_assignments")
             .select("locked_at").eq("week_id", nw).eq("role", r).maybeSingle();
