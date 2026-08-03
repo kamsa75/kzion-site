@@ -1266,28 +1266,29 @@ function openRotationSheet(role, roleLabel, row) {
     cur.innerHTML = `현재 <b>${row[role] || '—'}</b>`;
     body.appendChild(cur);
 
-    // 옵션 1: 이번 주만 다른 분으로 (모든 역할 공통)
-    body.appendChild(sheetOption('이번 주만 다른 분으로',
+    // 옵션 1: 이 주 담당자 지정 (모든 역할 공통)
+    //   엔진 v2 — 저장된 이름이 곧 순서 기준이라, 이후 주는 그분 다음부터 이어진다
+    body.appendChild(sheetOption('이 주 담당자 바꾸기',
       isUsher ? '이번 주 안내만 교체합니다. 다음 주는 원래대로.'
-              : '이번 주만 대타. 다음 주부터는 원래 순서 그대로.',
-      () => pickAndApply(role, row.week, 'once', isUsher ? 'members' : 'members')));
+              : '이 주를 다른 분으로 지정합니다. 이후 순서는 그분 다음부터 이어집니다.',
+      () => pickAndApply(role, row.week, 'once', 'members')));
 
     if (isPrayer || role === 'offering') {
-      // 옵션 2: 건너뛰고 순서 당기기
-      body.appendChild(sheetOption('이분 건너뛰고 순서 당기기',
-        '이번 담당자를 건너뛰고, 다음 분부터 한 칸씩 앞으로 당깁니다.',
+      // 옵션 2: 건너뛰기
+      body.appendChild(sheetOption('이분 건너뛰기',
+        '이 주를 명단상 바로 다음 분으로 바꿉니다.',
         () => applyShift(role, row.week, row[role])));
     }
     if (isPrayer) {
-      // 옵션 3: 중간에 끼워넣기
-      body.appendChild(sheetOption('여기에 다른 분 끼워넣기',
-        '이번 주에 다른 분을 넣고, 원래 담당자는 다음으로 밀립니다.',
+      // 옵션 3: 끼워넣기 — 원래 담당자를 다음 차례로 예약
+      body.appendChild(sheetOption('다른 분 끼워넣기',
+        '이 주는 고른 분이 맡고, 원래 담당자는 다음 차례로 밀립니다.',
         () => pickAndApply('prayer', row.week, 'insert', 'members')));
     }
     if (!isUsher) {
-      // 옵션 4: 이 주에 손댄 것(건너뛰기·대타·끼워넣기) 전부 취소 → 자동 순서로 복귀
+      // 옵션 4: 이 주 지정 취소 → 자동 순서로 복귀
       body.appendChild(sheetOption('↩ 이 주 바꾼 것 되돌리기',
-        '건너뛰기·대타·끼워넣기를 취소하고 원래 자동 순서로 되돌립니다.',
+        '이 주 지정을 취소하고 자동 순서로 되돌립니다.',
         () => applyUndo(role, row.week)));
     }
   });
@@ -1365,9 +1366,9 @@ function pickAndApply(role, weekId, mode, source) {
 function applyShift(role, weekId, curName) {
   openSheet('건너뛰고 순서 당기기', (body) => {
     const p = el('p', 'sheet-cur');
-    p.innerHTML = `<b>${curName || '이번 담당자'}</b> 님을 건너뛰고, 다음 분부터 한 칸씩 앞으로 당깁니다.`;
+    p.innerHTML = `<b>${curName || '이번 담당자'}</b> 님을 건너뛰고, 명단상 바로 다음 분이 이 주를 맡습니다.`;
     body.appendChild(p);
-    const go = el('button', 'btn btn-primary btn-wide', '건너뛰고 당기기');
+    const go = el('button', 'btn btn-primary btn-wide', '건너뛰기');
     go.type = 'button';
     go.style.marginTop = '12px';
     go.addEventListener('click', async () => {
