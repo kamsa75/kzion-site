@@ -25,6 +25,20 @@ function fmtMDKorean(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${m}월 ${d}일`;
 }
+// 금액 표기 — 세 자리마다 콤마. 편집칸·인쇄 공용(둘이 어긋나지 않게 한 곳에서만 계산).
+//   · $·콤마·공백을 먼저 전부 떼고 다시 넣으므로 사용자가 콤마를 넣어도 중복되지 않는다
+//   · 소수점(센트)은 그대로 두고 정수 부분에만 넣는다 — 1316.00 → 1,316.00
+//   · 숫자가 아니면 손대지 않는다 (예: '미집계')
+function fmtMoney(v) {
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return '';
+  const bare = s.replace(/[$,\s]/g, '');
+  if (!/^\d+(\.\d*)?$/.test(bare)) return s;
+  const dot = bare.indexOf('.');
+  const int = dot < 0 ? bare : bare.slice(0, dot);
+  const dec = dot < 0 ? '' : bare.slice(dot);          // '.' 포함(입력 중 '1316.'도 유지)
+  return int.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + dec;
+}
 // n일 뒤 날짜 (UTC 정오 기준 — 서머타임 무관)
 function addDaysISO(iso, n) {
   const [y, m, d] = iso.split('-').map(Number);

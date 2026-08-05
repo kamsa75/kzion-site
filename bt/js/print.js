@@ -383,8 +383,10 @@ function panelWeeklyInfo(S) {
     });
     const tot = PE('div', 'po-row po-total');
     tot.appendChild(spreadLabel('po-k', '합계'));
-    const totVal = String(o.total || '').replace(/\$/g, '').trim();   // 사용자가 $ 넣어도 중복 방지
-    tot.appendChild(PE('span', 'po-v', totVal ? '$' + totVal : ''));
+    // 저장값이 어떻든 출력할 때 다시 표기 — 세 자리 콤마 + $·콤마 중복 방지 (공용 fmtMoney)
+    const totVal = fmtMoney(o.total);
+    // 숫자일 때만 $를 붙인다 ('미집계' 같은 글자에 $가 붙지 않게)
+    tot.appendChild(PE('span', 'po-v', totVal ? (/^\d/.test(totVal) ? '$' + totVal : totVal) : ''));
     ot.appendChild(tot);
     g.appendChild(ot);
   }));   // 사랑나눔이 하단 고정이라 헌금은 그 아래에 자연히 붙음
