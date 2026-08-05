@@ -739,10 +739,26 @@ function renderOfferingCard(S) {
   tf.appendChild(tl);
   const ti = el('input'); ti.type = 'text'; ti.inputMode = 'decimal';
   ti.placeholder = '예: 1,316.00'; ti.value = o.total || '';
+  // 치는 동안 세 자리 콤마 자동 삽입(공용 fmtMoney). $·콤마를 넣어도 중복되지 않는다.
+  //   콤마가 새로 끼면 커서가 끝으로 튀므로, '커서 앞의 숫자 개수'를 세어 제자리로 되돌린다
   ti.addEventListener('input', () => {
-    const cleaned = ti.value.replace(/\$/g, '');       // $를 넣어도 자동 제거(중복 방지)
-    if (cleaned !== ti.value) ti.value = cleaned;
-    o.total = cleaned; queueSave();
+    const before = ti.value;
+    const caret = ti.selectionStart == null ? before.length : ti.selectionStart;
+    const numsBefore = before.slice(0, caret).replace(/[^\d.]/g, '').length;
+    const next = fmtMoney(before);
+    if (next !== before) {
+      ti.value = next;
+      let seen = 0, at = 0;
+      if (numsBefore > 0) {
+        at = next.length;
+        for (let i = 0; i < next.length; i++) {
+          if (/[\d.]/.test(next[i])) seen++;
+          if (seen >= numsBefore) { at = i + 1; break; }
+        }
+      }
+      try { ti.setSelectionRange(at, at); } catch (err) { /* 일부 브라우저 미지원 */ }
+    }
+    o.total = ti.value; queueSave();
   });
   tf.appendChild(ti);
   card.appendChild(tf);
