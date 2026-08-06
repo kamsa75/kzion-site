@@ -366,7 +366,16 @@ function panelWeeklyInfo(S) {
       const r = PE('div', 'po-row');
       r.appendChild(spreadLabel('po-k', lab));
       const val = PE('div', 'po-v po-names');
-      txt.split(/\s+/).filter(Boolean).forEach((n) => val.appendChild(PE('span', 'po-name', n)));
+      // 저장값이 '김 정'처럼 갈라져 있어도 여기서 한 번 더 합친다(옛 데이터 보호, 공용 로직)
+      mergeSplitNames(txt, S.members).text.split(/\s+/).filter(Boolean).forEach((n) => {
+        const sp = PE('span', 'po-name');
+        if (/^[가-힣]{2}$/.test(n)) {        // 두 글자 이름은 안쪽만 벌려 세 글자와 폭을 맞춤(§8)
+          sp.classList.add('nm2');
+          sp.appendChild(PE('span', 'nm2a', n[0]));
+          sp.appendChild(PE('span', 'nm2b', n[1]));
+        } else sp.textContent = n;
+        val.appendChild(sp);
+      });
       r.appendChild(val);
       return r;
     };

@@ -25,6 +25,49 @@ function fmtMDKorean(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${m}월 ${d}일`;
 }
+// 띄어쓰기로 갈라진 이름 합치기 — 편집칸·인쇄 공용.
+//   한국 사람 이름에 한 글자짜리는 없다 → 한 글자 토막은 사람이 아니라 조각이다.
+//   그래서 '김 정'을 두 사람으로 읽지 않고 '김정' 한 사람으로 합친다. ('박 세영' → '박세영')
+//   ※ 합치기는 한 글자 토막이 있을 때만 일어난다 — 멀쩡한 이름 둘을 붙일 위험이 없다.
+//   반환: { text: 합친 문자열, fixed: [합쳐진 이름들] }
+function mergeSplitNames(text, members) {
+  const toks = String(text == null ? '' : text).trim().split(/\s+/).filter(Boolean);
+  if (toks.length < 2) return { text: toks.join(' '), fixed: [] };
+  const roster = {};
+  (members || []).forEach((m) => { if (m && m.name) roster[m.name] = 1; });
+  const isFrag = (t) => /^[가-힣]$/.test(t);
+  const out = [], fixed = [];
+  let i = 0;
+  while (i < toks.length) {
+    let take = 0;
+    // ① 교인 명단과 대조 — 뒤 토큰 2~3개를 붙여 실제 이름이 되면 합친다(한 글자 토막이 낄 때만)
+    for (let n = 3; n >= 2 && !take; n--) {
+      if (i + n > toks.length) continue;
+      const slice = toks.slice(i, i + n);
+      if (!slice.some(isFrag)) continue;
+      if (roster[slice.join('')]) take = n;
+    }
+    // ② 명단에 없어도 한 글자 토막이면 다음 토큰과 붙인다 (방문자 이름 등)
+    if (!take && isFrag(toks[i]) && i + 1 < toks.length) take = 2;
+    if (take) {
+      const name = toks.slice(i, i + take).join('');
+      out.push(name); fixed.push(name); i += take;
+    } else { out.push(toks[i]); i += 1; }
+  }
+  return { text: out.join(' '), fixed };
+}
+// 인쇄에서 보이는 모양 — 두 글자 이름은 안쪽을 벌려 세 글자와 폭을 맞춘다('김정' → '김 정')
+function printedNameForm(name) {
+  return /^[가-힣]{2}$/.test(name) ? name[0] + ' ' + name[1] : name;
+}
+// 조사 '으로/로' — 받침이 없거나 ㄹ 받침이면 '로' (이슬로 ○ / 이슬으로 ✕)
+function josaRo(text) {
+  const t = String(text || '').trim();
+  const c = t.charCodeAt(t.length - 1);
+  if (!(c >= 0xAC00 && c <= 0xD7A3)) return '로';
+  const jong = (c - 0xAC00) % 28;
+  return (jong === 0 || jong === 8) ? '로' : '으로';   // 8 = ㄹ
+}
 // 금액 표기 — 세 자리마다 콤마. 편집칸·인쇄 공용(둘이 어긋나지 않게 한 곳에서만 계산).
 //   · $·콤마·공백을 먼저 전부 떼고 다시 넣으므로 사용자가 콤마를 넣어도 중복되지 않는다
 //   · 소수점(센트)은 그대로 두고 정수 부분에만 넣는다 — 1316.00 → 1,316.00
