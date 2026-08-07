@@ -134,6 +134,10 @@
 /* 이름을 고정 칸 그리드에 → 가변폭 폰트여도 열이 항상 정렬 */
 .po-names{display:grid; grid-template-columns:repeat(auto-fill, minmax(3.4em, 1fr)); gap:3px 6px}
 .po-name{white-space:nowrap; word-break:keep-all}
+/* 두 글자 이름 = 세 글자 이름과 같은 폭 ('김 정'의 정이 '이영래'의 래와 같은 자리).
+   가운데 nm2gap은 안 보이는 한 글자라 폰트가 바뀌어도 폭이 정확히 맞는다(em 계산 안 함) */
+.po-names .nm2gap{visibility:hidden; user-select:none}
+.po-names .nm2 .nm2a{margin-right:0}   /* 기존 0.26em 어림값 대신 위 방식 사용 */
 /* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
