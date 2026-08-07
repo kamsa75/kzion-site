@@ -140,7 +140,46 @@ function buildSheets(S) {
     const badge = cover.querySelector('.cover-badge');
     if (www && badge && www.offsetWidth > 0) badge.style.minWidth = www.offsetWidth + 'px';
   });
+
+  fitSheets(true);   // 새로 그렸으니 강제로 다시 맞춘다
 }
+
+// 화면 폭에 맞춰 주보를 축소한다 — 폭 구간을 손으로 적지 않고 그때그때 계산(기기 무관).
+//   래퍼가 '축소된 크기'를 레이아웃으로 차지하고, 그 안의 시트를 transform으로 줄인다
+//   (transform은 글자까지 균일 축소 → iOS 글자 팽창 회피, 래퍼 덕에 잘림·겹침 없음)
+const SHEET_W = 1344, SHEET_H = 816;   // 14in × 8.5in @96dpi
+let fitLastW = -1, fitWatching = false;
+function fitSheets(force) {
+  const root = document.getElementById('print-root');
+  if (!root) return;
+  const cs = getComputedStyle(root);
+  const avail = root.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+  if (avail <= 0) return;                   // 인쇄 화면이 숨겨져 있을 때는 건드리지 않는다
+  if (!force && Math.abs(avail - fitLastW) < 0.5) return;
+  fitLastW = avail;
+  const scale = Math.min(1, avail / SHEET_W);
+  root.querySelectorAll('.sheet-scale').forEach((w) => {
+    if (scale >= 1) {                       // 데스크톱 — 원본 크기 그대로(래퍼는 투명)
+      w.classList.remove('is-fit');
+      w.style.removeProperty('--fit-w');
+      w.style.removeProperty('--fit-h');
+      w.style.removeProperty('--fit-s');
+      return;
+    }
+    w.style.setProperty('--fit-w', Math.round(SHEET_W * scale) + 'px');
+    w.style.setProperty('--fit-h', Math.round(SHEET_H * scale) + 'px');
+    w.style.setProperty('--fit-s', String(scale));
+    w.classList.add('is-fit');
+  });
+  // 화면 폭 변화 감지 — resize 이벤트가 안 오는 경우(탭 전환·분할 화면 등)까지 잡는다
+  if (!fitWatching && typeof ResizeObserver === 'function') {
+    fitWatching = true;
+    new ResizeObserver(() => fitSheets()).observe(root);
+  }
+}
+// 회전·창 크기 변경에도 다시 맞춘다 (아이패드 가로↔세로)
+window.addEventListener('resize', () => fitSheets());
+window.addEventListener('orientationchange', () => setTimeout(() => fitSheets(true), 60));
 
 // ── 패널 공통: 상단 갈색 제목 바 ──
 function panelHeadBar(title) {

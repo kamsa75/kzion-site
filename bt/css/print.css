@@ -226,27 +226,20 @@
    래퍼(.sheet-scale)가 '축소된 실제 크기'를 차지하고 그 안의 시트를 transform:scale로 줄인다.
    transform은 글자까지 균일 축소(iOS text-size-adjust 팽창 회피) + 래퍼가 레이아웃 크기를 가져
    가운데 정렬·잘림 없음. 데스크톱/인쇄에선 display:contents로 래퍼가 투명(기존 레이아웃 유지). */
+/* 축소율은 print.js fitSheets()가 '화면 폭 ÷ 주보 폭'으로 계산해 CSS 변수로 넣는다.
+   폭 구간을 손으로 적어 두면(구 방식) 그 사이에 낀 기기(아이패드 가로 1024~1366px)가
+   축소 없이 원본 1344px로 나와 화면 밖으로 잘렸다. 이제 어떤 폭이든 화면에 맞는다. */
 .sheet-scale{display:contents}
-@media screen and (max-width:900px){
-  #print-root{padding:16px 8px 48px}
-  .sheet-scale{display:block; overflow:hidden; margin:0 auto 16px;
-    box-shadow:0 4px 16px rgba(0,0,0,.18); background:#fff}
-  .sheet-scale .sheet-page{box-shadow:none; margin:0!important; transform-origin:top left}
-  .sheet-scale{width:672px; height:408px}
-  .sheet-scale .sheet-page{transform:scale(0.5)}
+.sheet-scale.is-fit{
+  display:block; overflow:hidden; margin:0 auto 16px;
+  box-shadow:0 4px 16px rgba(0,0,0,.18); background:#fff;
+  width:var(--fit-w); height:var(--fit-h);
 }
-@media screen and (max-width:700px){
-  .sheet-scale{width:475px; height:288px}
-  .sheet-scale .sheet-page{transform:scale(0.3534)}
+.sheet-scale.is-fit .sheet-page{
+  box-shadow:none; margin:0!important;
+  transform-origin:top left; transform:scale(var(--fit-s));
 }
-@media screen and (max-width:520px){
-  .sheet-scale{width:349px; height:212px}
-  .sheet-scale .sheet-page{transform:scale(0.2597)}
-}
-@media screen and (max-width:380px){
-  .sheet-scale{width:322px; height:196px}
-  .sheet-scale .sheet-page{transform:scale(0.2396)}
-}
+@media screen and (max-width:900px){ #print-root{padding:16px 8px 48px} }
 
 /* ============================================================
    인쇄 시 — 편집 UI 전부 숨기고 6패널만
@@ -258,6 +251,7 @@
   *{ -webkit-print-color-adjust:exact!important; print-color-adjust:exact!important; }
   /* 업로드 이미지(악보·설교노트) 선명하게 */
   .praise-img, .note-img{ image-rendering:-webkit-optimize-contrast; }
+  .sheet-scale, .sheet-scale.is-fit{display:contents!important}   /* 인쇄엔 화면 축소를 적용하지 않는다 */
   .noprint, .topbar, #print-gate, #screen-pin, #screen-bt, #toast, #sheet{display:none!important}
   #screen-print{display:block!important}
   #print-root{padding:0; gap:0; background:#fff; display:block}
