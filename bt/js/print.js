@@ -369,9 +369,14 @@ function panelWeeklyInfo(S) {
       // 저장값이 '김 정'처럼 갈라져 있어도 여기서 한 번 더 합친다(옛 데이터 보호, 공용 로직)
       mergeSplitNames(txt, S.members).text.split(/\s+/).filter(Boolean).forEach((n) => {
         const sp = PE('span', 'po-name');
-        if (/^[가-힣]{2}$/.test(n)) {        // 두 글자 이름은 안쪽만 벌려 세 글자와 폭을 맞춤(§8)
+        if (/^[가-힣]{2}$/.test(n)) {
+          // 두 글자 이름을 세 글자 이름과 정확히 같은 폭으로 — 가운데에 '안 보이는 한 글자'를 끼운다.
+          //   '김 정'의 정이 위 '이영래'의 래와 같은 자리에 온다. em으로 계산하지 않으므로 폰트가 바뀌어도 안 틀어짐
           sp.classList.add('nm2');
           sp.appendChild(PE('span', 'nm2a', n[0]));
+          const gap = PE('span', 'nm2gap', n[0]);
+          gap.setAttribute('aria-hidden', 'true');
+          sp.appendChild(gap);
           sp.appendChild(PE('span', 'nm2b', n[1]));
         } else sp.textContent = n;
         val.appendChild(sp);
