@@ -692,26 +692,17 @@ function renderOfferingCard(S) {
   info.textContent = '이름을 띄어쓰기로 구분해 적으세요. “김 정”처럼 띄어 적으셔도 한 사람으로 자동으로 합칩니다.';
   card.appendChild(info);
 
-  // 이름 입력칸 공용 배선 — 아래 칩으로 몇 명인지 바로 보이고, 칸을 벗어나면 갈라진 이름을 합친다
+  // 이름 입력칸 공용 배선 — 칸을 벗어나면 '김 정'처럼 갈라진 이름을 합치고 무엇을 합쳤는지 알린다
   const wireNames = (inp, get, set) => {
-    const chips = el('div', 'name-chips');
-    const paint = () => {
-      chips.innerHTML = '';
-      const parts = String(inp.value || '').trim().split(/\s+/).filter(Boolean);
-      parts.forEach((p) => chips.appendChild(el('span', 'name-chip', p)));
-      if (parts.length) chips.appendChild(el('span', 'name-chips-n', parts.length + '명'));
-    };
-    inp.addEventListener('input', () => { set(inp.value); paint(); queueSave(); });
+    inp.addEventListener('input', () => { set(inp.value); queueSave(); });
     inp.addEventListener('blur', () => {
       const r = mergeSplitNames(inp.value, STATE.members);
       if (!r.fixed.length) return;
-      inp.value = r.text; set(r.text); paint(); queueSave();
+      inp.value = r.text; set(r.text); queueSave();
       const joined = r.fixed.join(', ');
       const shown = r.fixed.map(printedNameForm).join(', ');
       toast(`${joined}${josaRo(joined)} 합쳤고, 인쇄시에는 ${shown}${josaRo(shown)} 인쇄됩니다.`);
     });
-    paint();
-    return chips;
   };
 
   [['thanks', '감사'], ['tithe', '십일조'], ['weekly', '주정'], ['mission', '선교']].forEach(([key, label]) => {
@@ -721,7 +712,7 @@ function renderOfferingCard(S) {
     inp.placeholder = '예: 임영숙 김정 남미령 원동휘';
     inp.value = o[key] || '';
     f.appendChild(inp);
-    f.appendChild(wireNames(inp, () => o[key], (v) => { o[key] = v; }));
+    wireNames(inp, () => o[key], (v) => { o[key] = v; });
     card.appendChild(f);
   });
 
@@ -743,10 +734,9 @@ function renderOfferingCard(S) {
       const ni = el('input', 'ex-names'); ni.type = 'text'; ni.placeholder = '이름 (띄어쓰기 구분)'; ni.value = ex.names || '';
       const del = el('button', 'ex-del', '×'); del.type = 'button'; del.title = '삭제';
       del.addEventListener('click', () => { o.extras.splice(i, 1); queueSave(); paintExtras(); });
-      const chips = wireNames(ni, () => ex.names, (v) => { ex.names = v; });
+      wireNames(ni, () => ex.names, (v) => { ex.names = v; });
       row.appendChild(li); row.appendChild(ni); row.appendChild(del);
       exList.appendChild(row);
-      exList.appendChild(chips);
     });
   }
   paintExtras();
