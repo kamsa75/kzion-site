@@ -177,10 +177,19 @@
   /* ---------- 주일 날짜 (표시용) ---------- */
 
   function nextSundayText() {
-    // 이번 주 일요일(오늘이 일요일이면 오늘). 실데이터는 3단계부터 서버(PT 기준)가 정한다 (D4)
+    // 주차는 서버(시애틀 PT, 일요일 13:00 전환 — D4·D40)가 정한다 → 서버가 준 weekId를 그대로 표시.
+    // 아직 못 받았거나(첫 렌더) 목 모드면 기기 시계로 임시 계산 — 표시 전용, 실데이터와 무관.
+    const w = (typeof SongStore !== 'undefined' && SongStore.week) ? SongStore.week() : null;
+    const id = w && w.weekId;
+    if (id) {
+      const p = String(id).split('-');
+      if (p.length === 3) return `${+p[0]}년 ${+p[1]}월 ${+p[2]}일 주일예배`;
+    }
     const now = new Date();
+    let add = (7 - now.getDay()) % 7;
+    if (add === 0 && now.getHours() >= 13) add = 7;   // 서버와 같은 규칙(일요일 13시 이후 = 다음 주일)
     const d = new Date(now);
-    d.setDate(now.getDate() + ((7 - now.getDay()) % 7));
+    d.setDate(now.getDate() + add);
     return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 주일예배`;
   }
 
