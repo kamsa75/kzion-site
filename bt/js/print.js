@@ -29,18 +29,26 @@ function spreadLabel(cls, text) {
 //   · 이름과 이름 사이는 넓게 (요소 여백)
 //   · 두 글자 이름은 안쪽만 좁게 벌려 세 글자 이름과 폭을 맞춤 ("김정"→"김 정")
 // 입력은 띄어쓰기로 구분한 이름들. 각 이름을 span으로 그린다.
+// 이름 한 개를 그린다 — 두 글자 이름은 세 글자 이름과 같은 폭이 되게 가운데에
+// '안 보이는 한 글자'를 끼운다('김정'→'김 정'). em으로 계산하지 않으므로 폰트가 바뀌어도 안 틀어짐.
+// ★ 이름을 그리는 곳은 전부 이 함수를 쓴다(헌금·섬기는이들·사랑의나눔) — 모양이 갈라지지 않게.
+function fillName(node, name) {
+  if (/^[가-힣]{2}$/.test(name)) {
+    node.classList.add('nm2');
+    node.appendChild(PE('span', 'nm2a', name[0]));
+    const gap = PE('span', 'nm2gap', name[0]);
+    gap.setAttribute('aria-hidden', 'true');
+    node.appendChild(gap);
+    node.appendChild(PE('span', 'nm2b', name[1]));
+  } else {
+    node.textContent = name;
+  }
+  return node;
+}
 function nameSpans(text) {
   const frag = document.createDocumentFragment();
   String(text).trim().split(/\s+/).filter(Boolean).forEach((t) => {
-    const span = PE('span', 'nm');
-    if (/^[가-힣]{2}$/.test(t)) {
-      span.classList.add('nm2');
-      span.appendChild(PE('span', 'nm2a', t[0]));
-      span.appendChild(PE('span', 'nm2b', t[1]));
-    } else {
-      span.textContent = t;
-    }
-    frag.appendChild(span);
+    frag.appendChild(fillName(PE('span', 'nm'), t));
   });
   return frag;
 }
@@ -383,7 +391,7 @@ function panelWeeklyInfo(S) {
         const v = Array.isArray(r[k]) ? r[k].join(' ') : (r[k] || '');
         // 친교헌금은 두 분이면 두 줄(#6-1)
         if (k === 'love_offering' && v.trim()) {
-          v.trim().split(/\s+/).forEach((n) => cell.appendChild(PE('div', 'love-name', n)));
+          v.trim().split(/\s+/).forEach((n) => cell.appendChild(fillName(PE('div', 'love-name'), n)));
         } else {
           cell.textContent = v;
         }
@@ -406,20 +414,8 @@ function panelWeeklyInfo(S) {
       r.appendChild(spreadLabel('po-k', lab));
       const val = PE('div', 'po-v po-names');
       // 저장값이 '김 정'처럼 갈라져 있어도 여기서 한 번 더 합친다(옛 데이터 보호, 공용 로직)
-      mergeSplitNames(txt, S.members).text.split(/\s+/).filter(Boolean).forEach((n) => {
-        const sp = PE('span', 'po-name');
-        if (/^[가-힣]{2}$/.test(n)) {
-          // 두 글자 이름을 세 글자 이름과 정확히 같은 폭으로 — 가운데에 '안 보이는 한 글자'를 끼운다.
-          //   '김 정'의 정이 위 '이영래'의 래와 같은 자리에 온다. em으로 계산하지 않으므로 폰트가 바뀌어도 안 틀어짐
-          sp.classList.add('nm2');
-          sp.appendChild(PE('span', 'nm2a', n[0]));
-          const gap = PE('span', 'nm2gap', n[0]);
-          gap.setAttribute('aria-hidden', 'true');
-          sp.appendChild(gap);
-          sp.appendChild(PE('span', 'nm2b', n[1]));
-        } else sp.textContent = n;
-        val.appendChild(sp);
-      });
+      mergeSplitNames(txt, S.members).text.split(/\s+/).filter(Boolean)
+        .forEach((n) => val.appendChild(fillName(PE('span', 'po-name'), n)));
       r.appendChild(val);
       return r;
     };

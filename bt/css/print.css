@@ -33,10 +33,13 @@
   font-size:10.7pt; line-height:1.45; color:var(--ink);   /* 본문 확대(주보 전체 본문 상향) */
   overflow:hidden;
 }
-/* 이름 목록 공통(헌금·섬기는이들): 이름 사이 넓게 / 두 글자 안쪽 좁게 (#2) */
+/* 이름 목록 공통(헌금·섬기는이들·사랑의나눔): 이름 사이 넓게 (#2) */
 .nm{display:inline-block; margin-right:0.85em}
 .nm:last-child{margin-right:0}
-.nm2 .nm2a{margin-right:0.26em}
+/* 두 글자 이름은 세 글자 이름과 같은 폭 — 가운데 nm2gap이 '안 보이는 한 글자'라
+   폰트가 바뀌어도 폭이 정확히 맞는다(구 0.26em 어림값 폐기, print.js fillName과 한 세트) */
+.nm2gap{visibility:hidden; user-select:none}
+.nm2 .nm2a{margin-right:0}
 
 /* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
 .p-groups{flex:1; display:flex; flex-direction:column; justify-content:flex-start; row-gap:18px; min-height:0}
@@ -87,10 +90,10 @@
 /* ── 교회소식 ── */
 .news-print{margin-top:2px}
 .np-item{margin-bottom:8px}
-.np-t{font-weight:800; font-size:10.3pt}   /* 예배순서 값과 동일 크기(#1) */
+.np-t{font-weight:800; font-size:10.3pt; white-space:pre-line}   /* 편집창 줄바꿈 그대로 인쇄 */   /* 예배순서 값과 동일 크기(#1) */
 .np-t.np-plain{font-weight:normal}     /* 교회소식 본문(자동 안내)은 일반 굵기 */
 .np-num{color:var(--ink); font-weight:800}
-.np-b{font-size:10.3pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#000}
+.np-b{font-size:10.3pt; line-height:1.5; margin-top:2px; padding-left:12px; color:#000; white-space:pre-line}
 
 /* ── 표(공용) ── */
 .p-grid{width:100%; border-collapse:collapse; font-size:9.4pt; margin-bottom:4px}
@@ -134,10 +137,6 @@
 /* 이름을 고정 칸 그리드에 → 가변폭 폰트여도 열이 항상 정렬 */
 .po-names{display:grid; grid-template-columns:repeat(auto-fill, minmax(3.4em, 1fr)); gap:3px 6px}
 .po-name{white-space:nowrap; word-break:keep-all}
-/* 두 글자 이름 = 세 글자 이름과 같은 폭 ('김 정'의 정이 '이영래'의 래와 같은 자리).
-   가운데 nm2gap은 안 보이는 한 글자라 폰트가 바뀌어도 폭이 정확히 맞는다(em 계산 안 함) */
-.po-names .nm2gap{visibility:hidden; user-select:none}
-.po-names .nm2 .nm2a{margin-right:0}   /* 기존 0.26em 어림값 대신 위 방식 사용 */
 /* 이름 목록: 이름 사이 넓게 / 두 글자 이름 안쪽만 좁게 (7/19 주보 배치) */
 .po-total{border-bottom:none; font-weight:800; margin-top:2px}
 
