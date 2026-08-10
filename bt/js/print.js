@@ -35,15 +35,29 @@ function spreadLabel(cls, text) {
 function fillName(node, name) {
   if (/^[가-힣]{2}$/.test(name)) {
     node.classList.add('nm2');
-    node.appendChild(PE('span', 'nm2a', name[0]));
-    const gap = PE('span', 'nm2gap', name[0]);
-    gap.setAttribute('aria-hidden', 'true');
-    node.appendChild(gap);
+    const a = PE('span', 'nm2a', name[0]);
+    a.setAttribute('data-gap', name[0]);   // CSS가 이 글자를 '안 보이게' 덧그려 딱 한 글자 폭을 만든다
+    node.appendChild(a);                   //   (실제 글자가 아니라 복사·검색에 안 잡힘)
     node.appendChild(PE('span', 'nm2b', name[1]));
   } else {
     node.textContent = name;
   }
   return node;
+}
+// '이름 직분' 형태의 값에서 맨 앞 이름만 두 글자 벌림 적용 ('김정 장로' → '김 정 장로').
+//   교인 명단에 있는 이름일 때만 손댄다 — 사용자가 다른 문구로 바꿔 적었으면 그대로 둔다.
+function leadNameNode(S, detail) {
+  const frag = document.createDocumentFragment();
+  const s = String(detail || '');
+  const m = s.match(/^(\S+)([\s\S]*)$/);
+  const known = m && ((S && S.members) || []).some((x) => x && x.name === m[1]);
+  if (m && known && /^[가-힣]{2}$/.test(m[1])) {
+    frag.appendChild(fillName(PE('span', 'co-name'), m[1]));
+    if (m[2]) frag.appendChild(document.createTextNode(m[2]));
+  } else {
+    frag.appendChild(document.createTextNode(s));
+  }
+  return frag;
 }
 function nameSpans(text) {
   const frag = document.createDocumentFragment();
@@ -490,7 +504,11 @@ function panelCover(S) {
     if (r.star) kk.appendChild(PE('span', 'co-star', '※'));
     kk.appendChild(spreadLabel('co-lab', r.label));   // 라벨 전체 폭 양끝맞춤(설교와 동일), ※는 앞에 매달기
     row.appendChild(kk);
-    row.appendChild(PE('span', 'co-v' + (r.bold ? ' co-v-bold' : ''), r.detail || ''));
+    const vv = PE('span', 'co-v' + (r.bold ? ' co-v-bold' : ''));
+    // 대표기도는 맨 앞이 사람 이름이라 두 글자면 벌린다 ('김정 장로' → '김 정 장로')
+    if (r.id === 'prayer') vv.appendChild(leadNameNode(S, r.detail || ''));
+    else vv.textContent = r.detail || '';
+    row.appendChild(vv);
     ol.appendChild(row);
   });
   p.appendChild(ol);

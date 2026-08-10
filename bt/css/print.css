@@ -36,10 +36,11 @@
 /* 이름 목록 공통(헌금·섬기는이들·사랑의나눔): 이름 사이 넓게 (#2) */
 .nm{display:inline-block; margin-right:0.85em}
 .nm:last-child{margin-right:0}
-/* 두 글자 이름은 세 글자 이름과 같은 폭 — 가운데 nm2gap이 '안 보이는 한 글자'라
-   폰트가 바뀌어도 폭이 정확히 맞는다(구 0.26em 어림값 폐기, print.js fillName과 한 세트) */
-.nm2gap{visibility:hidden; user-select:none}
+/* 두 글자 이름은 세 글자 이름과 같은 폭 — 첫 글자 뒤에 '안 보이는 한 글자'를 덧그려
+   딱 한 글자만큼 벌린다. 폰트가 스스로 폭을 잡으므로 어떤 폰트에서도 정확히 맞는다
+   (구 0.26em 어림값 폐기). 실제 글자가 아니라서 복사·검색에는 안 잡힌다. print.js fillName과 한 세트 */
 .nm2 .nm2a{margin-right:0}
+.nm2 .nm2a::after{content:attr(data-gap); visibility:hidden}
 
 /* B-2: 4개 섹션이 남은 세로를 고르게 채움 (헌금이 아래쪽으로) */
 .p-groups{flex:1; display:flex; flex-direction:column; justify-content:flex-start; row-gap:18px; min-height:0}
