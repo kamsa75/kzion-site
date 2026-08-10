@@ -25,6 +25,31 @@ function fmtMDKorean(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${m}월 ${d}일`;
 }
+// 교회표어 — 연도별로 보관한다(bulletin_meta 키 motto_2026 …). 편집칸·인쇄 공용.
+//   strict=true(편집 화면): 그 해 것만. 없으면 기존 단일 키 motto가 같은 해일 때만 보여준다.
+//   strict=false(인쇄): 그 해 것이 없으면 기존 motto를 그대로 쓴다 — 연도별로 옮기기 전에도
+//   지금 주보가 똑같이 나오도록 하는 안전장치.
+function mottoOf(S, year, strict) {
+  const meta = (S && S.meta) || {};
+  const y = Number(year) || Number(String((S && S.weekId) || '').slice(0, 4)) || 0;
+  const m = meta['motto_' + y];
+  if (m && String(m.text || '').trim()) return { year: y, text: m.text || '', ref: m.ref || '' };
+  const legacy = meta.motto || {};
+  const hasLegacy = String(legacy.text || '').trim();
+  if (strict) {
+    return (hasLegacy && Number(legacy.year) === y)
+      ? { year: y, text: legacy.text || '', ref: legacy.ref || '' }
+      : { year: y, text: '', ref: '' };
+  }
+  return { year: Number(legacy.year) || y, text: legacy.text || '', ref: legacy.ref || '' };
+}
+// 주보에 실리는 한 줄 — 따옴표·괄호는 여기서만 붙인다(편집 미리보기와 인쇄가 어긋나지 않게)
+function mottoLine(m) {
+  const text = String((m && m.text) || '').trim();
+  if (!text) return '';
+  const ref = String((m && m.ref) || '').trim();
+  return `${(m && m.year) || ''}년 교회표어 : "${text}"` + (ref ? ` (${ref})` : '');
+}
 // 띄어쓰기로 갈라진 이름 합치기 — 편집칸·인쇄 공용.
 //   한국 사람 이름에 한 글자짜리는 없다 → 한 글자 토막은 사람이 아니라 조각이다.
 //   그래서 '김 정'을 두 사람으로 읽지 않고 '김정' 한 사람으로 합친다. ('박 세영' → '박세영')

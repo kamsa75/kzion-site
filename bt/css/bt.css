@@ -553,3 +553,18 @@ body{
 @media (min-width:640px){
   .main{padding-top:22px}
 }
+
+/* ---------- 연간 일정 > 교회표어 ---------- */
+/* 연도 버튼 바로 아래. 폰에서 세로로 길어지지 않게 여백을 조금 줄였다 */
+.motto-box{border:1px solid var(--ui-line); border-radius:12px; padding:12px 12px 10px; margin:2px 2px 14px; background:#fff}
+.motto-h{font-size:14px; font-weight:800; color:var(--ui-ink); margin-bottom:10px}
+.motto-box .field{margin-bottom:10px}
+.motto-box .field:last-of-type{margin-bottom:0}
+.motto-cap{font-size:12px; font-weight:700; color:var(--ui-sub); margin:12px 0 4px}
+.motto-pv{font-size:13px; line-height:1.5; color:var(--ui-ink); word-break:keep-all;
+  background:var(--ui-gold-soft); border-radius:9px; padding:8px 10px}
+.motto-pv.is-empty{background:transparent; padding:0; color:var(--ui-sub)}
+@media (max-width:560px){
+  .motto-box{padding:11px 11px 9px}
+  .motto-box .field > label{margin-bottom:4px}
+}

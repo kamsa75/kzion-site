@@ -1507,6 +1507,52 @@ function evPreview(label) {
   return t + (extra.length ? ' · ' + extra.join(' · ') : '');
 }
 
+// 교회표어 — 연도 버튼 바로 아래. 해마다 하나라 연간 일정과 성격이 같다.
+//   연도별 키(motto_2026)로 저장하므로 연말에 다음 해 것을 미리 적어둘 수 있다.
+let MOTTO_T = null;
+function mottoBlock(year) {
+  const box = el('div', 'motto-box');
+  box.appendChild(el('div', 'motto-h', '교회표어'));
+  const cur = mottoOf(STATE, year, true);
+
+  const mk = (label, ph, val) => {
+    const f = el('div', 'field');
+    f.appendChild(el('label', null, label));
+    const i = el('input'); i.type = 'text'; i.placeholder = ph; i.value = val || '';
+    f.appendChild(i); box.appendChild(f);
+    return i;
+  };
+  const iText = mk('표어', '예: 너 하나님의 사람아!', cur.text);
+  const iRef = mk('성경구절', '예: 딤전 6:11-12', cur.ref);
+
+  const pv = el('div', 'motto-pv');
+  const paint = () => {
+    const line = mottoLine({ year, text: iText.value, ref: iRef.value });
+    pv.textContent = line || `${year}년 표어가 아직 없습니다. 지금 적어두면 해가 바뀔 때 자동으로 바뀝니다.`;
+    pv.classList.toggle('is-empty', !line);
+  };
+  const save = () => {
+    const value = { text: iText.value.trim(), ref: iRef.value.trim() };
+    STATE.meta = STATE.meta || {};
+    STATE.meta['motto_' + year] = value;          // 화면·인쇄가 바로 새 값을 쓰게
+    BT_API.call('saveMeta', { key: 'motto_' + year, value })
+      .then(() => { EVENTS_DIRTY = true; markSaved(); })
+      .catch((err) => toast('표어 저장 실패: ' + (err.message || '')));
+  };
+  [iText, iRef].forEach((i) => {
+    i.addEventListener('input', () => {
+      paint();
+      clearTimeout(MOTTO_T);
+      MOTTO_T = setTimeout(save, 700);            // 타이핑이 멎으면 저장
+    });
+    i.addEventListener('blur', () => { clearTimeout(MOTTO_T); save(); });
+  });
+  paint();
+  box.appendChild(el('div', 'motto-cap', '주보에는 이렇게 나갑니다'));
+  box.appendChild(pv);
+  return box;
+}
+
 function renderEvents() {
   const body = $('#bt-body');
   body.innerHTML = '';
@@ -1534,6 +1580,7 @@ function renderEvents() {
     yrow.appendChild(c);
   });
   card.appendChild(yrow);
+  card.appendChild(mottoBlock(EVENTS_YEAR));
 
   const list = el('div', 'evm-list');
   const rows = (EVENTS || [])

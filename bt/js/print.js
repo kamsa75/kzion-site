@@ -544,6 +544,6 @@ function panelCover(S) {
 }
 
 function topMotto(S) {
-  const motto = (S.meta && S.meta.motto) || {};
-  return PE('div', 'p-motto', `${motto.year || ''}년 교회표어 : "${motto.text || ''}" (${motto.ref || ''})`);
+  // 그 해 표어 → 없으면 기존 값 (문장 조립은 config.js mottoLine 한 곳에서만)
+  return PE('div', 'p-motto', mottoLine(mottoOf(S)));
 }
