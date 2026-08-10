@@ -234,9 +234,12 @@ const Generate = (function () {
   }
 
   /* ---------- 이번 주 데이터 로드 ---------- */
+  // 서버 없이 도는 목 모드 전용 예비 계산(실사용은 항상 서버 weekId). 서버와 같은 규칙: 일요일 13시 이후 = 다음 주일 (D40)
   function thisSundayISO() {
     const now = new Date();
-    const d = new Date(now); d.setDate(now.getDate() + ((7 - now.getDay()) % 7));
+    let add = (7 - now.getDay()) % 7;
+    if (add === 0 && now.getHours() >= 13) add = 7;
+    const d = new Date(now); d.setDate(now.getDate() + add);
     const mm = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
     return d.getFullYear() + '-' + mm + '-' + dd;
   }

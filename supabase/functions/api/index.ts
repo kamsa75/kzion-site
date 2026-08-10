@@ -122,15 +122,19 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
-// 이번 주 예배 일요일 (시애틀 PT 기준 — D4). 오늘이 일요일이면 오늘.
-function currentWeekId(): string {
-  const pt = new Date(
+// 이번 주 예배 일요일 (시애틀 PT 기준 — D4).
+// 오늘이 일요일이면 오후 1시(PT) 전까지는 오늘, 지나면 다음 주일로 전환(D40 — 예배 12시 종료 후 차주 준비 시작).
+// ptNow: 테스트용 주입(PT 벽시계 기준 Date). 실행 시에는 생략 → 현재 PT 시각.
+function currentWeekId(ptNow?: Date): string {
+  const pt = ptNow ?? new Date(
     new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
   );
+  let add = (7 - pt.getDay()) % 7;
+  if (add === 0 && pt.getHours() >= 13) add = 7;   // 일요일 13:00 PT 이후 = 다음 주일
   const target = new Date(
     pt.getFullYear(),
     pt.getMonth(),
-    pt.getDate() + ((7 - pt.getDay()) % 7),
+    pt.getDate() + add,
   );
   const mm = String(target.getMonth() + 1).padStart(2, "0");
   const dd = String(target.getDate()).padStart(2, "0");
