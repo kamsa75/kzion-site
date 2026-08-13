@@ -258,12 +258,8 @@ function buildOrderRows(S, opts) {
   // 공유 필드 = 한 곳에서만 입력(값 갈라짐 차단). 주보에선 읽기전용으로 표시.
   //   설교·본문·찬송·대표기도 = PPT에서 입력(PPT 값 없으면 로테이션 자동값으로 대체)
   const SHARED = { sermon: 'PPT', reading: 'PPT', hymn: 'PPT', prayer: 'PPT' };
-  // 특송이 비어 있으면 인쇄에선 줄째 제외(빈 줄 방지). 편집 화면(includeRemoved)에는 그대로 보여
-  //   성가대가 넣으면 자동으로 다시 나타난다. 미입력은 인쇄 확인 화면이 따로 알려준다.
-  if (!includeRemoved) {
-    const spDetail = ov.special !== undefined ? ov.special : defaults.special;
-    if (!String(spDetail || '').trim()) rows = rows.filter((r) => r.id !== 'special');
-  }
+  // 특송은 늘 있는 순서라 곡명이 비어도 줄을 남긴다(찬송·성경봉독·설교와 동일 — 순서명만 나오고 내용은 빈칸).
+  //   ※ 예전에는 비면 줄째 뺐는데, 성가대 미입력 주에 순서가 통째로 사라져 혼란을 줘서 되돌림(2026-08-10)
   return rows.map((r) => {
     if (r._removed) {   // 편집 화면 전용 — 제자리에 '뺌' 표시로 남겨 바로 되살리기(인쇄엔 안 나감)
       return { id: r.id, label: r.label, star: !!r.star, removed: true };

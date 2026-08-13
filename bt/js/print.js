@@ -116,10 +116,11 @@ function buildGate(S) {
   }
   gate.appendChild(box);
 
-  // 특송이 비면 인쇄에서 자동 제외되므로, 성가대 미입력을 조용히 넘기지 않도록 알림
-  if (!buildOrderRows(S).some((r) => r.id === 'special')) {
+  // 특송 줄은 늘 나가되(순서명만), 곡명이 비었으면 성가대 미입력을 조용히 넘기지 않도록 알림
+  const spRow = buildOrderRows(S).find((r) => r.id === 'special');
+  if (spRow && !String(spRow.detail || '').trim()) {
     const sp = PE('div', 'gate-order');
-    sp.textContent = '🎵 특송이 비어 있어 이번 주 주보에서 빠집니다 — 성가대가 PPT에 곡을 넣으면 자동으로 들어옵니다';
+    sp.textContent = '🎵 특송 곡명이 아직 비어 있습니다 — 성가대가 PPT에 곡을 넣으면 자동으로 채워집니다';
     gate.appendChild(sp);
   }
 
