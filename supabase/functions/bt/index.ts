@@ -458,6 +458,28 @@ Deno.serve(async (req) => {
       const metaMap: Record<string, unknown> = {};
       (meta.data || []).forEach((r: { key: string; value: unknown }) => { metaMap[r.key] = r.value; });
 
+      // ---------- 섬기는 사람들: 주차별로 못 박아 둔다 (B15) ----------
+      //  사람이 바뀌어도 지난 주보에는 그 주에 실렸던 이름이 그대로 남게 한다.
+      //  · 이번 주·앞으로 → 늘 현재 값으로 갱신 (명단을 고치면 바로 반영)
+      //  · 지난 주       → 기록이 없을 때 한 번만 박아두고, 이후로는 절대 안 바뀜
+      const staffKey = `staff_${weekId}`;
+      const curStaff = metaMap["staff_panel"] || null;
+      let staffPanel = metaMap[staffKey] || null;
+      if (curStaff) {
+        if (weekId >= currentWeekId()) {
+          if (JSON.stringify(staffPanel) !== JSON.stringify(curStaff)) {
+            await db.from("bulletin_meta").upsert({ key: staffKey, value: curStaff }, { onConflict: "key" });
+          }
+          staffPanel = curStaff;
+        } else if (!staffPanel) {
+          await db.from("bulletin_meta")
+            .upsert({ key: staffKey, value: curStaff }, { onConflict: "key", ignoreDuplicates: true });
+          staffPanel = curStaff;
+        }
+      }
+      // 주차별 기록 키는 화면에 넘기지 않는다(주가 쌓여도 응답이 커지지 않게)
+      Object.keys(metaMap).forEach((k) => { if (/^staff_\d{4}-\d{2}-\d{2}$/.test(k)) delete metaMap[k]; });
+
       // 이번 주가 성찬식 예정인지 (§6-4 선제 제안)
       const communion = (events.data || []).some(
         (e: { display_week: string; is_communion: boolean }) =>
@@ -478,6 +500,7 @@ Deno.serve(async (req) => {
         events: events.data || [],
         communionThisWeek: communion,
         meta: metaMap,
+        staffPanel,                          // 그 주에 못 박아 둔 섬기는 사람들 (B15)
         members: mem.data || [],
         loveWindow: rotAhead,                // 사랑의 나눔 4주 (이번 주 + 앞 3주 — 다가올 주)
         serveWindow: rotAhead,               // 예배를 섬기는 이들 4주 (이번 주 + 앞 3주)

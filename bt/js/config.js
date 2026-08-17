@@ -181,9 +181,18 @@ function saturdayOf(S) {
   const [, m, d] = sat.split('-').map(Number);
   return `${m}월 ${d}일`;
 }
+// 섬기는 사람들 — 그 주에 못 박아 둔 기록이 있으면 그것을 쓴다(지난 주보가 나중에 안 바뀌게).
+//   서버가 주보를 열 때 그 주 기록을 만들어 staffPanel로 실어 보낸다. 없으면 현재 값으로 폴백.
+function staffRows(S) {
+  const snap = S && S.staffPanel;
+  if (snap && Array.isArray(snap.rows) && snap.rows.length) return snap.rows;
+  return (S && S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+}
+function staffValueOf(S, label) {
+  return (staffRows(S).find((r) => (r.label || '') === label) || {}).value || '';
+}
 function pastorNameOf(S) {
-  const staff = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
-  return (staff.find((r) => r.label === '담임목사') || {}).value || '';
+  return staffValueOf(S, '담임목사');
 }
 // 예배순서 행 — app(편집)·print(인쇄) 공용. detail = 사용자 오버라이드 ?? 자동 기본값
 function buildOrderRows(S, opts) {

@@ -636,7 +636,7 @@ function renderSaturdayCard(S) {
   const data = bd();
   data.saturday = data.saturday || {};
   const sat = data.saturday;
-  const pastorName = (S.meta?.staff_panel?.rows || []).find((r) => r.label === '담임목사')?.value || '';
+  const pastorName = pastorNameOf(S);   // 그 주 기록 우선 (공용)
   const defPreacher = pastorName ? pastorName + ' 목사' : '';
 
   // 날짜 (자동 · 수정 가능)
