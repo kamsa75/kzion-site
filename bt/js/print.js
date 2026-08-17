@@ -271,7 +271,7 @@ function panelPraiseServe(S) {
 // 섬기는 사람들 표 — 원본 주보 격자(#6). 준고정 staff_panel.rows를 라벨로 배치.
 //   핵심 라벨(담임/협동/유초/뮤직/시무)이 있으면 원본 격자, 없으면 단순 2열로 폴백(안전).
 function serveTable(S) {
-  const rows = (S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [];
+  const rows = staffRows(S);   // 그 주에 못 박아 둔 기록 우선 (공용)
   const box = PE('div', 'serve-box');
   box.appendChild(PE('div', 'serve-h', '섬기는 사람들'));
   const get = (kw) => { const r = rows.find((x) => (x.label || '').indexOf(kw) >= 0); return r ? (r.value || '') : null; };
@@ -377,9 +377,8 @@ function panelWeeklyInfo(S) {
     const satBox = PE('div', 'p-sat');
     const date = (sat.date && sat.date.trim()) || (saturdayOf(S) + ' 오전 7시');
     satBox.appendChild(PE('div', 'p-sat-when', date));
-    const pastorName = ((S.meta && S.meta.staff_panel && S.meta.staff_panel.rows) || [])
-      .find((r) => r.label === '담임목사');
-    const defPreacher = pastorName ? pastorName.value + ' 목사' : '';
+    const pastorName = pastorNameOf(S);   // 그 주 기록 우선 (공용)
+    const defPreacher = pastorName ? pastorName + ' 목사' : '';
     const preacher = (sat.preacher && sat.preacher.trim()) || defPreacher;
     const sermonLine = [sat.sermon, preacher].filter((x) => x && x.trim()).join(' · ');
     [['찬송', sat.hymn || '다같이'], ['설교', sermonLine], ['합심기도', sat.pray || '다같이']]
