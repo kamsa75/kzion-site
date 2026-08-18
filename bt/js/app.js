@@ -532,17 +532,17 @@ function openNewsPicker() {
   const picked = new Set();
 
   openSheet('지난 소식 가져오기', (body) => {
-    const head = el('div', 'np-head');
-    const prev = el('button', 'np-arrow', '◀'); prev.type = 'button'; prev.title = '이전 주';
-    const label = el('div', 'np-label');
-    const next = el('button', 'np-arrow', '▶'); next.type = 'button'; next.title = '다음 주';
+    const head = el('div', 'pick-head');
+    const prev = el('button', 'pick-arrow', '◀'); prev.type = 'button'; prev.title = '이전 주';
+    const label = el('div', 'pick-label');
+    const next = el('button', 'pick-arrow', '▶'); next.type = 'button'; next.title = '다음 주';
     head.appendChild(prev); head.appendChild(label); head.appendChild(next);
     body.appendChild(head);
 
-    const list = el('div', 'np-list');
+    const list = el('div', 'pick-list');
     body.appendChild(list);
 
-    const go = el('button', 'btn btn-primary btn-wide np-go', '가져오기');
+    const go = el('button', 'btn btn-primary btn-wide pick-go', '가져오기');
     go.type = 'button'; go.disabled = true;
     body.appendChild(go);
 
@@ -563,11 +563,11 @@ function openNewsPicker() {
       rows.forEach((n) => {
         const k = week + '|' + newsKey(n);
         const already = have.has(newsKey(n));
-        const it = el('button', 'np-item' + (already ? ' is-have' : '') + (picked.has(k) ? ' on' : ''));
+        const it = el('button', 'pick-item' + (already ? ' is-have' : '') + (picked.has(k) ? ' on' : ''));
         it.type = 'button';
         it.disabled = already;
-        if (String(n.title || '').trim()) it.appendChild(el('span', 'np-title', n.title));
-        it.appendChild(el('span', 'np-body', already ? '이미 들어 있습니다' : (n.body || '')));
+        if (String(n.title || '').trim()) it.appendChild(el('span', 'pick-title', n.title));
+        it.appendChild(el('span', 'pick-body', already ? '이미 들어 있습니다' : (n.body || '')));
         it.addEventListener('click', () => {
           if (picked.has(k)) { picked.delete(k); it.classList.remove('on'); }
           else { picked.add(k); it.classList.add('on'); }
