@@ -631,6 +631,13 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    // ---------- 지난 주보 목록 (읽기 전용 열람용, B16) ----------
+    case "listWeeks": {
+      const { data } = await db.from("bulletin_inputs")
+        .select("week_id").order("week_id", { ascending: false }).limit(300);
+      return json({ weeks: (data || []).map((r: { week_id: string }) => r.week_id) });
+    }
+
     // ---------- 앞으로 N주 미리보기 (명단 편집 결과 확인용) ----------
     case "previewRotation": {
       const n = Math.min(20, Math.max(1, Number(body.weeks) || 8));

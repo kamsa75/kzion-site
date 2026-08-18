@@ -568,3 +568,21 @@ body{
   .motto-box{padding:11px 11px 9px}
   .motto-box .field > label{margin-bottom:4px}
 }
+
+/* ---------- 지난 주보 보기 (B16) ---------- */
+/* 보고 있는 주가 지난 주보임을 놓치지 않게 — 상단 띠 + 돌아가는 길 */
+.past-bar{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  background:var(--ui-warn-bg); border:1px solid #E6D3A0; color:var(--ui-warn-ink);
+  border-radius:12px; padding:10px 12px; margin:0 2px 12px}
+.past-bar-t{font-size:13.5px; font-weight:800; word-break:keep-all}
+.past-bar .btn{padding:7px 12px; font-size:13px; flex:none}
+/* 잠긴 입력칸 — 읽기는 편하게, 손대는 느낌은 안 나게 */
+.is-past input:disabled, .is-past textarea:disabled, .is-past select:disabled{
+  background:#FAF9F6; color:var(--ui-ink); opacity:1; -webkit-text-fill-color:var(--ui-ink)}
+.is-past button:disabled{opacity:.35}
+/* 평소엔 눈에 안 띄고, 찾으면 있는 자리 */
+.pastweek{margin:18px 2px 0; padding-top:14px; border-top:1px solid var(--ui-line)}
+.pastweek-h{font-size:13px; font-weight:700; color:var(--ui-sub); margin-bottom:8px}
+.pastweek select{width:100%; font-family:inherit; font-size:15px; font-weight:500;
+  padding:11px 12px; border:1px solid var(--ui-line); border-radius:12px;
+  background:#fff; color:var(--ui-ink)}
