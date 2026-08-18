@@ -580,12 +580,16 @@ body{
 .is-past input:disabled, .is-past textarea:disabled, .is-past select:disabled{
   background:#FAF9F6; color:var(--ui-ink); opacity:1; -webkit-text-fill-color:var(--ui-ink)}
 .is-past button:disabled{opacity:.35}
-/* 평소엔 눈에 안 띄고, 찾으면 있는 자리 */
-.pastweek{margin:18px 2px 0; padding-top:14px; border-top:1px solid var(--ui-line)}
-.pastweek-h{font-size:13px; font-weight:700; color:var(--ui-sub); margin-bottom:8px}
-.pastweek select{width:100%; font-family:inherit; font-size:15px; font-weight:500;
-  padding:11px 12px; border:1px solid var(--ui-line); border-radius:12px;
-  background:#fff; color:var(--ui-ink)}
+/* 지난 주보 고르기 시트 — 날짜 목록 */
+.wk-list{display:flex; flex-direction:column; gap:6px; max-height:60dvh; overflow-y:auto}
+.wk-item{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  font-family:inherit; cursor:pointer; padding:12px; border-radius:12px;
+  border:1px solid var(--ui-line); background:#fff; text-align:left}
+.wk-item:active{background:var(--ui-gold-soft)}
+.wk-item.is-cur{background:var(--ui-gold-soft); border-color:var(--ui-gold)}
+.wk-item.is-now{border-color:var(--ui-gold)}
+.wk-d{font-size:15px; font-weight:700; color:var(--ui-ink)}
+.wk-tag{flex:none; font-size:12px; font-weight:700; color:var(--ui-gold)}
 
 /* ---------- 지난 소식 가져오기 (B17) ---------- */
 .pick-head{display:flex; align-items:center; gap:8px; margin-bottom:12px}

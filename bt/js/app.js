@@ -276,7 +276,6 @@ function render() {
     '<p class="hint" style="margin:0">다음 단계에서 이어서 만듭니다.</p>';
   body.appendChild(soon);
 
-  body.appendChild(renderPastPicker());   // 지난 주보 고르기 (B16)
   applyPastWeekLock();
 }
 
@@ -318,6 +317,10 @@ async function openPastWeek(weekId) {
   try {
     STATE = await BT_API.call('getBulletin', { weekId });
     PAST_WEEK = (weekId === CURRENT_WEEK) ? null : weekId;   // 이번 주를 고르면 평소 모드로
+    VIEW = 'bt';
+    $('#bt-heading').textContent = '주보 만들기';
+    $('#btn-nav-back').hidden = true;
+    setNav('bt');
     render();
     window.scrollTo(0, 0);
   } catch (err) {
@@ -334,7 +337,7 @@ function applyPastWeekLock() {
   body.classList.toggle('is-past', !!PAST_WEEK);
   if (!PAST_WEEK) return;
   body.querySelectorAll('input, textarea, select, button').forEach((elm) => {
-    if (elm.closest('.past-bar') || elm.closest('.pastweek')) return;
+    if (elm.closest('.past-bar')) return;
     elm.disabled = true;
   });
 }
@@ -349,38 +352,40 @@ function renderPastBar() {
   return bar;
 }
 
-// 편집 화면 맨 아래 — 평소엔 눈에 안 띄고, 찾으면 있는 자리
-function renderPastPicker() {
-  const box = el('div', 'pastweek');
-  box.appendChild(el('div', 'pastweek-h', '지난 주보'));
-  const sel = el('select');
-  const fill = () => {
-    sel.innerHTML = '';
-    const first = document.createElement('option');
-    first.value = ''; first.textContent = '주보 고르기…';
-    sel.appendChild(first);
-    (WEEK_LIST || []).forEach((w) => {
-      const o = document.createElement('option');
-      o.value = w;
-      o.textContent = fmtKDate(w);
-      if (STATE && w === STATE.weekId) o.selected = true;
-      sel.appendChild(o);
-    });
-  };
-  fill();
-  if (!WEEK_LIST) {
-    BT_API.call('listWeeks')
-      .then((r) => { WEEK_LIST = r.weeks || []; fill(); })
-      .catch(() => { /* 목록 실패해도 화면은 정상 */ });
-  }
-  sel.addEventListener('change', () => {
-    if (!sel.value) return;
-    if (sel.value === CURRENT_WEEK) { if (PAST_WEEK) backToCurrentWeek(); return; }
-    openPastWeek(sel.value);
+// 상단바 「지난 주보」 — 날짜 목록 시트. 편집 항목이 아니라 '어디로 갈까'라서 상단바에 둔다.
+function openPastSheet() {
+  openSheet('지난 주보', (body) => {
+    const list = el('div', 'wk-list');
+    body.appendChild(list);
+    const fill = () => {
+      list.innerHTML = '';
+      if (WEEK_LIST === null) { list.appendChild(el('p', 'center-note', '불러오는 중…')); return; }
+      if (!WEEK_LIST.length) { list.appendChild(el('p', 'center-note', '아직 주보가 없습니다')); return; }
+      WEEK_LIST.forEach((w) => {
+        const isCur = w === CURRENT_WEEK;
+        const isNow = !isCur && w === PAST_WEEK;
+        const b = el('button', 'wk-item' + (isCur ? ' is-cur' : '') + (isNow ? ' is-now' : ''));
+        b.type = 'button';
+        b.appendChild(el('span', 'wk-d', fmtKDate(w)));
+        if (isCur) b.appendChild(el('span', 'wk-tag', '이번 주'));
+        else if (isNow) b.appendChild(el('span', 'wk-tag', '보는 중'));
+        b.addEventListener('click', () => {
+          closeSheet();
+          if (isCur) { if (PAST_WEEK) backToCurrentWeek(); return; }
+          openPastWeek(w);
+        });
+        list.appendChild(b);
+      });
+    };
+    fill();
+    if (WEEK_LIST === null) {
+      BT_API.call('listWeeks')
+        .then((r) => { WEEK_LIST = r.weeks || []; fill(); })
+        .catch(() => { WEEK_LIST = []; fill(); });
+    }
   });
-  box.appendChild(sel);
-  return box;
 }
+
 
 function queueSave() {
   if (PAST_WEEK) return;            // 지난 주보는 저장하지 않는다
@@ -2154,6 +2159,7 @@ function initNav() {
   $('#btn-roster').addEventListener('click', openRoster);
   $('#btn-events').addEventListener('click', openEvents);
   $('#btn-nav-back').addEventListener('click', backToBt);
+  $('#btn-past').addEventListener('click', openPastSheet);
   $('#btn-print').addEventListener('click', goPrint);
   $('#btn-print-back').addEventListener('click', backFromPrint);
   $('#btn-do-print').addEventListener('click', doPrint);
