@@ -77,6 +77,7 @@ async function enter() {
   $('#bt-body').innerHTML = '<p class="center-note">불러오는 중…</p>';
   try {
     STATE = await BT_API.call('getBulletin');
+    CURRENT_WEEK = STATE.weekId;      // 지난 주 판별 기준 (B16)
     try { await carryForwardPraise(); } catch (e) { /* 이월 실패해도 로드는 계속 */ }
     // 12월이면 내년 연간 일정이 비었는지 확인 → 새 일람 입력 리마인더 배너(깜빡 방지)
     try {
@@ -211,6 +212,8 @@ function render() {
   const body = $('#bt-body');
   body.innerHTML = '';
 
+  if (PAST_WEEK) body.appendChild(renderPastBar());   // 지난 주보 보기 중 표시(B16)
+
   // ── 이번 주 현황 (무엇이 남았나 한눈에) ──
   body.appendChild(renderStatusCard(S));
 
@@ -272,6 +275,9 @@ function render() {
     '<div class="card-h"><h2>명단 관리 · 순서 조정 · 인쇄</h2></div>' +
     '<p class="hint" style="margin:0">다음 단계에서 이어서 만듭니다.</p>';
   body.appendChild(soon);
+
+  body.appendChild(renderPastPicker());   // 지난 주보 고르기 (B16)
+  applyPastWeekLock();
 }
 
 // ============================================================
@@ -286,7 +292,98 @@ function markSaved() {
   setTimeout(() => { if (n.textContent === '저장됨') n.textContent = ''; }, 1500);
 }
 
+// ============================================================
+// 지난 주보 보기 (B16) — 고른 주를 읽기 전용으로 연다.
+//   기록이 초안이 되지 않도록 저장 계열 호출을 한 곳에서 통째로 막는다.
+// ============================================================
+let PAST_WEEK = null;      // null이면 이번 주(평소), 아니면 보고 있는 지난 주차
+let CURRENT_WEEK = null;   // 서버가 정한 이번 주 (지난 주 판별 기준)
+let WEEK_LIST = null;      // 주차 목록 캐시
+const WRITE_ACTIONS = ['saveBulletin', 'savePastorShared', 'saveMeta', 'overrideRotation',
+  'undoRotation', 'resetRotations', 'confirmPrint', 'unlockPrint',
+  'saveAnnualEvent', 'saveMember', 'savePool'];
+(function guardPastWeek() {
+  const orig = BT_API.call;
+  BT_API.call = function (action, payload) {
+    if (PAST_WEEK && WRITE_ACTIONS.indexOf(action) >= 0) {
+      toast('지난 주보는 보기만 됩니다');
+      return Promise.reject(new Error('지난 주보는 수정할 수 없습니다'));
+    }
+    return orig(action, payload);
+  };
+})();
+
+async function openPastWeek(weekId) {
+  $('#bt-body').innerHTML = '<p class="center-note">불러오는 중…</p>';
+  try {
+    STATE = await BT_API.call('getBulletin', { weekId });
+    PAST_WEEK = (weekId === CURRENT_WEEK) ? null : weekId;   // 이번 주를 고르면 평소 모드로
+    render();
+    window.scrollTo(0, 0);
+  } catch (err) {
+    toast('불러오지 못했습니다: ' + (err.message || ''));
+    PAST_WEEK = null;
+    enter();
+  }
+}
+function backToCurrentWeek() { PAST_WEEK = null; enter(); }
+
+// 지난 주보 보기 중이면 입력 요소를 전부 잠근다(가드와 이중 안전장치)
+function applyPastWeekLock() {
+  const body = $('#bt-body');
+  body.classList.toggle('is-past', !!PAST_WEEK);
+  if (!PAST_WEEK) return;
+  body.querySelectorAll('input, textarea, select, button').forEach((elm) => {
+    if (elm.closest('.past-bar') || elm.closest('.pastweek')) return;
+    elm.disabled = true;
+  });
+}
+
+function renderPastBar() {
+  const bar = el('div', 'past-bar');
+  bar.appendChild(el('span', 'past-bar-t', fmtKDate(PAST_WEEK) + ' 주보 · 보기 전용'));
+  const b = el('button', 'btn btn-line', '이번 주로');
+  b.type = 'button';
+  b.addEventListener('click', backToCurrentWeek);
+  bar.appendChild(b);
+  return bar;
+}
+
+// 편집 화면 맨 아래 — 평소엔 눈에 안 띄고, 찾으면 있는 자리
+function renderPastPicker() {
+  const box = el('div', 'pastweek');
+  box.appendChild(el('div', 'pastweek-h', '지난 주보'));
+  const sel = el('select');
+  const fill = () => {
+    sel.innerHTML = '';
+    const first = document.createElement('option');
+    first.value = ''; first.textContent = '주보 고르기…';
+    sel.appendChild(first);
+    (WEEK_LIST || []).forEach((w) => {
+      const o = document.createElement('option');
+      o.value = w;
+      o.textContent = fmtKDate(w);
+      if (STATE && w === STATE.weekId) o.selected = true;
+      sel.appendChild(o);
+    });
+  };
+  fill();
+  if (!WEEK_LIST) {
+    BT_API.call('listWeeks')
+      .then((r) => { WEEK_LIST = r.weeks || []; fill(); })
+      .catch(() => { /* 목록 실패해도 화면은 정상 */ });
+  }
+  sel.addEventListener('change', () => {
+    if (!sel.value) return;
+    if (sel.value === CURRENT_WEEK) { if (PAST_WEEK) backToCurrentWeek(); return; }
+    openPastWeek(sel.value);
+  });
+  box.appendChild(sel);
+  return box;
+}
+
 function queueSave() {
+  if (PAST_WEEK) return;            // 지난 주보는 저장하지 않는다
   markSaving();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(doSave, 700);
