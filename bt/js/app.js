@@ -509,6 +509,104 @@ function namePicker(opts) {
 }
 
 // ── 교회소식 (자동 안내 + 수동 소식, §9 + A안) ──
+// ============================================================
+// 지난 주 교회소식 가져오기 (B17)
+//   같은 광고를 몇 주 이어 싣는 일이 잦다. 자동 반복은 넣지 않는다 —
+//   행사가 끝났는데 계속 나가는 사고가 나기 때문. 매번 눈으로 보고 고른다.
+// ============================================================
+const NEWS_CACHE = {};   // weekId → 직접 쓴 소식 배열 (시트에서 주를 옮겨도 다시 안 부르게)
+
+async function loadNewsOf(weekId) {
+  if (NEWS_CACHE[weekId]) return NEWS_CACHE[weekId];
+  const r = await BT_API.call('getBulletin', { weekId });
+  const list = ((r.bulletin && r.bulletin.news) || [])
+    .filter((n) => String(n.title || '').trim() || String(n.body || '').trim());
+  NEWS_CACHE[weekId] = list;
+  return list;
+}
+const newsKey = (n) => String(n.title || '').trim() + '\u0000' + String(n.body || '').trim();
+
+function openNewsPicker() {
+  if (PAST_WEEK) { toast('지난 주보는 보기만 됩니다'); return; }
+  let week = addDaysISO(STATE.weekId, -7);
+  const picked = new Set();
+
+  openSheet('지난 소식 가져오기', (body) => {
+    const head = el('div', 'np-head');
+    const prev = el('button', 'np-arrow', '◀'); prev.type = 'button'; prev.title = '이전 주';
+    const label = el('div', 'np-label');
+    const next = el('button', 'np-arrow', '▶'); next.type = 'button'; next.title = '다음 주';
+    head.appendChild(prev); head.appendChild(label); head.appendChild(next);
+    body.appendChild(head);
+
+    const list = el('div', 'np-list');
+    body.appendChild(list);
+
+    const go = el('button', 'btn btn-primary btn-wide np-go', '가져오기');
+    go.type = 'button'; go.disabled = true;
+    body.appendChild(go);
+
+    const paintGo = () => {
+      go.disabled = !picked.size;
+      go.textContent = picked.size ? `${picked.size}건 가져오기` : '가져오기';
+    };
+
+    const paint = async () => {
+      label.textContent = fmtMD(week) + ' 주보 · 불러오는 중…';
+      list.innerHTML = '';
+      next.disabled = week >= addDaysISO(STATE.weekId, -7);
+      let rows = [];
+      try { rows = await loadNewsOf(week); }
+      catch (err) { label.textContent = fmtMD(week) + ' 주보 · 불러오지 못함'; return; }
+      label.textContent = `${fmtMD(week)} 주보 · ${rows.length ? rows.length + '건' : '소식 없음'}`;
+      const have = new Set((bd().news || []).map(newsKey));
+      rows.forEach((n) => {
+        const k = week + '|' + newsKey(n);
+        const already = have.has(newsKey(n));
+        const it = el('button', 'np-item' + (already ? ' is-have' : '') + (picked.has(k) ? ' on' : ''));
+        it.type = 'button';
+        it.disabled = already;
+        if (String(n.title || '').trim()) it.appendChild(el('span', 'np-title', n.title));
+        it.appendChild(el('span', 'np-body', already ? '이미 들어 있습니다' : (n.body || '')));
+        it.addEventListener('click', () => {
+          if (picked.has(k)) { picked.delete(k); it.classList.remove('on'); }
+          else { picked.add(k); it.classList.add('on'); }
+          paintGo();
+        });
+        list.appendChild(it);
+      });
+    };
+
+    prev.addEventListener('click', () => { week = addDaysISO(week, -7); paint(); });
+    next.addEventListener('click', () => {
+      const limit = addDaysISO(STATE.weekId, -7);
+      if (week >= limit) return;
+      week = addDaysISO(week, 7); paint();
+    });
+
+    go.addEventListener('click', () => {
+      const added = [];
+      Object.keys(NEWS_CACHE).forEach((w) => {
+        NEWS_CACHE[w].forEach((n) => {
+          if (picked.has(w + '|' + newsKey(n))) added.push({ title: n.title || '', body: n.body || '' });
+        });
+      });
+      if (!added.length) return;
+      const d0 = bd();
+      d0.news = (d0.news || []).filter((n) => String(n.title || '').trim() || String(n.body || '').trim());
+      added.forEach((n) => d0.news.push(n));
+      queueSave();
+      closeSheet();
+      render();
+      scrollToCard('교회 소식');
+      toast(`${added.length}건 가져왔습니다 — 내용은 바로 고치실 수 있어요`);
+    });
+
+    paintGo();
+    paint();
+  });
+}
+
 function renderNewsCard(S) {
   const card = el('div', 'card');
   const h = el('div', 'card-h');
@@ -595,6 +693,12 @@ function renderNewsCard(S) {
   add.style.marginTop = '8px';
   add.addEventListener('click', () => { data.news.push({ title: '', body: '' }); paint(); queueSave(); });
   card.appendChild(add);
+
+  // 지난 주에 실은 소식을 그대로 다시 쓰는 일이 잦다 → 골라서 복제 (B17)
+  const grab = el('button', 'btn btn-line btn-wide', '↩ 지난 주에서 가져오기');
+  grab.style.marginTop = '8px';
+  grab.addEventListener('click', openNewsPicker);
+  card.appendChild(grab);
 
   // 성찬 위원 안내 — 다음 주일이 성찬식인 주에만 버튼 노출(누르면 지침 전문 삽입, 이후 자유 수정)
   const comDate = communionNextWeekDate(S);

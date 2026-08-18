@@ -586,3 +586,24 @@ body{
 .pastweek select{width:100%; font-family:inherit; font-size:15px; font-weight:500;
   padding:11px 12px; border:1px solid var(--ui-line); border-radius:12px;
   background:#fff; color:var(--ui-ink)}
+
+/* ---------- 지난 소식 가져오기 (B17) ---------- */
+.np-head{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+.np-label{flex:1; text-align:center; font-size:14px; font-weight:800; color:var(--ui-ink); word-break:keep-all}
+.np-arrow{flex:none; width:38px; height:38px; border-radius:11px; border:1px solid var(--ui-line);
+  background:#fff; color:var(--ui-ink); font-size:13px; cursor:pointer}
+.np-arrow:disabled{opacity:.3; cursor:default}
+.np-list{display:flex; flex-direction:column; gap:8px; min-height:60px}
+/* 카드 통째로 눌러 선택 — 폰에서 체크박스만 누르게 하면 자꾸 빗나간다 */
+.np-item{display:flex; flex-direction:column; gap:4px; text-align:left; width:100%;
+  font-family:inherit; cursor:pointer; padding:11px 12px; border-radius:12px;
+  border:1px solid var(--ui-line); background:#fff}
+.np-item.on{background:var(--ui-gold-soft); border-color:var(--ui-gold)}
+.np-item.is-have{background:#F7F6F2; color:var(--ui-sub); cursor:default}
+.np-title{font-size:12.5px; font-weight:800; color:var(--ui-gold)}
+.np-item.is-have .np-title{color:var(--ui-sub)}
+/* 본문은 두 줄까지만 — 긴 광고 하나가 목록을 다 먹지 않게 */
+.np-body{font-size:13.5px; font-weight:500; line-height:1.45; color:inherit; word-break:keep-all;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+/* 목록이 길어져도 버튼은 늘 손 닿는 곳에 */
+.np-go{position:sticky; bottom:0; margin-top:14px}
