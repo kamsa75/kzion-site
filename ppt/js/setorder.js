@@ -522,9 +522,9 @@ const SetOrder = (function () {
   function fitBand(root) {
     root.querySelectorAll('.bandslide-line').forEach(l => {
       if (!l.clientWidth) return;
+      l.style.fontSize = '';                                // CSS 규격(6.3cqh)으로 되돌린 뒤 측정
       let s = parseFloat(getComputedStyle(l).fontSize) || 11;
-      const min = s * 0.5;
-      l.style.fontSize = s + 'px';
+      const min = s * 0.55;
       while (l.scrollWidth > l.clientWidth && s > min) { s -= 0.5; l.style.fontSize = s + 'px'; }
     });
   }
