@@ -930,17 +930,27 @@ const Songs = (function () {
     return (b.label || '') + '|' + body;
   }
 
-  // 이름 없이 들어온 절(_auto)에 순서대로 1절·2절… 을 붙인다.
-  //   '반복되면 후렴'이라는 자동 판정은 하지 않는다(D41) — 리더가 부르는 대로(반복 포함) 붙여넣으면
-  //   모든 절이 '2회 이상'이 되어 전부 '후렴'이 되고 담기 버튼이 구분되지 않았다(2026-08-25 실사용).
-  //   후렴 표시는 붙여넣을 때 첫 줄에 '후렴'이라 적거나, 나중에 이름을 눌러 바꾼다.
-  function autoLabelBlocks(blocks) {
+  // 이름 없이 들어온 절(_auto)에 이름을 붙인다.
+  //   후렴 판정은 '확정 가능할 때만' — 반복되는 가사가 **정확히 한 종류**이면 그것이 후렴이다.
+  //   두 종류 이상이 반복되면 어느 쪽이 후렴인지 확정할 수 없으므로 판정하지 않고 절 번호만 붙인다
+  //   (A A B A B B처럼 부르는 대로 넣으면 예전 규칙은 전부 '후렴'이 되어 구분이 사라졌다 — 2026-08-25).
+  //   chorusSig = 후렴으로 확정된 가사 지문(없으면 null).
+  function autoLabelBlocks(blocks, chorusSig) {
     let vn = 0;
     blocks.forEach(b => {
       if (!b._auto) return;
-      b.type = 'verse';
-      b.label = (++vn) + '절';
+      if (chorusSig && blockSig(b) === chorusSig) { b.type = 'chorus'; b.label = '후렴'; }
+      else { b.type = 'verse'; b.label = (++vn) + '절'; }
     });
+  }
+
+  // 반복되는 가사가 정확히 한 종류일 때 그 지문을 돌려준다(아니면 null).
+  //   이름을 직접 적은 절은 그 이름을 존중하므로 자동 판정 대상에서 제외한다.
+  function soleRepeatedSig(blocks) {
+    const count = {};
+    blocks.forEach(b => { if (b._auto) { const s = blockSig(b); if (s) count[s] = (count[s] || 0) + 1; } });
+    const repeated = Object.keys(count).filter(s => count[s] >= 2);
+    return repeated.length === 1 ? repeated[0] : null;
   }
   function pasteToBlocks(text) {
     const chunks = String(text || '').split(/\n\s*\n+/).map(c => c.trim()).filter(Boolean);
@@ -964,6 +974,7 @@ const Songs = (function () {
     // 같은 절을 여러 번 붙여넣었으면 가사 블록은 하나만 두고, 등장 순서만 order에 기록한다(D5).
     //   → 가사를 고칠 때 한 곳만 고쳐도 반복 등장분에 전부 반영되고, 담기 버튼도 절 종류만큼만 나온다.
     //   슬라이드 장수는 order 그대로라 붙여넣은 것과 똑같다.
+    const chorusSig = soleRepeatedSig(blocks);                   // 합치기 전 등장 횟수로 후렴 확정
     const uniq = [], order = [], seen = {};
     blocks.forEach(b => {
       const sig = blockSig(b);
@@ -973,7 +984,7 @@ const Songs = (function () {
       uniq.push(b); order.push(b.id);
     });
 
-    autoLabelBlocks(uniq);                                      // 이름 없는 절에 1절·2절…
+    autoLabelBlocks(uniq, chorusSig);                           // 이름 없는 절에 후렴 / 1절·2절…
     uniq.forEach(b => { delete b._auto; });                     // 내부 플래그 제거(저장 데이터 오염 방지)
     return { version: 1, title: '', crop: false, crop_reason: '', blocks: uniq, order };
   }
