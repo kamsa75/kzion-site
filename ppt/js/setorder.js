@@ -822,7 +822,12 @@ const SetOrder = (function () {
         if (!nb.length) { alert('내용이 없어요. 가사를 넣고 절 사이를 빈 줄로 띄워 주세요.'); return; }
         const oldCount = (song.blocks || []).length;
         song.blocks = nb;
-        if (nb.length !== oldCount) song.arrange = null;   // 절 수가 바뀌면 편곡(회차·×N)이 옛 절을 참조 → 재시드
+        if (nb.length !== oldCount) {
+          // 절 수가 바뀌면 옛 순서·편곡이 사라진 절을 참조하고, 새로 넣은 절은 순서에 없어
+          // 슬라이드에 아예 안 나온다 → 둘 다 지금 절 순서대로 재시드
+          song.order = nb.map(b => b.id);
+          song.arrange = null;
+        }
         textEditIds.delete(song.id);
         SongStore.save(); SongStore.pushNow(song); render();
       });

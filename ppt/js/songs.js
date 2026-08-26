@@ -923,17 +923,23 @@ const Songs = (function () {
     if (/브릿지|bridge/.test(label) || /^\(?\s*b\s*\d*\s*\)?$/.test(s)) return 'bridge';
     return 'verse';
   }
-  // 명시 라벨 없던 블록(_auto)만: 가사 내용이 2번 이상 반복되면 '후렴', 고유하면 순서대로 1절·2절…
-  //   → 후렴을 안 적어도 자동 인식(AI 미사용, 저작권 문제 없음). 명시 라벨('후렴' 등)은 그대로 존중. (D33 복원)
+  // 같은 절인지 판정하는 지문 — 명시 이름 + 가사(공백·대소문자 무시).
+  //   이름을 직접 적은 절('1절'·'후렴')은 가사가 같아도 서로 다른 절로 존중한다.
+  function blockSig(b) {
+    const body = (b.lines || []).map(l => (l.text || '').replace(/\s+/g, '').toLowerCase()).join('\n');
+    return (b.label || '') + '|' + body;
+  }
+
+  // 이름 없이 들어온 절(_auto)에 순서대로 1절·2절… 을 붙인다.
+  //   '반복되면 후렴'이라는 자동 판정은 하지 않는다(D41) — 리더가 부르는 대로(반복 포함) 붙여넣으면
+  //   모든 절이 '2회 이상'이 되어 전부 '후렴'이 되고 담기 버튼이 구분되지 않았다(2026-08-25 실사용).
+  //   후렴 표시는 붙여넣을 때 첫 줄에 '후렴'이라 적거나, 나중에 이름을 눌러 바꾼다.
   function autoLabelBlocks(blocks) {
-    const sig = b => (b.lines || []).map(l => (l.text || '').replace(/\s+/g, '').toLowerCase()).join('\n');
-    const count = {};
-    blocks.forEach(b => { if (b._auto) { const s = sig(b); if (s) count[s] = (count[s] || 0) + 1; } });
     let vn = 0;
     blocks.forEach(b => {
       if (!b._auto) return;
-      if (count[sig(b)] >= 2) { b.type = 'chorus'; b.label = '후렴'; }   // 반복 = 후렴
-      else { b.type = 'verse'; b.label = (++vn) + '절'; }                 // 고유 = 절(문서 순서대로)
+      b.type = 'verse';
+      b.label = (++vn) + '절';
     });
   }
   function pasteToBlocks(text) {
@@ -952,11 +958,24 @@ const Songs = (function () {
       const auto = !label;                                      // 라벨 없이 들어온 블록 = 자동 분류 대상
       const type = label ? labelType(label) : 'verse';
       if (label && type === 'verse' && !/\D/.test(label)) label = label + '절'; // "2" → "2절"
-      blocks.push({ id: 'b' + (ci + 1), type, label, _auto: auto, lines: body.map(t => ({ text: t, low: [] })), breaks: twoLineBreaks(body.length) });
+      blocks.push({ id: '', type, label, _auto: auto, lines: body.map(t => ({ text: t, low: [] })), breaks: twoLineBreaks(body.length) });
     });
-    autoLabelBlocks(blocks);                                    // 반복 블록 → 후렴, 나머지 → 절 번호
-    blocks.forEach(b => { delete b._auto; });                   // 내부 플래그 제거(저장 데이터 오염 방지)
-    return { version: 1, title: '', crop: false, crop_reason: '', blocks };
+
+    // 같은 절을 여러 번 붙여넣었으면 가사 블록은 하나만 두고, 등장 순서만 order에 기록한다(D5).
+    //   → 가사를 고칠 때 한 곳만 고쳐도 반복 등장분에 전부 반영되고, 담기 버튼도 절 종류만큼만 나온다.
+    //   슬라이드 장수는 order 그대로라 붙여넣은 것과 똑같다.
+    const uniq = [], order = [], seen = {};
+    blocks.forEach(b => {
+      const sig = blockSig(b);
+      if (seen[sig]) { order.push(seen[sig]); return; }          // 이미 나온 절 = 순서에만 추가
+      b.id = 'b' + (uniq.length + 1);
+      seen[sig] = b.id;
+      uniq.push(b); order.push(b.id);
+    });
+
+    autoLabelBlocks(uniq);                                      // 이름 없는 절에 1절·2절…
+    uniq.forEach(b => { delete b._auto; });                     // 내부 플래그 제거(저장 데이터 오염 방지)
+    return { version: 1, title: '', crop: false, crop_reason: '', blocks: uniq, order };
   }
 
   // 이미지 추출 결과가 저작권 거부문을 정상 블록인 척 담아 오는 경우 차단(2026-07-11)
@@ -981,6 +1000,11 @@ const Songs = (function () {
     }));
     // 추출 결과는 항상 2줄씩 고정(AI가 한 줄씩 나눠 보내도 강제 2줄). 이후 검수에서 수동 조정 가능
     song.blocks.forEach(b => { b.breaks = twoLineBreaks(b.lines.length); });
+    // 붙여넣기가 준 등장 순서(같은 절 반복 포함) → 부르는 순서. 없으면(AI 이미지 추출) 손대지 않는다.
+    if (Array.isArray(r.order) && r.order.length) {
+      song.order = r.order.slice();
+      song.arrange = null;                    // 새 가사 = 옛 편곡(회차·×N)이 옛 절을 참조 → order로 재시드
+    }
     song.crop = !!r.crop;
     song.cropReason = r.crop_reason || '';
     // 악보에 적힌 곡 제목 자동 입력 (사용자가 이미 입력했으면 유지)

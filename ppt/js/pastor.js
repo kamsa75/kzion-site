@@ -345,7 +345,10 @@ const Pastor = (function () {
     data.hymn.blocks.forEach(b => { b.breaks = Songs.twoLineBreaks(b.lines.length); }); // 항상 2줄씩(AI가 한 줄씩 줘도 강제)
     if (r.title && !data.hymn.title) data.hymn.title = String(r.title).trim(); // 수동 입력 제목 우선
     $('#hymn-name').value = data.hymn.title || '';
-    data.hymn.order = hymnDefaultOrder(data.hymn.blocks); // 정리할 때마다 기본 순서(붙여넣은 그대로) 재설정
+    // 붙여넣기가 준 등장 순서(같은 절을 여러 번 넣었으면 그 반복까지) 우선, 없으면 블록 순서 그대로
+    data.hymn.order = (Array.isArray(r.order) && r.order.length)
+      ? r.order.slice()
+      : hymnDefaultOrder(data.hymn.blocks);
   }
 
   // 절 번호 표기 정리(D38): "(1) 가사"·"[1] 가사"·"1. 가사"·"1) 가사"를 → 빈 줄 + "1절" 라벨 줄 + 가사로 변환.
