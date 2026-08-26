@@ -171,9 +171,13 @@ const SongStore = (function () {
   async function pushOne(s, position) {
     const payload = payloadOf(s, position);
     const body = { song: payload };
-    // 기존 곡(서버 id 있음)만 충돌 검사 — 내가 불러온 시점(updatedAt) 이후 남이 저장했으면 서버가 409 반환.
-    // 신규 곡(insert)·최초 저장은 baseUpdatedAt 없음 → 검사 안 함.
-    if (payload.id && s.updatedAt) body.baseUpdatedAt = s.updatedAt;
+    // 저장 충돌 감지(#3) 끔 — baseUpdatedAt을 보내지 않으면 서버가 검사를 건너뛴다(409 없음).
+    //   이유: 담당자가 역할별로 갈려 같은 곡을 두 사람이 동시에 여는 일이 사실상 없는데,
+    //         "슬라이드 생성하기"가 저장을 두 번 보내(pushNow + 800ms 뒤 pushAll) 뒤엣것이
+    //         낡은 기준시각으로 도착 → 자기 자신을 남으로 오인한 409가 매번 떴다(2026-08-25 실사용).
+    //   중복 저장 자체는 남겨둔다 — 앞 요청이 실패해도 뒤 요청이 받쳐주는 재시도 역할을 하므로.
+    //   되살리려면 아래 한 줄의 주석을 풀면 된다(conflict.js·서버 검사 코드는 그대로 있음).
+    // if (payload.id && s.updatedAt) body.baseUpdatedAt = s.updatedAt;
     const r = await API.call('saveSong', body);
     if (r.updatedAt) s.updatedAt = r.updatedAt;   // 저장 성공 시 기준 시각 갱신(다음 충돌감지용)
     if (r.id && r.id !== s.id) {
