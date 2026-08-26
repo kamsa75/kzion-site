@@ -914,6 +914,9 @@ const Songs = (function () {
   // 붙여넣은 글자는 이미 확정이므로 모델 재출력이 불필요 → 저작권 거부가 원천적으로 발생하지 않음.
   // 규칙: 빈 줄 = 블록 경계 / 첫 줄이 라벨 형태면 라벨로 분리 / 없으면 절 자동 번호 / 2줄씩 슬라이드.
   const LABEL_RE = /^\(?\s*(후렴|후렴\s*\d+|렴|간주|브릿지|bridge|pre-?chorus|prec|chorus|verse|intro|outro|v\s*\d+|c\s*\d*|b\s*\d*|\d+\s*절|절\s*\d+|\d+)\s*\)?\s*[.:：)]?\s*$/i;
+  // 첫 줄이 '이름표(1절·후렴·V1…)'로 보이는가 — 가사 문장과 구분하는 유일한 기준.
+  // setorder의 '통째로 고치기'도 이 판정을 함께 쓴다(규칙 이원화 방지).
+  function isLabel(line) { return LABEL_RE.test(String(line || '').trim()); }
   function labelType(label) {
     const s = String(label || '').toLowerCase();
     if (/후렴|렴|chorus/.test(label) || /^\(?\s*c\s*\d*\s*\)?$/.test(s) || /pre-?chorus|prec/.test(s)) return 'chorus';
@@ -1025,5 +1028,5 @@ const Songs = (function () {
     KZ.show('songs');
   }
 
-  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, twoLineBreaks, pasteToBlocks, renderPdf, isPdf };
+  return { init, open, render, resizeImage, uploadImages, applyExtract, normalizeBreaks, twoLineBreaks, pasteToBlocks, renderPdf, isPdf, isLabel, labelType };
 })();

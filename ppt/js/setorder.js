@@ -707,24 +707,59 @@ const SetOrder = (function () {
     wrap.addEventListener('pointercancel', up);
   }
 
-  // 블록 → 편집용 텍스트(각 절: 첫 줄=이름, 아래 가사, 절 사이 빈 줄)
+  // 블록 → 편집용 텍스트(각 절: 이름은 '1절·후렴' 같은 정형일 때만 첫 줄, 아래 가사, 절 사이 빈 줄)
+  //   자유 이름(예 '마지막 후렴')은 내보내지 않는다 — 다시 읽을 때 가사로 섞여 자막에 뜨는 사고 방지.
+  //   화면에 안 보여도 이름은 아래 textToBlocks의 자리 승계로 그대로 유지된다.
   function blocksToText(blocks) {
-    return (blocks || []).map(b =>
-      [b.label || '절'].concat((b.lines || []).map(l => l.text || '')).join('\n')
-    ).join('\n\n');
+    return (blocks || []).map(b => {
+      const lines = (b.lines || []).map(l => l.text || '');
+      const head = (b.label && Songs.isLabel(b.label)) ? [b.label] : [];
+      return head.concat(lines).join('\n');
+    }).join('\n\n');
   }
-  // 편집 텍스트 → 블록(결정적 파싱: 빈 줄=절 구분, 첫 줄=라벨). AI 재해석 없음 — 입력한 구조 그대로
-  function textToBlocks(text) {
+
+  // 편집 텍스트 → 블록(결정적 파싱: 빈 줄=절 구분). AI 재해석 없음 — 입력한 구조 그대로.
+  //   첫 줄은 '1절·후렴·V1'처럼 이름 형태일 때만 이름으로 뗀다(붙여넣기와 같은 판정 = Songs.isLabel).
+  //   예전에는 첫 줄을 무조건 이름으로 먹어, 가사만 붙여넣으면 첫 줄이 자막에서 사라졌다(2026-08-25).
+  //   이름이 없는 절: 절 개수가 그대로면 같은 자리의 옛 이름을 물려받고, 달라졌으면 1절·2절…로 새로 붙인다.
+  function textToBlocks(text, oldBlocks) {
     const chunks = String(text || '').split(/\n\s*\n+/).map(c => c.trim()).filter(Boolean);
-    const out = [];
-    chunks.forEach((chunk, ci) => {
+    const parsed = [];
+    chunks.forEach(chunk => {
       const rows = chunk.split('\n').map(r => r.trim()).filter(Boolean);
-      if (rows.length < 2) return;                    // 라벨 + 최소 1줄 가사 필요
-      const label = rows[0], body = rows.slice(1);
-      const type = /후렴|렴|chorus|^c$/i.test(label) ? 'chorus' : /브릿지|bridge/i.test(label) ? 'bridge' : 'verse';
-      out.push({ id: 'b' + (ci + 1), type, label, lines: body.map(t => ({ text: t, low: [] })), breaks: Songs.twoLineBreaks(body.length) });
+      if (!rows.length) return;
+      let label = '', body = rows;
+      if (rows.length >= 2 && Songs.isLabel(rows[0])) {          // 이름처럼 생겼을 때만 분리
+        label = rows[0].replace(/[.:：)]\s*$/, '').trim();
+        if (/^\d+$/.test(label)) label = label + '절';            // "2" → "2절"
+        body = rows.slice(1);
+      }
+      if (body.length) parsed.push({ label, body });             // 한 줄짜리 절도 버리지 않는다
     });
-    return out;
+
+    //  자리 승계는 '1절·후렴' 같은 정형 이름만 — 예전 버그로 가사가 이름표에 들어간 곡이
+    //  다시 그 가사를 이름으로 물려받는 것을 막는다(자유 이름은 이 화면을 거치면 1절·2절로 정리).
+    const old = oldBlocks || [];
+    const sameCount = old.length === parsed.length;
+    const inherit = i => {
+      const l = sameCount && old[i] ? (old[i].label || '') : '';
+      return Songs.isLabel(l) ? l : '';
+    };
+    const labels = parsed.map((p, i) => p.label || inherit(i));
+    const used = new Set(labels.filter(Boolean));
+    let vn = 0;
+    return parsed.map((p, i) => {
+      let label = labels[i];
+      if (!label) {                                              // 남은 절만 자동 번호(기존 이름과 안 겹치게)
+        do { vn++; } while (used.has(vn + '절'));
+        label = vn + '절'; used.add(label);
+      }
+      return {
+        id: 'b' + (i + 1), type: Songs.labelType(label), label,
+        lines: p.body.map(t => ({ text: t, low: [] })),
+        breaks: Songs.twoLineBreaks(p.body.length)
+      };
+    });
   }
 
   function renderGasaZone(song, card) {
@@ -783,8 +818,8 @@ const SetOrder = (function () {
       const row = document.createElement('div'); row.style.cssText = 'display:flex; gap:8px; margin-top:10px;';
       const apply = document.createElement('button'); apply.className = 'btn btn-primary'; apply.style.flex = '1'; apply.textContent = '적용';
       apply.addEventListener('click', () => {
-        const nb = textToBlocks(ta.value);
-        if (!nb.length) { alert('내용이 없어요. 각 절의 첫 줄에 이름, 그 아래 가사를 넣고 절 사이를 빈 줄로 띄워 주세요.'); return; }
+        const nb = textToBlocks(ta.value, song.blocks);   // 옛 블록 = 이름 자리 승계용
+        if (!nb.length) { alert('내용이 없어요. 가사를 넣고 절 사이를 빈 줄로 띄워 주세요.'); return; }
         const oldCount = (song.blocks || []).length;
         song.blocks = nb;
         if (nb.length !== oldCount) song.arrange = null;   // 절 수가 바뀌면 편곡(회차·×N)이 옛 절을 참조 → 재시드
