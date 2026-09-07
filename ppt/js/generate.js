@@ -159,15 +159,29 @@ const Generate = (function () {
         return out;
       }
       case 'reading_short': {
-        const arr = (p.readings || []).filter(x => (x || '').trim());
-        if (!arr.length) return [];   // 짧은 구절 없으면 그린스크린도 생략(고아 방지, D36)
-        // 각 구절 앞마다 라이브 그린 1장(구절 단위 — 한 구절이 카드 여러 장으로 나뉘어도 그린은 앞에 1장, D38)
+        // 함께 읽는 구절 = 칸(짧은 구절/긴 구절/이미지)이 섞인 목록 (D44). 옛 문자열 데이터도 normReadingItem이 흡수.
+        // 규칙: 칸(덩어리)마다 앞에 라이브 그린 1장 — 칸이 여러 장으로 갈라져도(긴 구절 자동 분할·사진 여러 장) 그린은 1장.
+        //       내용 없는 칸은 그린도 안 넣음(고아 방지, D36·D38). 구절 없으면 [] (그린 0장).
+        const imgs = ctx.pastorImgs || {};
         const out = [];
-        arr.forEach(r => {
-          const pages = (typeof bandPages === 'function' ? bandPages(r) : []);
-          if (!pages.length) return;   // 내용 못 만든 구절은 그린도 안 넣음(고아 방지)
+        (p.readings || []).map(normReadingItem).forEach(it => {
+          let pages = [], label = '함께 읽는 구절';
+          if (it.t === 'img') {
+            label = '설교 사진';
+            pages = it.paths.map(path => {
+              const src = imgs[path];
+              // 받아오지 못한 사진 = 파일은 만들되 눈에 띄는 경고 장(B 확정, 2026-09-06) — 조용히 빠지지 않는다
+              return src ? { layout: 'score', dark: true, src }
+                         : { layout: 'score', dark: true, placeholder: '⚠ 사진을 받아오지 못했습니다 — 네트워크 확인 후 다시 받아주세요', imgFail: true };
+            });
+          } else if (it.t === 'long') {
+            pages = splitPassage(it.text);          // 성경 본문과 같은 큰 흰 카드(구절 칩·골드 절번호·자동 분할)
+          } else {
+            pages = (typeof bandPages === 'function' ? bandPages(it.text) : []);
+          }
+          if (!pages.length) return;
           out.push({ label: '빈 그린스크린(라이브)', slide: { layout: 'green_blank' } });
-          pages.forEach(sl => out.push({ label: '함께 읽는 구절', slide: sl }));
+          pages.forEach(sl => out.push({ label, slide: sl, missing: !!sl.imgFail, imgFail: !!sl.imgFail }));
         });
         return out;
       }
@@ -255,19 +269,56 @@ const Generate = (function () {
     catch (e) { return {}; }
   }
 
+  // 실패 시 최대 3회(0.6s·1.2s 간격) — 설교 사진 받아오기용 (B 확정: 재시도 후에도 실패하면 경고 장으로 대체)
+  async function withRetry(fn, tries) {
+    let last;
+    for (let i = 0; i < (tries || 3); i++) {
+      try { return await fn(); }
+      catch (e) { last = e; if (i < (tries || 3) - 1) await new Promise(r => setTimeout(r, 600 * (i + 1))); }
+    }
+    throw last;
+  }
+
+  // 설교 사진(함께 읽는 구절의 이미지 칸, D44): 저장 경로 → dataURL 맵. 못 받은 경로는 맵에 없음(→ 경고 장).
+  // 목 모드는 경로 자체가 dataURL(localStorage)이라 그대로 매핑.
+  async function loadPastorImages(pastor) {
+    const paths = [];
+    (pastor.readings || []).map(normReadingItem).forEach(it => { if (it.t === 'img') it.paths.forEach(p => { if (paths.indexOf(p) < 0) paths.push(p); }); });
+    const map = {};
+    if (!paths.length) return map;
+    if (!CONFIG.USE_SERVER) { paths.forEach(p => { map[p] = p; }); return map; }
+    let urls = [];
+    try { const r = await withRetry(() => API.call('imageUrls', { paths })); urls = r.urls || []; }
+    catch (e) { return map; }   // URL 발급 자체가 실패 → 전부 경고 장
+    await Promise.all(paths.map(async (p, i) => {
+      if (!urls[i]) return;
+      try { map[p] = await withRetry(() => AssetStore.fetchDataUrl(urls[i])); } catch (e) { /* 경고 장 */ }
+    }));
+    return map;
+  }
+
   async function loadCtx() {
     const assets = await loadAssets();
     const settings = await loadSettings();
     if (CONFIG.USE_SERVER) {
       const w = await API.call('getWeek');
-      return { weekId: w.weekId, pastor: (w.pastor && w.pastor.data) || {}, songs: w.songs || [], assets, settings, _week: w };
+      const pastor = (w.pastor && w.pastor.data) || {};
+      const pastorImgs = await loadPastorImages(pastor);
+      return { weekId: w.weekId, pastor, songs: w.songs || [], assets, settings, pastorImgs, _week: w };
     }
     let pastor = {}, praise = [], choir = [];
     try { pastor = JSON.parse(localStorage.getItem('kzppt_pastor') || '{}'); } catch (e) {}
     try { praise = JSON.parse(localStorage.getItem('kzppt_songs_praise') || '[]'); } catch (e) {}
     try { choir = JSON.parse(localStorage.getItem('kzppt_songs_choir') || '[]'); } catch (e) {}
     const songs = praise.map(s => Object.assign({ role: 'praise' }, s)).concat(choir.map(s => Object.assign({ role: 'choir' }, s)));
-    return { weekId: thisSundayISO(), pastor, songs, assets, settings };
+    const pastorImgs = await loadPastorImages(pastor);
+    return { weekId: thisSundayISO(), pastor, songs, assets, settings, pastorImgs };
+  }
+
+  // 받아오지 못한 설교 사진이 있으면 파일 저장 뒤 크게 알림(B: 조용히 빠지지 않음)
+  function warnImgFail(list) {
+    const n = (list || []).filter(it => it.imgFail).length;
+    if (n) alert('⚠ 설교 사진 ' + n + '장을 받아오지 못해 경고 페이지로 넣었습니다.\n파일은 저장됐습니다. 네트워크를 확인한 뒤 다시 받아주세요.');
   }
 
   function build(ctx) {
@@ -554,10 +605,10 @@ const Generate = (function () {
         break;
       }
       case 'score': {
-        s.background = { color: C.white };
-        // 악보는 잘리면 안 됨 → contain(비율 유지, 중앙) (지침 14번)
+        s.background = { color: sl.dark ? C.dark : C.white };   // dark = 설교 사진(세로 사진 여백을 다크로, D44)
+        // 악보·사진은 잘리면 안 됨 → contain(비율 유지, 중앙) (지침 14번)
         if (sl.src) s.addImage({ data: sl.src, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'contain', w: 13.33, h: 7.5 } });
-        else s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '888888' });
+        else s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: sl.dark ? C.gold : '888888' });   // 다크 경고 장은 골드로 눈에 띄게
         break;
       }
       case 'image': {
@@ -584,6 +635,7 @@ const Generate = (function () {
     try {
       await buildPptx(items).writeFile({ fileName: '주일예배_' + weekId + '.pptx' });
       noteDownloaded(weekId, lastWeek);   // 미리보기 화면에서 받은 것도 '받음'으로 기록
+      warnImgFail(items);
     } catch (e) {
       alert('PPTX 생성 중 문제가 생겼습니다: ' + (e.message || ''));
     } finally {
@@ -602,6 +654,7 @@ const Generate = (function () {
       const list = build(ctx);
       await buildPptx(list).writeFile({ fileName: '주일예배_' + ctx.weekId + '.pptx' });
       noteDownloaded(ctx.weekId, ctx._week);   // 방금 받은 최신 버전을 '받음'으로 기록
+      warnImgFail(list);
     } catch (e) {
       alert('최신 PPT 생성 중 문제가 생겼습니다: ' + (e.message || ''));
     } finally {

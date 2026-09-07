@@ -11,26 +11,28 @@ const Pastor = (function () {
   const $ = (sel) => document.querySelector(sel);
   const KEY = 'kzppt_pastor';
 
-  // passages/readings는 페이지(슬라이드)별 문자열 배열
+  // passages는 페이지(슬라이드)별 문자열 배열
+  // readings는 칸 목록(D44): { t:'short'|'long', text } | { t:'img', paths:[저장 경로] } — 옛 문자열은 normReadingItem이 short로 승격
   // hymn = 예배 중 찬송가 가사(붙여넣기 → 절/후렴 블록). 절 순서대로 자동 배치 (D19)
-  let data = { title: '', ref: '', passages: [''], readings: [''], prayer: '', hymn: { raw: '', title: '', blocks: [] } };
+  let data = { title: '', ref: '', passages: [''], readings: [{ t: 'short', text: '' }], prayer: '', hymn: { raw: '', title: '', blocks: [] } };
   let hymnPaths = [];
   let thumbUrls = [];
+  let readingUrls = {};   // 이미지 칸 표시용: 저장 경로 → 서명 URL(서버) / dataURL(목·방금 올린 것)
   let noteTimer = null;
   let pushTimer = null;
 
-  // 옛 단일 문자열 스키마 → 배열로 변환 (하위 호환)
+  // 옛 단일 문자열 스키마 → 배열로 변환 (하위 호환). ⚠ 여기 없는 키는 저장 시 조용히 사라진다(savePastor가 data 통째 교체)
   function normalize(d) {
     const h = d.hymn || {};
     const out = {
       title: d.title || '', ref: d.ref || '', prayer: d.prayer || '',
       passages: Array.isArray(d.passages) ? d.passages : (d.passage ? [d.passage] : ['']),
-      readings: Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : ['']),
+      readings: (Array.isArray(d.readings) ? d.readings : (d.reading ? [d.reading] : [])).map(normReadingItem),
       hymn: { raw: h.raw || '', title: h.title || '', blocks: Array.isArray(h.blocks) ? h.blocks : [], order: Array.isArray(h.order) ? h.order : [] },
       done: !!d.done   // 담당자가 '완료'로 표시했는지 (D: 명시적 완료 버튼)
     };
     if (!out.passages.length) out.passages = [''];
-    if (!out.readings.length) out.readings = [''];
+    if (!out.readings.length) out.readings = [{ t: 'short', text: '' }];
     return out;
   }
 
@@ -49,9 +51,18 @@ const Pastor = (function () {
         catch (e) { $('#pastor-saved').textContent = '⚠ 저장 실패 — 네트워크 확인'; }
       }, 600);
     } else {
-      localStorage.setItem(KEY, JSON.stringify(data));
-      savedNote();
+      // 목 모드: 사진 dataURL이 들어가면 localStorage 5MB를 넘을 수 있음(개발용 한계) — 실패를 조용히 삼키지 않고 표시
+      try { localStorage.setItem(KEY, JSON.stringify(data)); savedNote(); }
+      catch (e) { $('#pastor-saved').textContent = '⚠ 저장 실패 — 연습 모드 용량 초과'; }
     }
+  }
+
+  // 즉시 저장(디바운스 없음) + 성공 여부 반환 — 이미지 칸 상태 표시용(D44: "✓ 저장됨"은 서버 저장까지 끝났을 때만)
+  async function saveNow() {
+    if (!CONFIG.USE_SERVER) { save(); return true; }
+    clearTimeout(pushTimer);
+    try { await API.call('savePastor', { data }); savedNote(); return true; }
+    catch (e) { $('#pastor-saved').textContent = '⚠ 저장 실패 — 네트워크 확인'; return false; }
   }
 
   async function saveImages() {
@@ -133,40 +144,191 @@ const Pastor = (function () {
     }
   }
 
-  /* ---------- 함께 읽는 구절(밴드) 다중 페이지 ---------- */
+  /* ---------- 함께 읽는 구절 — 칸 3종(짧은 구절/긴 구절/이미지)이 섞이는 목록 (D44) ----------
+     · 칸 순서 = PPT 순서. ↑↓로 이동(폰에서 긴 칸 드래그는 실패가 잦아 버튼).
+     · 짧은↔긴 전환은 글을 유지한 채 표시 방식만 바꿈. 길이로 자동 판정하지 않는다(D41).
+     · 이미지 칸 = 사진 여러 장(한 묶음). 칸 안에서는 드래그 정렬(악보 페이지와 동일, D15).
+     · 사진은 서버 업로드 성공 후에만 목록에 들어가고, 저장까지 끝나야 "✓ 저장됨" (조용히 빠지지 않음) */
+
+  const uidOf = new WeakMap();   // 칸 객체 → 런타임 id (저장 안 됨 — 업로드 중 순서가 바뀌어도 그 칸을 찾기 위해)
+  let uidSeq = 0;
+  function uid(it) { if (!uidOf.has(it)) uidOf.set(it, ++uidSeq); return uidOf.get(it); }
 
   function renderReadings() {
     const list = $('#reading-list');
     list.innerHTML = '';
-    data.readings.forEach((text, i) => {
+    const n = data.readings.length;
+    data.readings.forEach((it, i) => {
       const block = document.createElement('div');
-      block.className = 'page-block';
+      block.className = 'page-block rd-block';
+      block.dataset.uid = uid(it);
 
-      const ta = document.createElement('textarea');
-      ta.rows = 4;
-      ta.value = text;
-      ta.placeholder = '함께 읽을 구절 — 길면 자동으로 2줄씩 나뉩니다';
-      ta.addEventListener('input', () => {
-        data.readings[i] = ta.value;
-        drawReadingPreview(prev, ta.value);
-        save();
-      });
-      block.appendChild(ta);
+      // 머리줄: 종류(짧은↔긴 전환 / 사진) + ↑↓ + 삭제
+      const head = document.createElement('div');
+      head.className = 'rd-head';
+      if (it.t === 'img') {
+        const k = document.createElement('span'); k.className = 'rd-kind'; k.textContent = '🖼 사진';
+        head.appendChild(k);
+      } else {
+        const seg = document.createElement('div'); seg.className = 'rd-seg';
+        [['short', '짧은 구절'], ['long', '긴 구절']].forEach(([t, name]) => {
+          const b = document.createElement('button'); b.type = 'button';
+          b.className = 'rd-seg-btn' + (it.t === t ? ' on' : ''); b.textContent = name;
+          b.addEventListener('click', () => { if (it.t === t) return; it.t = t; renderReadings(); save(); });
+          seg.appendChild(b);
+        });
+        head.appendChild(seg);
+      }
+      const tools = document.createElement('div'); tools.className = 'rd-tools';
+      const mk = (txt, title, dis, fn) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-ghost rd-tool';
+        b.textContent = txt; b.title = title; b.disabled = !!dis; b.addEventListener('click', fn); return b;
+      };
+      tools.appendChild(mk('↑', '위로', i === 0, () => { swapReading(i, i - 1); }));
+      tools.appendChild(mk('↓', '아래로', i === n - 1, () => { swapReading(i, i + 1); }));
+      tools.appendChild(mk('✕', '이 칸 삭제', false, () => {
+        if (it.t === 'img' && it.paths.length && !confirm('사진 ' + it.paths.length + '장이 든 칸을 삭제할까요?')) return;
+        data.readings.splice(i, 1);
+        if (!data.readings.length) data.readings.push({ t: 'short', text: '' });
+        renderReadings(); save();
+      }));
+      head.appendChild(tools);
+      block.appendChild(head);
 
-      const prev = document.createElement('div');
-      prev.className = 'field-preview';
-      drawReadingPreview(prev, text);
-      block.appendChild(prev);
-
-      if (data.readings.length > 1) block.appendChild(removeBtn(() => {
-        data.readings.splice(i, 1); renderReadings(); save();
-      }, i + 1 + '페이지 삭제'));
-
+      if (it.t === 'img') renderImgItem(block, it);
+      else renderTextItem(block, it);
       list.appendChild(block);
     });
   }
 
-  function drawReadingPreview(el, text) {
+  function swapReading(a, b) {
+    const arr = data.readings;
+    if (b < 0 || b >= arr.length) return;
+    [arr[a], arr[b]] = [arr[b], arr[a]];
+    renderReadings(); save();
+  }
+
+  function renderTextItem(block, it) {
+    const ta = document.createElement('textarea');
+    ta.rows = it.t === 'long' ? 6 : 4;
+    ta.value = it.text;
+    ta.placeholder = it.t === 'long'
+      ? '긴 구절 — 성경 본문과 같은 큰 카드. 맨 앞 [삼상 1:1-3]은 구절 칩, 길면 자동으로 여러 장'
+      : '함께 읽을 구절 — 하단 카드, 길면 자동으로 2줄씩 나뉩니다';
+    ta.addEventListener('input', () => {
+      it.text = ta.value;
+      drawReadingPreview(prev, it);
+      save();
+    });
+    block.appendChild(ta);
+    const prev = document.createElement('div');
+    prev.className = 'field-preview';
+    drawReadingPreview(prev, it);
+    block.appendChild(prev);
+  }
+
+  // 이미지 칸: 실제 슬라이드(다크·비율 유지)로 작은 미리보기 = 드래그 셀. 장별 삭제 + 사진 추가 + 상태줄
+  function renderImgItem(block, it) {
+    const strip = document.createElement('div');
+    strip.className = 'page-strip rd-strip';
+    it.paths.forEach((path, pi) => {
+      const cell = document.createElement('div');
+      cell.className = 'page-cell rd-cell';
+      cell._path = path;
+      const src = readingUrls[path];
+      cell.appendChild(renderSlide(src ? { layout: 'score', dark: true, src } : { layout: 'score', dark: true, placeholder: '불러오는 중…' }));
+      const num = document.createElement('span'); num.className = 'page-num'; num.textContent = pi + 1;
+      const del = document.createElement('button'); del.type = 'button'; del.className = 'thumb-del'; del.textContent = '✕'; del.title = '이 사진 삭제';
+      del.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        it.paths.splice(pi, 1); renderReadings();
+        setImgStatus(it, '저장 중…');
+        setImgStatus(it, (await saveNow()) ? savedText(it) : '⚠ 저장 실패 — 탭해서 다시 저장');
+      });
+      cell.append(num, del);
+      strip.appendChild(cell);
+    });
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'page-add rd-add';
+    add.textContent = it.paths.length ? '＋ 사진\n추가' : '📷 사진\n올리기';
+    add.addEventListener('click', () => pickReadingFiles(it));
+    strip.appendChild(add);
+    block.appendChild(strip);
+
+    const st = document.createElement('div'); st.className = 'rd-status';
+    st.textContent = savedText(it);
+    if (it.paths.length) st.classList.add('ok');
+    block.appendChild(st);
+
+    if (it.paths.length > 1) {
+      const hint = document.createElement('p'); hint.className = 'page-hint';
+      hint.textContent = '순서 바꾸기: 데스크톱은 바로 끌기 / 폰은 꾹 눌러 끌기';
+      block.appendChild(hint);
+      DragSort.bind(block, {
+        container: '.rd-strip', item: '.rd-cell', ignore: 'button', group: 'rd-img-' + uid(it),
+        commit: async () => {
+          it.paths = [].map.call(block.querySelectorAll('.rd-cell'), c => c._path);
+          renderReadings();
+          setImgStatus(it, (await saveNow()) ? savedText(it) : '⚠ 저장 실패 — 탭해서 다시 저장');
+        },
+        rerender: renderReadings
+      });
+    }
+  }
+
+  // 저장 완료 문구(사진 있음/없음)
+  function savedText(it) {
+    return it.paths.length
+      ? '✓ 사진 ' + it.paths.length + '장 저장됨'
+      : '사진을 올리면 이 자리에 1장씩 슬라이드로 들어갑니다 (세로 사진은 양옆이 어둡게)';
+  }
+
+  // 칸 상태줄 갱신(재렌더 뒤에도 uid로 찾음). 실패 문구면 탭하면 다시 저장
+  function setImgStatus(it, text) {
+    const block = $('#reading-list .rd-block[data-uid="' + uid(it) + '"]');
+    const st = block && block.querySelector('.rd-status');
+    if (!st) return;
+    st.textContent = text;
+    const fail = /⚠/.test(text);
+    st.classList.toggle('ok', /✓/.test(text));
+    st.classList.toggle('fail', fail);
+    st.onclick = fail ? async () => { setImgStatus(it, '저장 중…'); setImgStatus(it, (await saveNow()) ? savedText(it) : '⚠ 저장 실패 — 탭해서 다시 저장'); } : null;
+  }
+
+  let pickTarget = null;   // 파일 선택창이 열린 칸
+  function pickReadingFiles(it) {
+    pickTarget = it;
+    const inp = $('#reading-file'); inp.value = ''; inp.click();
+  }
+
+  // 사진 올리기: 1장씩 축소(긴 변 1920) → 업로드 성공 → 목록 추가 → 전부 끝나면 저장 → ✓
+  async function onReadingFiles(it, fileList) {
+    const files = [...fileList]; if (!files.length || !it) return;
+    let done = 0, failed = 0;
+    setImgStatus(it, '올리는 중 0/' + files.length + '…');
+    for (const f of files) {
+      try {
+        const r = await Songs.resizeImage(f, { maxEdge: 1920, quality: 0.85 });
+        const path = CONFIG.USE_SERVER ? (await Songs.uploadImages([r.dataUrl]))[0] : r.dataUrl;
+        readingUrls[path] = r.dataUrl;
+        it.paths.push(path); done++;
+        renderReadings();
+        setImgStatus(it, '올리는 중 ' + done + '/' + files.length + '…');
+      } catch (e) { failed++; }
+    }
+    if (failed) alert('사진 ' + failed + '장을 올리지 못했습니다 — 네트워크를 확인하고 다시 올려주세요.');
+    if (!done) { renderReadings(); return; }
+    setImgStatus(it, '저장 중…');
+    const ok = await saveNow();
+    setImgStatus(it, ok ? savedText(it) : '⚠ 저장 실패 — 탭해서 다시 저장');
+  }
+
+  // 텍스트 칸 미리보기: 짧은=하단 카드(2줄씩) / 긴=성경 본문과 같은 큰 카드(자동 분할)
+  function drawReadingPreview(el, it) {
+    if (it.t === 'long') return drawPassagePreview(el, it.text);
+    return drawShortPreview(el, it.text);
+  }
+
+  function drawShortPreview(el, text) {
     el.innerHTML = '';
     // 실제 PPT와 동일하게 자동으로 2줄씩 밴드 페이지 분할
     const pages = bandPages(text);
@@ -405,9 +567,8 @@ const Pastor = (function () {
       cap.textContent = '악보 ' + (i + 1) + ' — 슬라이드 미리보기';
       const frame = document.createElement('div');
       frame.className = 'pscore-frame';
-      // 실제 PPT와 동일한 악보 통짜 슬라이드(흰 배경·비율유지 contain — 잘리지 않음, 지침 14번)
+      // 실제 PPT와 동일한 악보 통짜 슬라이드(흰 배경·비율유지 contain — 잘리지 않음, 지침 14번·CSS 공용)
       const sl = renderSlide({ layout: 'score', src });
-      const img = sl.querySelector('img'); if (img) img.style.objectFit = 'contain';
       const del = document.createElement('button');
       del.className = 'thumb-del';
       del.textContent = '✕';
@@ -465,12 +626,22 @@ const Pastor = (function () {
           try { const r = await API.call('imageUrls', { paths: hymnPaths }); thumbUrls = r.urls || []; }
           catch (e) {}
         }
+        // 설교 사진(이미지 칸) 표시용 서명 URL — 실패해도 화면은 뜨고 셀에 '불러오는 중…'만 남음(D44)
+        readingUrls = {};
+        const imgPaths = [];
+        data.readings.forEach(it => { if (it.t === 'img') it.paths.forEach(p => imgPaths.push(p)); });
+        if (imgPaths.length) {
+          try { const r = await API.call('imageUrls', { paths: imgPaths }); imgPaths.forEach((p, i) => { if (r.urls && r.urls[i]) readingUrls[p] = r.urls[i]; }); }
+          catch (e) {}
+        }
       } catch (e) {
         alert('서버에서 데이터를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
         return;
       }
     } else {
       try { data = normalize(JSON.parse(localStorage.getItem(KEY)) || {}); } catch (e) { data = normalize({}); }
+      readingUrls = {};   // 목 모드: 경로 자체가 dataURL
+      data.readings.forEach(it => { if (it.t === 'img') it.paths.forEach(p => { readingUrls[p] = p; }); });
     }
     bindOnce();
     renderAll();
@@ -492,7 +663,15 @@ const Pastor = (function () {
     $('#pf-ref').addEventListener('input', () => renderPassages());
     $('#btn-pastor-done').addEventListener('click', () => { data.done = !data.done; renderDone(); save(); });
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
-    $('#btn-add-reading').addEventListener('click', () => { data.readings.push(''); renderReadings(); save(); });
+    // 함께 읽는 구절 칸 추가 3종 (D44). 사진 칸은 만들자마자 파일 선택창(같은 탭 제스처 안에서 열어야 iOS가 허용)
+    $('#btn-add-reading-short').addEventListener('click', () => { data.readings.push({ t: 'short', text: '' }); renderReadings(); save(); });
+    $('#btn-add-reading-long').addEventListener('click', () => { data.readings.push({ t: 'long', text: '' }); renderReadings(); save(); });
+    $('#btn-add-reading-img').addEventListener('click', () => {
+      const it = { t: 'img', paths: [] };
+      data.readings.push(it); renderReadings(); save();
+      pickReadingFiles(it);
+    });
+    $('#reading-file').addEventListener('change', (e) => { const it = pickTarget; pickTarget = null; onReadingFiles(it, e.target.files); });
     // 찬송가 제목(몇 장·제목) — 입력 즉시 저장·미리보기 갱신(제목 슬라이드)
     $('#hymn-name').addEventListener('input', () => { data.hymn.title = $('#hymn-name').value; renderFixedPreviews(); renderHymnPreview(); save(); });
     // 찬송가: 입력은 자동 저장(raw만), 블록은 "정리하기"를 눌러야 갱신 (API 호출 아끼기)

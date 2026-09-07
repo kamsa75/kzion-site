@@ -227,7 +227,7 @@
       (p.passages || []).some(x => (x || '').trim()),
       (p.prayer || '').trim(),
       (p.ref || '').trim(),
-      (p.readings || []).some(x => (x || '').trim()),
+      (p.readings || []).some(readingItemHasContent),   // 문자열·객체(짧은/긴/이미지 칸) 모두 (D44)
       (p.hymn && ((p.hymn.blocks || []).length || (p.hymn.raw || '').trim()))
     ].some(Boolean);
     return any ? 'progress' : 'empty';
