@@ -405,9 +405,8 @@ const Pastor = (function () {
       cap.textContent = '악보 ' + (i + 1) + ' — 슬라이드 미리보기';
       const frame = document.createElement('div');
       frame.className = 'pscore-frame';
-      // 실제 PPT와 동일한 악보 통짜 슬라이드(흰 배경·비율유지 contain — 잘리지 않음, 지침 14번)
+      // 실제 PPT와 동일한 악보 통짜 슬라이드(흰 배경·비율유지 contain — 잘리지 않음, 지침 14번·CSS 공용)
       const sl = renderSlide({ layout: 'score', src });
-      const img = sl.querySelector('img'); if (img) img.style.objectFit = 'contain';
       const del = document.createElement('button');
       del.className = 'thumb-del';
       del.textContent = '✕';

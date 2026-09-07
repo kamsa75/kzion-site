@@ -121,11 +121,11 @@ function renderSlide(slide) {
 
     case 'score': { // 악보 통짜형
       el.className = 'slide slide--score';
+      if (slide.dark) el.classList.add('is-dark'); // 설교 사진: 다크 배경(세로 사진 여백, D44)
       if (slide.src) {
-        if (slide.is43) el.classList.add('is-43'); // 4:3 원본은 흰 배경 중앙 (지침 14번)
         const img = document.createElement('img');
         img.src = slide.src;
-        img.alt = '악보';
+        img.alt = slide.dark ? '사진' : '악보';
         el.appendChild(img);
       } else {
         const ph = document.createElement('div');

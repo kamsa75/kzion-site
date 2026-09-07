@@ -554,10 +554,10 @@ const Generate = (function () {
         break;
       }
       case 'score': {
-        s.background = { color: C.white };
-        // 악보는 잘리면 안 됨 → contain(비율 유지, 중앙) (지침 14번)
+        s.background = { color: sl.dark ? C.dark : C.white };   // dark = 설교 사진(세로 사진 여백을 다크로, D44)
+        // 악보·사진은 잘리면 안 됨 → contain(비율 유지, 중앙) (지침 14번)
         if (sl.src) s.addImage({ data: sl.src, x: 0, y: 0, w: 13.33, h: 7.5, sizing: { type: 'contain', w: 13.33, h: 7.5 } });
-        else s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: '888888' });
+        else s.addText(sl.placeholder || '악보 이미지', { x: 1, y: 3, w: 11.33, h: 1.5, align: 'center', valign: 'middle', fontFace: FONT, fontSize: 24, color: sl.dark ? '8A8F98' : '888888' });
         break;
       }
       case 'image': {

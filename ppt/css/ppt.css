@@ -314,10 +314,11 @@ input{font-family:inherit;}
 .slide--dark.is-fit:not(.is-dash) .sl-cap{ top:2cqh; }
 .slide--dark.is-fit:not(.is-dash) .sl-body{ text-align:left; top:7cqh; bottom:7cqh; justify-content:flex-start; align-items:flex-start; }
 
-/* 악보 통짜형 */
+/* 악보 통짜형 — PPT(generate.js contain)와 동일하게 잘리지 않게(비율 유지·중앙). D44: 미리보기=다운로드
+   .is-dark = 설교 사진(세로 사진 여백을 다크로) */
 .slide--score{background:var(--sl-white); display:flex; align-items:center; justify-content:center;}
-.slide--score img{width:100%; height:100%; object-fit:cover;}
-.slide--score.is-43 img{width:auto; height:100%; object-fit:contain;}
+.slide--score img{width:100%; height:100%; object-fit:contain;}
+.slide--score.is-dark{background:var(--sl-dark);}
 .slide--score .sl-ph{
   color:var(--ui-sub); font-size:5cqh; font-weight:700; text-align:center;
   border:2px dashed var(--ui-line); border-radius:1.5cqh; padding:8cqh 10cqw;
