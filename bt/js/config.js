@@ -217,7 +217,10 @@ function buildOrderRows(S, opts) {
     sermon: p.title || '',
     communion: '다같이',
     closing: (meta.closing_hymn && meta.closing_hymn.title) || '',
-    benediction: pastorNameOf(S),
+    benediction: (function () {          // '이영래' → '이영래 목사' (이미 붙어 있으면 그대로)
+      const n = pastorNameOf(S);
+      return n ? (/목사$/.test(n) ? n : n + ' 목사') : '';
+    })(),
   };
   let rows = [
     { id: 'call', label: '예배의 부름' },
