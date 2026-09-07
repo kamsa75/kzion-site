@@ -298,6 +298,7 @@ function markSaved() {
 let PAST_WEEK = null;      // null이면 이번 주(평소), 아니면 보고 있는 지난 주차
 let CURRENT_WEEK = null;   // 서버가 정한 이번 주 (지난 주 판별 기준)
 let WEEK_LIST = null;      // 주차 목록 캐시
+let WEEK_ERR = '';         // 목록 조회 실패 사유(빈 목록과 구분해 알리기 위해)
 const WRITE_ACTIONS = ['saveBulletin', 'savePastorShared', 'saveMeta', 'overrideRotation',
   'undoRotation', 'resetRotations', 'confirmPrint', 'unlockPrint',
   'saveAnnualEvent', 'saveMember', 'savePool'];
@@ -360,6 +361,13 @@ function openPastSheet() {
     const fill = () => {
       list.innerHTML = '';
       if (WEEK_LIST === null) { list.appendChild(el('p', 'center-note', '불러오는 중…')); return; }
+      if (WEEK_ERR) {   // 서버가 목록을 못 준 것과 '진짜 빈 목록'을 구분해서 알린다
+        const p = el('p', 'center-note');
+        p.innerHTML = '목록을 불러오지 못했습니다.<br>' + WEEK_ERR
+          + '<br><span class="hint">서버 업데이트가 필요할 수 있습니다 (관리자에게 문의)</span>';
+        list.appendChild(p);
+        return;
+      }
       if (!WEEK_LIST.length) { list.appendChild(el('p', 'center-note', '아직 주보가 없습니다')); return; }
       WEEK_LIST.forEach((w) => {
         const isCur = w === CURRENT_WEEK;
@@ -377,11 +385,12 @@ function openPastSheet() {
         list.appendChild(b);
       });
     };
+    if (WEEK_ERR) WEEK_LIST = null;   // 지난번에 실패했으면 다시 시도
     fill();
     if (WEEK_LIST === null) {
       BT_API.call('listWeeks')
-        .then((r) => { WEEK_LIST = r.weeks || []; fill(); })
-        .catch(() => { WEEK_LIST = []; fill(); });
+        .then((r) => { WEEK_ERR = ''; WEEK_LIST = r.weeks || []; fill(); })
+        .catch((err) => { WEEK_ERR = err.message || '알 수 없는 오류'; WEEK_LIST = []; fill(); });
     }
   });
 }
