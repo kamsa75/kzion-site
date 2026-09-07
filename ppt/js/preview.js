@@ -234,6 +234,23 @@ function fitVCardFull(root) {
 }
 
 /* ============================================================
+   함께 읽는 구절 칸(D44) — 미리보기·PPT·상태판정 공용 정규화 (단일 소스).
+   저장 형태: 옛 데이터 = 문자열(짧은 구절) / 새 데이터 = { t:'short'|'long', text } | { t:'img', paths:[] }
+   반환은 항상 객체. 알 수 없는 t는 short로 취급(데이터 살리기, D41).
+   ============================================================ */
+function normReadingItem(x) {
+  if (typeof x === 'string') return { t: 'short', text: x };
+  if (!x || typeof x !== 'object') return { t: 'short', text: '' };
+  if (x.t === 'img') return { t: 'img', paths: Array.isArray(x.paths) ? x.paths.filter(Boolean) : [] };
+  return { t: x.t === 'long' ? 'long' : 'short', text: typeof x.text === 'string' ? x.text : '' };
+}
+// 칸에 내용이 있는가(상태 판정·초록 생략 규칙 공용)
+function readingItemHasContent(x) {
+  var it = normReadingItem(x);
+  return it.t === 'img' ? it.paths.length > 0 : !!it.text.trim();
+}
+
+/* ============================================================
    성경 본문 → 다크 슬라이드 페이지 배열 (미리보기·PPT 공용, 단일 소스).
    절 번호([n] 또는 'n ')를 인식해 절 단위로 페이지 분할, 없으면 글자수로 분할.
    각 페이지는 fit:true(가운데·자동축소)로 잘림 없이 한 화면에 맞춤.

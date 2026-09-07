@@ -81,7 +81,7 @@ const AssetStore = (function () {
     return out;
   }
 
-  return { load, set, remove, srcList, keys, dataUrlMap };
+  return { load, set, remove, srcList, keys, dataUrlMap, fetchDataUrl };   // fetchDataUrl: 설교 사진(generate.js)도 공용
 })();
 
 /* 고정 문구(사도신경 본문·다함께 찬양 곡명 등) — settings 테이블 (B) */
