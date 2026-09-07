@@ -279,13 +279,18 @@ const Songs = (function () {
 
   /* ---------- 이미지 리사이즈 (지침 9번) + 밝기 체크 (지침 8번) ---------- */
 
-  function resizeImage(file) {
+  // opts.maxEdge: 긴 변 상한(설교 사진=1920, 화면 1080p면 충분·PPTX 용량, D44) / opts.quality: JPEG 품질
+  // 기본(악보·AI 추출)은 가로 2560·0.92 그대로 — 기존 동작 무변경
+  function resizeImage(file, opts) {
+    opts = opts || {};
     return new Promise((resolve, reject) => {
       const img = new Image();
       const url = URL.createObjectURL(file);
       img.onload = () => {
         const maxW = 2560;
-        const scale = Math.min(1, maxW / img.naturalWidth);
+        const scale = opts.maxEdge
+          ? Math.min(1, opts.maxEdge / Math.max(img.naturalWidth, img.naturalHeight))
+          : Math.min(1, maxW / img.naturalWidth);
         const w = Math.round(img.naturalWidth * scale);
         const h = Math.round(img.naturalHeight * scale);
         const canvas = document.createElement('canvas');
@@ -304,7 +309,7 @@ const Songs = (function () {
         URL.revokeObjectURL(url);
         // 원본 긴 변(px) — 해상도 경고용 (D33: 최소 1200px)
         const srcLong = Math.max(img.naturalWidth, img.naturalHeight);
-        resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), brightness, srcLong });
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg', opts.quality || 0.92), brightness, srcLong });
       };
       img.onerror = reject;
       img.src = url;
