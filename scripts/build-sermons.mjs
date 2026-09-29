@@ -184,7 +184,6 @@ function reelPanel(r, d, { base, goHref, id }) {
                     <span class="qe-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
                   </span>
                 </a>
-                <button class="qs-again qe-again" type="button">다시 풀기</button>
               </div>`;
   return `
         <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">

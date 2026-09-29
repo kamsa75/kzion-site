@@ -120,11 +120,8 @@ html:not(.js) .qs-s{opacity:1;visibility:inherit;grid-area:auto}
 .qs-txt h3{position:relative;z-index:0}
 .qs-s.on mark::after{animation:hl .6s .7s ease forwards}
 @keyframes hl{to{transform:scaleX(1)}}
-.qs-end{grid-template-columns:.8fr 1.2fr;grid-template-areas:"h card" "b card";gap:18px 40px;align-items:stretch;align-content:stretch}
-.qe-h{grid-area:h;align-self:end;font-weight:800;font-size:clamp(26px,3.6vw,36px);line-height:1.25;text-wrap:balance}
-.qe-again{grid-area:b;align-self:start;justify-self:start;position:relative;z-index:3;-webkit-appearance:none;appearance:none;cursor:pointer;
-  background:var(--q-ink);color:var(--q-bg);border:0;border-radius:999px;font-size:18px;font-weight:800;padding:18px 40px;transition:transform .15s}
-.qe-again:active{transform:scale(.97)}
+.qs-end{grid-template-columns:.8fr 1.2fr;grid-template-areas:"h card";gap:18px 40px;align-items:stretch}
+.qe-h{grid-area:h;align-self:center;font-weight:800;font-size:clamp(26px,3.6vw,36px);line-height:1.25;text-wrap:balance}
 /* 마지막 장: 이 질문과 짝지어진 설교가 오른쪽(폰은 가운데)을 꽉 채운다 */
 .qe-sermon{grid-area:card;position:relative;z-index:3;display:flex;flex-direction:column;background:#fff;color:var(--ink);border-radius:18px;padding:12px;text-decoration:none;
   box-shadow:0 18px 36px -20px rgba(0,0,0,.45);transition:transform .2s;min-height:0}
@@ -267,11 +264,10 @@ html:not(.js) .pr{grid-area:auto}
   .sh-more{font-size:14px}
   .sm-watch .wrap{grid-template-columns:1fr;gap:14px}
   .sm-visit .wrap{flex-direction:column;align-items:stretch;gap:12px}
-  .qs-end{grid-template-columns:1fr;grid-template-areas:"h" "card" "b";grid-template-rows:auto 1fr auto;gap:12px}
+  .qs-end{grid-template-columns:1fr;grid-template-areas:"h" "card";grid-template-rows:auto 1fr;gap:14px}
   .qe-h{font-size:23px;align-self:start}
-  .qe-again{justify-self:stretch;font-size:17px;padding:16px}
   .qe-thumb{flex:none;aspect-ratio:16/9;min-height:0}
-  .qe-sermon{align-self:center}
+  .qe-sermon{align-self:start}
   .qe-body{padding:10px 4px 2px}
   .qe-title{font-size:18px}
   .qe-play{width:46px;height:46px;margin:-23px 0 0 -23px}.qe-play svg{width:20px;height:20px}

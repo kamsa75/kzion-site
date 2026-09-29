@@ -66,13 +66,6 @@
       if (!reduce) timer = setTimeout(function () { if (!q.classList.contains('paused')) show(cur + 1); }, STEP);
     }
     function open() { q.classList.add('open'); show(0); }
-    function reset() {
-      clearTimeout(timer); q.classList.remove('open', 'picked', 'ended', 'paused');
-      q.querySelectorAll('input').forEach(function (i) { i.checked = false; });
-      q.querySelectorAll('.qz-card').forEach(function (c) { c.classList.remove('on'); });
-      meter(); scenes.forEach(function (s) { s.classList.remove('on'); });
-      bars.forEach(function (b) { b.classList.remove('done', 'run'); });
-    }
     q._stop = function () { clearTimeout(timer); };
 
     // 체크리스트: 체크할 때마다 게이지가 차고, 기준 개수에 닿으면 숫자가 튄다
@@ -111,8 +104,6 @@
       if (e.key === 'ArrowRight') show(cur + 1);
       if (e.key === 'ArrowLeft') show(cur - 1);
     });
-    var again = story.querySelector('.qs-again');
-    if (again) again.addEventListener('click', reset);
 
   });
 
