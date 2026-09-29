@@ -21,6 +21,7 @@
 10. 실제 PIN 값, 담당자 개인 이메일 등 민감값은 코드·문서·커밋 메시지 어디에도 기록 금지 (DB에만)
 11. **내부 문서·서버 소스는 kzion.net으로 서빙하지 않는다**(2026-09-29): GitHub Pages가 repo 전체를 그대로 배포해 `CLAUDE.html`·`docs/`·`supabase/*.sql`이 공개 URL로 열리고 색인 가능했다. 루트 `_config.yml`의 `exclude`로 차단(CLAUDE.md·README.md·docs·supabase). 새 내부 문서·폴더를 만들면 이 목록에 추가. 단 repo 자체가 public이므로 GitHub에서는 여전히 보인다 — 규칙 8~10은 그대로 유효
 12. **상태 점검**(2026-09-29): `.github/workflows/health-check.yml`이 매일 07:00 + 토·주일 아침 여러 번(PT) 밖에서 보이는 것만 확인 — 홈·예배안내·`/ppt/`·`/bt/` 화면, 서버 함수 `api`·`bt` 응답, `sermon.json` 갱신(10일 이내), 내부 문서 차단(규칙 11). 실패 시 GitHub가 저장소 주인에게 메일. 읽기 전용이며 저장소·사이트·쇼츠 파이프라인을 바꾸지 않는다. 페이지 제목(`<title>`)이나 서버 함수 주소를 바꾸면 `.github/scripts/health-check.mjs`도 함께 고칠 것
+13. **절기 테마**(2026-09-29): 공개 페이지(index·worship·staff·pastor·404)는 날짜(시애틀 PT)에 따라 색과 작은 장식이 자동으로 바뀐다. `js/season.js`가 `<html data-season>`을 붙이고 `css/season.css`가 색 변수만 덮어쓴다 — **글 내용·제목·구조는 바꾸지 않는다**(검색 노출 영향 없음). 현재 절기: 가을·추수감사(9/25 ~ 추수감사절 뒤 주일). 기간 밖이거나 스크립트가 실패하면 기본 모습. 미리보기는 주소 끝 `?season=thanksgiving` / `?season=none`. `/ppt/`·`/bt/`·travel.html은 제외. 새 절기는 season.js의 SEASONS와 season.css에 함께 추가. 규칙 6의 예외로 본부장님 승인
 
 ## 구현 확정 결정 (2026-07-02, 구현 착수 시 합의)
 

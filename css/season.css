@@ -1,0 +1,72 @@
+/* =========================================================
+   절기 테마 — js/season.js 가 <html data-season="…"> 을 붙였을 때만 적용.
+   기본 색(style.css :root)을 덮어쓸 뿐, 구조·글은 바꾸지 않는다.
+   ========================================================= */
+
+/* ---------- 가을 · 추수감사절 ---------- */
+html[data-season="thanksgiving"]{
+  --night:#38241A; --night-2:#4E3224; --mid:#7A3128; --soft:#7C6858;
+  --teal:#B5521E; --teal-2:#CB6630; --teal-d:#994416; --mint:#F2CF94;
+  --gold:#E2A12E; --gold-l:#F5C262;
+  --ivory:#F9F4EA; --paper:#F0E6D4; --ink:#2F1E14;
+  --line:rgba(47,30,20,.12); --line-2:rgba(47,30,20,.2);
+}
+/* style.css 에 직접 적힌 청록 계열 색을 따뜻한 색으로 */
+html[data-season="thanksgiving"] .nav{background:rgba(56,36,26,.94)}
+html[data-season="thanksgiving"] .nav-links{color:#EADBC6}
+html[data-season="thanksgiving"] .hero-orb{background:radial-gradient(circle at 40% 40%,rgba(226,161,46,.42),rgba(181,82,30,.22) 55%,transparent 72%)}
+html[data-season="thanksgiving"] .hero .eyebrow{color:#F2CF94}
+html[data-season="thanksgiving"] .hero .lead,
+html[data-season="thanksgiving"] .info-addr,
+html[data-season="thanksgiving"] .page-head p,
+html[data-season="thanksgiving"] .chat-head p,
+html[data-season="thanksgiving"] footer.site-footer{color:#E2D2BC}
+html[data-season="thanksgiving"] .badge,
+html[data-season="thanksgiving"] .info-row span:first-child{color:#D2BDA2}
+html[data-season="thanksgiving"] .weather .intro{color:#F1DCCB}
+html[data-season="thanksgiving"] .step-back p{color:#F0E6D4}
+html[data-season="thanksgiving"] .gframe{box-shadow:0 30px 60px rgba(30,16,8,.5)}
+html[data-season="thanksgiving"] .gframe::after{background:linear-gradient(180deg,transparent 55%,rgba(30,16,8,.35))}
+html[data-season="thanksgiving"] .voices{background:#F3E7D3}
+html[data-season="thanksgiving"] .slot{background:repeating-linear-gradient(135deg,#EFE3CF,#EFE3CF 16px,#F4EBDB 16px,#F4EBDB 32px)}
+html[data-season="thanksgiving"] .slot.dark,
+html[data-season="thanksgiving"] .pcard .pin{background:repeating-linear-gradient(135deg,#442B1E,#442B1E 16px,#4E3224 16px,#4E3224 32px)}
+html[data-season="thanksgiving"] .foot-base{border-top-color:rgba(226,210,188,.16)}
+html[data-season="thanksgiving"] .socials a{border-color:rgba(226,210,188,.24)}
+html[data-season="thanksgiving"] .socials a:hover{background:rgba(226,161,46,.18)}
+
+/* ---------- 장식 공통 ---------- */
+.season-deco{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.page-head{position:relative;overflow:hidden}
+.page-head > .wrap{position:relative;z-index:1}
+.season-deco .sd{position:absolute;display:block;opacity:.9;animation:sdSway 6s ease-in-out infinite;transform-origin:50% 0}
+.season-deco svg{width:100%;height:100%;display:block;overflow:visible}
+@keyframes sdSway{0%,100%{transform:rotate(-7deg) translateY(0)}50%{transform:rotate(8deg) translateY(5px)}}
+@media(prefers-reduced-motion:reduce){.season-deco .sd{animation:none}}
+
+/* 가을 · 추수감사절 장식 색과 자리 */
+html[data-season="thanksgiving"] .season-deco .a{fill:#E2742A}
+html[data-season="thanksgiving"] .season-deco .b{fill:#E2A12E}
+html[data-season="thanksgiving"] .season-deco .c{fill:#B5521E}
+html[data-season="thanksgiving"] .season-deco .s{fill:none;stroke:rgba(56,36,26,.45);stroke-width:1.6;stroke-linecap:round}
+html[data-season="thanksgiving"] .season-deco .s2{fill:none;stroke:#8C5A2A;stroke-width:2.6;stroke-linecap:round}
+
+.hero .season-deco .sd-1{width:46px;height:46px;top:26px;left:4%;animation-duration:6.4s}
+.hero .season-deco .sd-2{width:54px;height:54px;bottom:22px;left:46%;animation:none;opacity:.95}
+.hero .season-deco .sd-3{width:34px;height:34px;bottom:34px;left:7%;animation-duration:7.2s;animation-delay:-2s}
+.hero .season-deco .sd-4{width:44px;height:44px;bottom:16px;right:11%;animation-duration:8s;animation-delay:-3s;transform-origin:50% 100%}
+.hero .season-deco .sd-5{width:30px;height:30px;top:18px;left:52%;animation-duration:5.6s;animation-delay:-1s}
+
+.page-head .season-deco .sd-1{width:38px;height:38px;top:18px;right:6%}
+.page-head .season-deco .sd-2{width:42px;height:42px;bottom:10px;right:14%;animation:none}
+.page-head .season-deco .sd-3{display:none}
+.page-head .season-deco .sd-4{width:36px;height:36px;bottom:8px;right:3%;transform-origin:50% 100%}
+.page-head .season-deco .sd-5{width:26px;height:26px;top:14px;right:20%;animation-delay:-2s}
+
+@media(max-width:840px){
+  .hero .season-deco .sd-1{width:34px;height:34px;top:14px;left:auto;right:5%}
+  .hero .season-deco .sd-2{width:40px;height:40px;bottom:12px;left:auto;right:6%}
+  .hero .season-deco .sd-3,.hero .season-deco .sd-5{display:none}
+  .hero .season-deco .sd-4{width:32px;height:32px;bottom:10px;right:auto;left:5%}
+  .page-head .season-deco .sd-5{display:none}
+}
