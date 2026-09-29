@@ -134,18 +134,16 @@ html:not(.js) .qs-s{opacity:1;visibility:inherit;grid-area:auto}
 .qs-end{grid-template-columns:.8fr 1.2fr;grid-template-areas:"h card";gap:18px 40px;align-items:stretch}
 .qe-h{grid-area:h;align-self:center;font-weight:800;font-size:clamp(26px,3.6vw,36px);line-height:1.25;text-wrap:balance}
 /* 마지막 장: 이 질문과 짝지어진 설교가 오른쪽(폰은 가운데)을 꽉 채운다 */
-.qe-sermon{grid-area:card;position:relative;z-index:3;display:flex;flex-direction:column;background:#fff;color:var(--ink);border-radius:18px;padding:12px;text-decoration:none;
-  box-shadow:0 18px 36px -20px rgba(0,0,0,.45);transition:transform .2s;min-height:0}
-.qe-thumb{position:relative;display:block;flex:1;min-height:150px;border-radius:12px;overflow:hidden;background:var(--night)}
-.qe-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.qe-play{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 18px rgba(0,0,0,.25)}
-.qe-play svg{width:26px;height:26px;margin-left:3px}
-.qe-body{display:block;padding:12px 6px 4px}
+.qe-sermon{grid-area:card;position:relative;z-index:3;display:flex;flex-direction:column;background:#fff;color:var(--ink);border-radius:18px;padding:12px;
+  box-shadow:0 18px 36px -20px rgba(0,0,0,.45);min-height:0}
+.qe-yt,.yt-frame.qe-yt{flex:1;min-height:150px;border-radius:12px;height:auto}
+.qe-yt img{position:absolute;inset:0}
+.qe-body{display:block;padding:12px 6px 4px;text-decoration:none;color:var(--ink)}
 .qe-k{display:block;font-size:12.5px;font-weight:600;color:var(--teal-d)}
 .qe-title{display:block;font-family:var(--serif);font-weight:800;font-size:22px;line-height:1.3;margin-top:3px}
 .qe-ref{display:block;font-size:13.5px;color:var(--soft);margin-top:2px}
 .qs-s.on .qe-sermon{animation:riseIn .6s .25s cubic-bezier(.2,.7,.2,1) both}
-@media(hover:hover){.qe-sermon:hover{transform:translateY(-3px)}}
+@media(hover:hover){.qe-body:hover .qe-title{color:var(--teal-d)}}
 .qs-btn{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;gap:8px;border:2px solid var(--q-ink);background:transparent;color:var(--q-ink);font-size:15px;font-weight:700;padding:12px 20px;border-radius:999px;cursor:pointer;text-decoration:none}
 .qs-btn svg{width:16px;height:16px}
 .qs-zone{position:absolute;top:40px;bottom:0;z-index:2;border:0;background:transparent;cursor:pointer;padding:0}
@@ -212,16 +210,18 @@ html:not(.js) .pr{grid-area:auto}
 /* ---------- 말씀 모음: 설교 목록 · 모든 질문 · 교재 ---------- */
 .ix-p{background:#fff}
 .ix-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:start}
-.ix-latest{display:block;text-decoration:none;color:var(--ink)}
-.ix-thumb{display:block;position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--night)}
-.ix-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.ix-badge{position:absolute;left:14px;top:14px;background:var(--gold);color:var(--night);font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px}
+.ix-latest{display:block;color:var(--ink)}
+.ix-media{position:relative}
+.ix-yt,.yt-frame.ix-yt{aspect-ratio:16/9;border-radius:16px}
+.ix-link{display:block;text-decoration:none;color:var(--ink)}
+.ix-media:has(iframe) .ix-badge{display:none}
+.ix-badge{position:absolute;z-index:2;pointer-events:none;left:14px;top:14px;background:var(--gold);color:var(--night);font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px}
 .ix-date{display:block;font-size:13px;font-weight:600;color:var(--teal-d);margin-top:16px}
 .ix-title{display:block;font-family:var(--serif);font-weight:800;font-size:clamp(22px,2.8vw,28px);line-height:1.3;margin-top:6px}
 .ix-ref{display:block;font-size:14px;color:var(--soft);margin-top:4px}
 .ix-q{font-family:var(--serif);font-weight:700;font-size:16px;line-height:1.6;margin-top:12px;opacity:.86;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ix-q::before{content:"Q. ";color:var(--gold)}
-@media(hover:hover){.ix-latest:hover .ix-thumb img{transform:scale(1.03)}.sx:hover .sx-title{color:var(--teal-d)}.qx:hover{transform:translateY(-4px)}}
+@media(hover:hover){.ix-link:hover .ix-title{color:var(--teal-d)}.sx:hover .sx-title{color:var(--teal-d)}.qx:hover{transform:translateY(-4px)}}
 .sx-h{font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--soft);margin-bottom:6px}
 .sx-side{color:var(--ink);justify-content:flex-start}
 .sx-page{display:grid;align-content:start}
@@ -276,11 +276,10 @@ html:not(.js) .pr{grid-area:auto}
   .sm-visit .wrap{flex-direction:column;align-items:stretch;gap:12px}
   .qs-end{grid-template-columns:1fr;grid-template-areas:"h" "card";grid-template-rows:auto 1fr;gap:14px}
   .qe-h{font-size:23px;align-self:start}
-  .qe-thumb{flex:none;aspect-ratio:16/9;min-height:0}
+  .qe-yt,.yt-frame.qe-yt{flex:none;aspect-ratio:16/9;min-height:0}
   .qe-sermon{align-self:start}
   .qe-body{padding:10px 4px 2px}
   .qe-title{font-size:18px}
-  .qe-play{width:46px;height:46px;margin:-23px 0 0 -23px}.qe-play svg{width:20px;height:20px}
   .sm-visit .btn{justify-content:center}
   .ix-grid{grid-template-columns:1fr;gap:26px}
   .qx-page{grid-template-columns:1fr;gap:12px}

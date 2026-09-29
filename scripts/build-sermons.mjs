@@ -178,14 +178,14 @@ function reelPanel(r, d, { base, goHref, id }) {
   const end = `
               <div class="qs-s qs-end">
                 <h3 class="qe-h">이 질문의 답은 설교에 있어요.</h3>
-                <a class="qe-sermon" href="${goHref}">
-                  <span class="qe-thumb"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상"><span class="qe-play">${PLAY}</span></span>
-                  <span class="qe-body">
+                <div class="qe-sermon">
+                  <button class="yt qe-yt" type="button" data-yt="${esc(d.videoId)}" aria-label="${esc(d.title)} 설교 영상 재생"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상"><span class="yt-play">${PLAY}</span></button>
+                  <a class="qe-body" href="${goHref}">
                     <span class="qe-k">${mdDate(d.date)} 주일 설교</span>
                     <span class="qe-title">${esc(d.title)}</span>
                     <span class="qe-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
-                  </span>
-                </a>
+                  </a>
+                </div>
               </div>`;
   return `
         <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
@@ -362,13 +362,15 @@ function indexPage(all) {
   const sermonsPanel = `
       <div class="st-p ix-p" role="tabpanel">
         <div class="ix-grid">
-          <a class="ix-latest" href="${latest.date}/">
-            <span class="ix-thumb"><img src="${thumb(latest.videoId)}" alt="${esc(latest.title)} 설교 영상" loading="lazy"><span class="ix-badge">이번 주 말씀</span></span>
-            <span class="ix-date">${koDate(latest.date)} 주일예배</span>
-            <span class="ix-title">${esc(latest.title)}</span>
-            <span class="ix-ref">${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}</span>
-            ${latest.coreQuestion ? `<span class="ix-q">${esc(latest.coreQuestion)}</span>` : ''}
-          </a>${listHtml}
+          <div class="ix-latest">
+            <div class="ix-media"><button class="yt ix-yt" type="button" data-yt="${esc(latest.videoId)}" aria-label="${esc(latest.title)} 설교 영상 재생"><img src="${thumb(latest.videoId)}" alt="${esc(latest.title)} 설교 영상" loading="lazy"><span class="yt-play">${PLAY}</span></button><span class="ix-badge">이번 주 말씀</span></div>
+            <a class="ix-link" href="${latest.date}/">
+              <span class="ix-date">${koDate(latest.date)} 주일예배</span>
+              <span class="ix-title">${esc(latest.title)}</span>
+              <span class="ix-ref">${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}</span>
+              ${latest.coreQuestion ? `<span class="ix-q">${esc(latest.coreQuestion)}</span>` : ''}
+            </a>
+          </div>${listHtml}
         </div>
       </div>`;
 
