@@ -175,19 +175,16 @@ function reelPanel(r, d, { base, goHref, id }) {
               </div>`).join('');
   const end = `
               <div class="qs-s qs-end">
-                <div class="qe-txt">
-                  <h3>이 질문의 답은 설교에 있어요.</h3>
-                  <div class="qs-acts">
-                    <a class="btn qs-go" href="${goHref}">설교 듣기 ${ARROW}</a>
-                    <button class="qs-btn qs-again" type="button"><span>다시 풀기</span></button>
-                  </div>
-                </div>
+                <h3 class="qe-h">이 질문의 답은 설교에 있어요.</h3>
                 <a class="qe-sermon" href="${goHref}">
                   <span class="qe-thumb"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상"><span class="qe-play">${PLAY}</span></span>
-                  <span class="qe-k">${mdDate(d.date)} 주일 설교</span>
-                  <span class="qe-title">${esc(d.title)}</span>
-                  <span class="qe-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
+                  <span class="qe-body">
+                    <span class="qe-k">${mdDate(d.date)} 주일 설교</span>
+                    <span class="qe-title">${esc(d.title)}</span>
+                    <span class="qe-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
+                  </span>
                 </a>
+                <button class="qs-again qe-again" type="button">다시 풀기</button>
               </div>`;
   return `
         <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
