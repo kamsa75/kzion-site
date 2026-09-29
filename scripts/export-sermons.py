@@ -104,6 +104,18 @@ def short_frame(src, dst):
     return r.returncode == 0
 
 
+def reel_video(src, dst):
+    """애니 릴스 영상을 웹용으로 줄여 저장(540px 폭·소리 작게). 결과 화면에서 눌렀을 때만 불러온다. 이미 있으면 건너뜀."""
+    if dst.exists():
+        return True
+    if not src.exists():
+        return False
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    r = subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-vf", "scale=540:-2", "-c:v", "libx264", "-crf", "30",
+                        "-preset", "veryfast", "-c:a", "aac", "-b:a", "64k", "-movflags", "+faststart", str(dst)])
+    return r.returncode == 0
+
+
 def export(vid_dir, books, preview, img_root, now):
     d = WORK / vid_dir
     week, clips, meta = load(d / "week.json"), load(d / "clips.json"), load(d / "select_meta.json")
@@ -144,7 +156,11 @@ def export(vid_dir, books, preview, img_root, now):
             for k, s in enumerate((r.get("scenes") or [])[1:]):
                 scenes.append({"big": s.get("big", "").strip(), "small": s.get("small", "").strip(),
                                "image": imgs[k] if k < len(imgs) else ""})
+            mp4 = f"reel{r['n']}.mp4"
+            has_mp4 = reel_video(d / "anim" / f"{vid_dir}_anim{r['n']}.mp4", out_img / mp4)
             item = {"n": r["n"], "format": r.get("format"), "color": r.get("color") or "amber",
+                    "video": mp4 if has_mp4 else "", "instagram": r.get("instagram_url") or "",
+                    "highlight": (r.get("highlight") or "").strip(),
                     "question": sc0.get("big", "").strip(), "hint": sc0.get("small", "").strip(), "scenes": scenes,
                     "topics": [h.lstrip("#") for h in r.get("hashtags", [])]}
             if r.get("format") == "A":

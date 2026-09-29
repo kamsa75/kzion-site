@@ -1,27 +1,30 @@
 // 말씀 페이지 생성 — data/sermons/*.json → sermon/<날짜>/index.html, sermon/index.html, sitemap.xml
 //
 // 원칙 (검색노출 설계 v1)
-//  · 글은 전부 HTML에 들어간다. 브라우저 JS는 보여주는 방식(탭·넘김·재생)만 바꾼다
+//  · 글은 전부 HTML에 들어간다. 브라우저 JS는 보여주는 방식(탭·넘김·이야기 재생)만 바꾼다
 //  · 긴 스크롤 금지: 여러 장면·영상은 한 칸 안에서 넘기고, 칸 높이는 탭을 바꿔도 같다
-//  · 검색 키워드는 템플릿이 '항상' 같은 자리에 넣는다 — 교회 이름, 시애틀·쇼어라인 한인교회,
+//  · 검색 키워드는 템플릿이 '항상' 같은 자리에 넣는다 — 교회 이름, "시애틀에 있는 한인교회",
 //    주일예배 설교, 성경 책·장 이름(예: 시편 73편 설교), 설교 주제어, 영어 이름
+//    ("시애틀 한인교회"를 이름처럼 쓰지 않는다 — 교회 이름으로 오해됨. 문장으로만)
 //  · 데이터에 없는 말은 만들지 않는다(추측 금지). 빈 값이면 그 줄을 생략
+//  · 푸터는 scripts/footer.html 하나를 모든 페이지가 같이 쓴다
 //
 // 실행: node scripts/build-sermons.mjs [데이터·출력 폴더(기본: 저장소 루트)]
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
+const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20260929c';
+const V = '20260929d';
 
 const CH = {
   name: '시애틀 시온장로교회',
   en: 'Korean Zion Presbyterian Church',
-  region: '시애틀 한인교회',
+  tag: '시애틀 시온장로교회는 시애틀에 있는 한인교회입니다.',
+  suffix: '시애틀 시온장로교회 · 시애틀에 있는 한인교회',
   street: '17920 Meridian Ave N', city: 'Shoreline', state: 'WA', zip: '98133',
   pastor: '이영래 목사',
-  sunday: '주일예배 오전 10:45',
 };
 const ADDRESS = `${CH.street}, ${CH.city}, ${CH.state} ${CH.zip}`;
 
@@ -46,19 +49,26 @@ const LESSONS = [
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const koDate = (d) => { const [y, m, dd] = d.split('-').map(Number); return `${y}년 ${m}월 ${dd}일`; };
+const mdDate = (d) => { const [, m, dd] = d.split('-').map(Number); return `${m}월 ${dd}일`; };
 const dotDate = (d) => d.replace(/-/g, '.');
 const clock = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60);
   return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 const scriptureLabel = (d) => d.scripturePhrase || d.scripture;
 const thumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const jsonld = (o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
+// 릴스가 강조한 낱말(예: '자기 효능감')에 표시 — 글자는 그대로, 모양만
+const mark = (text, hl) => {
+  const t = esc(text); if (!hl) return t;
+  const h = esc(hl); const i = t.indexOf(h);
+  return i < 0 ? t : `${t.slice(0, i)}<mark>${h}</mark>${t.slice(i + h.length)}`;
+};
 
 const ARROW = '<span class="ar" aria-hidden="true">→</span>';
 const PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>';
 const CHEV = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 const CHURCH_LD = {
-  '@type': 'Church', name: CH.name, alternateName: CH.en, url: SITE + '/',
+  '@type': 'Church', name: CH.name, alternateName: CH.en, url: SITE + '/', description: CH.tag,
   address: { '@type': 'PostalAddress', streetAddress: CH.street, addressLocality: CH.city, addressRegion: CH.state, postalCode: CH.zip, addressCountry: 'US' },
 };
 
@@ -85,6 +95,7 @@ function head({ title, desc, url, image, type = 'article', up, ld }) {
 <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="${up}css/style.css?v=20260626ao">
+<link rel="stylesheet" href="${up}css/footer.css?v=20260929a">
 <link rel="stylesheet" href="${up}css/sermon.css?v=${V}">
 <script>document.documentElement.className+=' js';</script>
 ${ld.map(jsonld).join('\n')}
@@ -114,28 +125,13 @@ function visit(up) {
   return `
 <section class="sm-visit" aria-label="예배 안내">
   <div class="wrap">
-    <p><b>시애틀 쇼어라인 한인교회, ${CH.name}</b><span>${CH.sunday} · 본당 · ${ADDRESS}</span></p>
+    <p><b>이번 주일, 함께 예배해요.</b><span>주일예배 오전 10:45 · 본당 · ${ADDRESS}</span></p>
     <a class="btn btn-gold" href="${up}worship.html">예배 안내 ${ARROW}</a>
   </div>
 </section>`;
 }
 
-function footer(up) {
-  return `
-<footer class="site-footer sm-foot">
-  <div class="wrap">
-    <p class="sf-name">${CH.name} <span>${CH.en}</span></p>
-    <p>시애틀(쇼어라인) 한인 장로교회 · 담임 ${CH.pastor} · ${ADDRESS}</p>
-    <p>주일예배 일요일 오전 10:45 · 수요통독 오전 10:00, 오후 7:30 · 토요예배 오전 7:00</p>
-    <p class="sf-copy">© 2026 ${CH.name} · kzion.net</p>
-  </div>
-</footer>
-
-<script src="${up}js/sermon.js?v=${V}" defer></script>
-</body>
-</html>
-`;
-}
+const footer = (up) => `\n${FOOTER}\n\n<script src="${up}js/sermon.js?v=${V}" defer></script>\n</body>\n</html>\n`;
 
 // 눌렀을 때만 영상을 불러오는 틀 (페이지 속도)
 const video = (id, label, cls, img) =>
@@ -144,7 +140,7 @@ const video = (id, label, cls, img) =>
           <span class="yt-play">${PLAY}</span>
         </button>`;
 
-// 한 칸 안에서 넘기는 장치(점·화살표) — 릴스 장면, 쇼츠 모두 같은 부품
+// 한 칸 안에서 넘기는 장치(점·화살표) — 1분 영상, 지난 설교 목록, 질문 카드가 같은 부품을 쓴다
 const bar = (n, label) => n < 2 ? '' : `
           <div class="cz-bar">
             <button class="cz-arrow prev" type="button" aria-label="이전 ${label}">${CHEV('M15 5l-7 7 7 7')}</button>
@@ -152,45 +148,68 @@ const bar = (n, label) => n < 2 ? '' : `
             <button class="cz-arrow next" type="button" aria-label="다음 ${label}">${CHEV('M9 5l7 7-7 7')}</button>
           </div>`;
 
-// ---------- 설교 페이지: 릴스 퀴즈 칸 ----------
-function reelPanel(r) {
+// ---------- 릴스 퀴즈 칸 (질문 → 이야기처럼 넘어가는 결과) ----------
+// base: 이 칸이 놓이는 페이지에서 그림·영상 파일까지의 경로, goHref: 마지막 장의 '설교 듣기' 링크
+function reelPanel(r, d, { base, goHref, id }) {
   const p = PALETTE[r.color] || PALETTE.amber;
+  const n = r.format === 'A' ? r.items.length : 0;
   const ask = r.format === 'A'
     ? `<ul class="qz-note">
-                ${r.items.map((t, i) => `<li><label><input type="checkbox" name="q${r.n}-${i}"><span class="box" aria-hidden="true"></span><span>${esc(t)}</span></label></li>`).join('\n                ')}
+                ${r.items.map((t, i) => `<li><label><input type="checkbox" name="${id}-${i}"><span class="box" aria-hidden="true"></span><span class="qz-it">${esc(t)}</span></label></li>`).join('\n                ')}
               </ul>
+              <div class="qz-meter" data-t="${r.threshold}" data-n="${n}">
+                <span class="qm-track"><i></i><b style="left:${(r.threshold / n * 100).toFixed(1)}%"></b></span>
+                <span class="qm-txt"><em>0</em> / ${n}</span>
+              </div>
               <button class="btn qz-next" type="button">결과 보기 ${ARROW}</button>`
-    : `<div class="qz-opts">
-                ${r.options.map((t) => `<button class="qz-opt" type="button">${esc(t)}</button>`).join('\n                ')}
-              </div>
-              ${r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}`;
-  const scenes = r.scenes.map((s, i) => `
-            <div class="cz-slide qz-scene">
-              ${s.image ? `<img class="qz-art" src="${esc(s.image)}" alt="" width="540" height="452" loading="lazy">` : '<span></span>'}
-              <div class="qz-txt">
-                <h3>${esc(s.big)}</h3>
-                ${s.small ? `<p>${esc(s.small)}</p>` : ''}
-                ${i === r.scenes.length - 1 ? `<a class="btn qz-go" href="#watch">설교 듣기 ${ARROW}</a>` : ''}
-              </div>
-            </div>`).join('');
+    : `<div class="qz-cards">
+                ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
+              </div>`;
+  const scenes = r.scenes.map((s) => `
+              <div class="qs-s">
+                ${s.image ? `<img class="qs-art" src="${base}${esc(s.image)}" alt="" width="540" height="452" loading="lazy">` : ''}
+                <div class="qs-txt">
+                  <h3>${mark(s.big, r.highlight)}</h3>
+                  ${s.small ? `<p>${esc(s.small)}</p>` : ''}
+                </div>
+              </div>`).join('');
+  const end = `
+              <div class="qs-s qs-end">
+                <p class="qs-endk">${esc(d.title)} · ${esc(scriptureLabel(d))}</p>
+                <h3>이 질문의 답은 설교에 있어요.</h3>
+                <div class="qs-acts">
+                  <a class="btn qs-go" href="${goHref}">설교 듣기 ${ARROW}</a>
+                  ${r.video ? `<button class="qs-btn qs-play" type="button">${PLAY}<span>릴스로 보기</span></button>` : ''}
+                  ${r.instagram ? `<a class="qs-btn" href="${esc(r.instagram)}" target="_blank" rel="noopener"><span>인스타그램</span></a>` : ''}
+                  <button class="qs-btn qs-again" type="button"><span>다시 풀기</span></button>
+                </div>
+              </div>`;
   return `
-        <div class="st-p qz cz" role="tabpanel" data-lock style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
-          <div class="cz-track">
-            <div class="cz-slide qz-ask">
-              <div class="qz-q">
-                <p class="st-kicker">질문으로 만나는 설교</p>
-                <h2>${esc(r.question)}</h2>
-                <p class="qz-sub">${r.format === 'A' ? `${r.threshold}개 이상이면, 끝까지 보세요` : '하나를 골라 보세요'}</p>
-              </div>
-              <div class="qz-a">
+        <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+          <div class="qz-view qz-ask">
+            <div class="qz-q">
+              <p class="st-kicker">질문으로 만나는 설교</p>
+              <h2>${esc(r.question)}</h2>
+              <p class="qz-sub">${r.format === 'A' ? `${r.threshold}개 이상이면, 끝까지 보세요` : '하나를 골라 보세요'}</p>
+              ${r.format !== 'A' && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
+            </div>
+            <div class="qz-a">
               ${ask}
-              </div>
-            </div>${scenes}
-          </div>${bar(r.scenes.length + 1, '장면')}
+            </div>
+          </div>
+          <div class="qz-view qz-story" aria-live="polite">
+            <div class="qs-bars">${Array.from({ length: r.scenes.length + 1 }, () => '<i><b></b></i>').join('')}</div>
+            <p class="qs-chip"></p>
+            <div class="qs-stage">${scenes}${end}
+            </div>
+            <button class="qs-zone prev" type="button" aria-label="이전 장면"></button>
+            <button class="qs-zone next" type="button" aria-label="다음 장면"></button>
+            ${r.video ? `<div class="qs-video" hidden><video preload="none" playsinline controls data-src="${base}${esc(r.video)}"></video><button class="qs-close" type="button" aria-label="닫기">×</button></div>` : ''}
+          </div>
         </div>`;
 }
 
-// ---------- 설교 페이지: 1분 영상(쇼츠) 칸 ----------
+// ---------- 1분 영상(쇼츠) 칸 ----------
 function shortsPanel(d) {
   const n = d.shorts.length;
   const slides = d.shorts.map((c, i) => `
@@ -200,7 +219,7 @@ function shortsPanel(d) {
                 <p class="st-kicker">1분 영상${n > 1 ? ` · ${i + 1}/${n}` : ''}</p>
                 <h2>${esc(c.title)}</h2>
                 <p>${esc(c.description)}</p>
-                <a class="sh-more" href="https://youtu.be/${esc(d.videoId)}?t=${c.start}" target="_blank" rel="noopener">설교에서 이어 듣기 <span>${clock(c.start)}부터</span></a>
+                <a class="sh-more" href="https://youtu.be/${esc(d.videoId)}?t=${c.start}" target="_blank" rel="noopener">설교에서 이어 듣기 · ${clock(c.start)}부터</a>
               </div>
             </div>`).join('');
   return `
@@ -210,32 +229,26 @@ function shortsPanel(d) {
         </div>`;
 }
 
-function stage(d) {
-  const tabs = [...d.reels.map((r) => r.question), ...(d.shorts.length ? [`1분 영상 ${d.shorts.length}편`] : [])];
-  const panels = [...d.reels.map(reelPanel), ...(d.shorts.length ? [shortsPanel(d)] : [])];
-  if (!panels.length) return '';
-  return `
-<section class="sm-stage" aria-label="이 설교 먼저 만나기">
-  <div class="wrap" data-tabs>
-    ${tabs.length > 1 ? `<div class="st-tabs" role="tablist" aria-label="이 설교 먼저 만나기">
+function tabsBox(label, tabs, panels, extraClass = '') {
+  return `<div class="st-box${extraClass}" data-tabs>
+    ${tabs.length > 1 ? `<div class="st-tabs" role="tablist" aria-label="${esc(label)}">
       ${tabs.map((t, i) => `<button role="tab" type="button" aria-selected="${i ? 'false' : 'true'}">${esc(t)}</button>`).join('\n      ')}
     </div>` : ''}
     <div class="st-frame">${panels.join('')}
     </div>
-  </div>
-</section>`;
+  </div>`;
 }
 
 function sermonLD(d, url) {
   const v = {
     '@context': 'https://schema.org', '@type': 'VideoObject',
     name: `${d.title} (${d.scripture}) ${d.preacher} — ${CH.name}`,
-    description: [d.coreQuestion, `${CH.name} ${koDate(d.date)} 주일예배 설교.`].filter(Boolean).join(' '),
+    description: [d.coreQuestion, `${CH.name} ${koDate(d.date)} 주일예배 설교.`, CH.tag].filter(Boolean).join(' '),
     thumbnailUrl: [thumb(d.videoId)],
     uploadDate: d.date + 'T12:00:00-07:00',
     embedUrl: `https://www.youtube.com/embed/${d.videoId}`,
     contentUrl: `https://www.youtube.com/watch?v=${d.videoId}`,
-    inLanguage: 'ko', url, keywords: [CH.region, '주일예배 설교', d.scripturePhrase, ...d.topics].filter(Boolean).join(', '),
+    inLanguage: 'ko', url, keywords: ['시애틀 한인교회', '주일예배 설교', d.scripturePhrase, ...d.topics].filter(Boolean).join(', '),
     publisher: CHURCH_LD,
   };
   if (d.shorts.length) v.hasPart = d.shorts.map((c) => ({
@@ -251,21 +264,28 @@ function sermonLD(d, url) {
 function sermonPage(d, prev, next) {
   const url = `${SITE}/sermon/${d.date}/`, up = '../../';
   const sl = scriptureLabel(d);
-  const title = `${d.title} — ${sl} 설교 | ${CH.region} 시온장로교회`;
-  const desc = `${koDate(d.date)} 주일예배 설교 「${d.title}」(${d.scripture}). ${d.coreQuestion} 시애틀·쇼어라인 한인교회 ${CH.name}, ${d.preacher}.`;
+  const title = `${d.title} — ${sl} 설교 | ${CH.suffix}`;
+  const desc = `${koDate(d.date)} 주일예배 설교 「${d.title}」(${d.scripture}). ${d.coreQuestion} ${CH.tag} ${d.preacher}.`;
   const image = d.shorts[0]?.thumb ? `${url}${d.shorts[0].thumb}` : d.reels[0]?.scenes[0]?.image ? `${url}${d.reels[0].scenes[0].image}` : thumb(d.videoId);
+  const tabs = [...d.reels.map((r) => r.question), ...(d.shorts.length ? [`1분 영상 ${d.shorts.length}편`] : [])];
+  const panels = [...d.reels.map((r) => reelPanel(r, d, { base: '', goHref: '#watch', id: `q${r.n}` })), ...(d.shorts.length ? [shortsPanel(d)] : [])];
   return head({ title, desc, url, image, up, ld: sermonLD(d, url) }) + nav(up) + `
 <main>
 <header class="sm-head">
   <div class="wrap">
     <nav class="sm-crumb" aria-label="현재 위치"><a href="${up}index.html">홈</a><span>›</span><a href="../">말씀</a><span>›</span><span>${dotDate(d.date)}</span></nav>
-    <p class="sm-kicker">${CH.region} 주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time></p>
+    <p class="sm-tag">${CH.tag}</p>
+    <p class="sm-kicker">주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time></p>
     <h1>${esc(d.title)}</h1>
     <p class="sm-meta">${esc(sl)} 설교 · ${esc(d.preacher)}</p>
     ${d.coreQuestion ? `<p class="sm-q">${esc(d.coreQuestion)}</p>` : ''}
   </div>
 </header>
-${stage(d)}
+<section class="sm-stage" aria-label="이 설교 먼저 만나기">
+  <div class="wrap">
+    ${tabsBox('이 설교 먼저 만나기', tabs, panels)}
+  </div>
+</section>
 <section class="sm-watch" id="watch" aria-label="설교 전체 영상">
   <div class="wrap">
     <div class="sw-video">
@@ -297,37 +317,37 @@ ${prev || next ? `
 function indexPage(all) {
   const url = `${SITE}/sermon/`, up = '../';
   const latest = all[all.length - 1], rest = all.slice(0, -1).reverse();
-  const title = `말씀 — 주일 설교와 성경공부 교재 | ${CH.region} 시온장로교회`;
-  const desc = `시애틀·쇼어라인 한인교회 ${CH.name}의 주일예배 설교 영상과 1분 말씀, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
+  const title = `말씀 — 주일 설교와 성경공부 교재 | ${CH.suffix}`;
+  const desc = `${CH.tag} 주일예배 설교 영상과 1분 말씀, 질문으로 만나는 설교, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
   const list = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: '말씀', url, inLanguage: 'ko', publisher: CHURCH_LD,
     mainEntity: { '@type': 'ItemList', itemListElement: all.slice().reverse().map((d, i) => ({ '@type': 'ListItem', position: i + 1, url: `${url}${d.date}/`, name: d.title })) } };
-  const PER = 4;
-  const pages = [];
+
+  // 이번 주 질문 — 퀴즈가 있는 가장 최근 설교
+  const qs = all.filter((d) => d.reels.length);
+  const qd = qs[qs.length - 1];
+  const weekly = qd ? `
+<section class="sm-stage sm-weekly" aria-label="이번 주 질문">
+  <div class="wrap">
+    <div class="wk-head">
+      <p class="wk-k">이번 주 질문</p>
+      <p class="wk-s"><a href="${qd.date}/">${mdDate(qd.date)} 설교 「${esc(qd.title)}」</a>에서</p>
+    </div>
+    ${tabsBox('이번 주 질문', qd.reels.map((r) => r.question), qd.reels.map((r) => reelPanel(r, qd, { base: `${qd.date}/`, goHref: `${qd.date}/#watch`, id: `w${r.n}` })), ' st-quiz')}
+  </div>
+</section>` : '';
+
+  // 지난 설교 목록 — 4편씩 한 칸에서 넘김
+  const PER = 4, pages = [];
   for (let i = 0; i < rest.length; i += PER) pages.push(rest.slice(i, i + PER));
   const card = (d) => `<a class="sx" href="${d.date}/"><span class="sx-date">${dotDate(d.date)}</span><span class="sx-title">${esc(d.title)}</span><span class="sx-ref">${esc(scriptureLabel(d))}</span></a>`;
   const listHtml = rest.length ? `
-          <div class="sx-side cz" data-pages="${pages.length}">
+          <div class="sx-side cz">
             <p class="sx-h">지난 설교</p>
             <div class="cz-track">${pages.map((pg) => `
               <div class="cz-slide sx-page">${pg.map(card).join('')}</div>`).join('')}
             </div>${bar(pages.length, '목록')}
           </div>` : '';
-  return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list] }) + nav(up) + `
-<main>
-<header class="sm-head sm-head-idx">
-  <div class="wrap">
-    <nav class="sm-crumb" aria-label="현재 위치"><a href="${up}index.html">홈</a><span>›</span><span>말씀</span></nav>
-    <h1>말씀</h1>
-    <p class="sm-meta">시애틀 쇼어라인 한인교회, ${CH.name}의 주일 설교와 소그룹 성경공부 교재입니다.</p>
-  </div>
-</header>
-<section class="sm-stage sm-idx" aria-label="말씀">
-  <div class="wrap" data-tabs>
-    <div class="st-tabs" role="tablist" aria-label="말씀">
-      <button role="tab" type="button" aria-selected="true">주일 설교</button>
-      <button role="tab" type="button" aria-selected="false">성경공부 교재</button>
-    </div>
-    <div class="st-frame">
+  const sermonsPanel = `
       <div class="st-p ix-p" role="tabpanel">
         <div class="ix-grid">
           <a class="ix-latest" href="${latest.date}/">
@@ -338,7 +358,29 @@ function indexPage(all) {
             ${latest.coreQuestion ? `<span class="ix-q">${esc(latest.coreQuestion)}</span>` : ''}
           </a>${listHtml}
         </div>
-      </div>
+      </div>`;
+
+  // 모든 질문 — 질문 카드, 한 칸에서 넘김(최근 12개), 누르면 그 설교에서 풀기
+  const allQ = [];
+  for (const d of all.slice().reverse()) for (const r of d.reels) allQ.push({ d, r });
+  const qPages = [];
+  const QPER = 3;
+  for (let i = 0; i < Math.min(allQ.length, 12); i += QPER) qPages.push(allQ.slice(i, i + QPER));
+  const qcard = ({ d, r }) => { const p = PALETTE[r.color] || PALETTE.amber;
+    return `<a class="qx" href="${d.date}/#q${r.n}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+                ${r.scenes[0]?.image ? `<img src="${d.date}/${esc(r.scenes[0].image)}" alt="" loading="lazy">` : ''}
+                <span class="qx-q">${esc(r.question)}</span>
+                <span class="qx-s">${mdDate(d.date)} · ${esc(d.title)}</span>
+              </a>`; };
+  const questionsPanel = allQ.length ? `
+      <div class="st-p ix-p qx-p cz" role="tabpanel">
+        <p class="sx-h">질문으로 만나는 설교 · ${allQ.length}개</p>
+        <div class="cz-track">${qPages.map((pg) => `
+          <div class="cz-slide qx-page">${pg.map(qcard).join('')}</div>`).join('')}
+        </div>${bar(qPages.length, '질문')}
+      </div>` : '';
+
+  const bookPanel = `
       <div class="st-p ix-p" role="tabpanel">
         <div class="bk">
           <img class="bk-cover" src="${up}images/calling05-793x1024.jpg" alt="소그룹 성경공부 교재 부르심 표지" loading="lazy">
@@ -351,8 +393,24 @@ function indexPage(all) {
             <p class="bk-dl"><a href="${up}files/%EB%B6%80%EB%A5%B4%EC%8B%AC_3.0.epub" download="부르심.epub">eBook 내려받기 (ePub)</a> · Apple Books, ReadEra 등 전자책 앱에서 열람</p>
           </div>
         </div>
-      </div>
-    </div>
+      </div>`;
+
+  const tabs = ['주일 설교', ...(allQ.length ? ['모든 질문'] : []), '성경공부 교재'];
+  const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), bookPanel];
+  return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list] }) + nav(up) + `
+<main>
+<header class="sm-head sm-head-idx">
+  <div class="wrap">
+    <nav class="sm-crumb" aria-label="현재 위치"><a href="${up}index.html">홈</a><span>›</span><span>말씀</span></nav>
+    <p class="sm-tag">${CH.tag}</p>
+    <h1>말씀</h1>
+    <p class="sm-meta">주일 설교와 질문으로 만나는 설교, 소그룹 성경공부 교재를 나눕니다.</p>
+  </div>
+</header>
+${weekly}
+<section class="sm-stage sm-idx" aria-label="말씀">
+  <div class="wrap">
+    ${tabsBox('말씀', tabs, panels)}
   </div>
 </section>
 ${visit(up)}
