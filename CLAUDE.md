@@ -20,6 +20,7 @@
 9. **이 repo가 public이면 소스가 전부 공개된다는 전제로 작업**: PIN 검증·권한 확인은 클라이언트 JS가 아니라 반드시 Supabase(RLS 정책 또는 Edge Function)에서 수행. 클라이언트 코드에 PIN 값·검증 로직을 두지 말 것
 10. 실제 PIN 값, 담당자 개인 이메일 등 민감값은 코드·문서·커밋 메시지 어디에도 기록 금지 (DB에만)
 11. **내부 문서·서버 소스는 kzion.net으로 서빙하지 않는다**(2026-09-29): GitHub Pages가 repo 전체를 그대로 배포해 `CLAUDE.html`·`docs/`·`supabase/*.sql`이 공개 URL로 열리고 색인 가능했다. 루트 `_config.yml`의 `exclude`로 차단(CLAUDE.md·README.md·docs·supabase). 새 내부 문서·폴더를 만들면 이 목록에 추가. 단 repo 자체가 public이므로 GitHub에서는 여전히 보인다 — 규칙 8~10은 그대로 유효
+12. **상태 점검**(2026-09-29): `.github/workflows/health-check.yml`이 매일 07:00 + 토·주일 아침 여러 번(PT) 밖에서 보이는 것만 확인 — 홈·예배안내·`/ppt/`·`/bt/` 화면, 서버 함수 `api`·`bt` 응답, `sermon.json` 갱신(10일 이내), 내부 문서 차단(규칙 11). 실패 시 GitHub가 저장소 주인에게 메일. 읽기 전용이며 저장소·사이트·쇼츠 파이프라인을 바꾸지 않는다. 페이지 제목(`<title>`)이나 서버 함수 주소를 바꾸면 `.github/scripts/health-check.mjs`도 함께 고칠 것
 
 ## 구현 확정 결정 (2026-07-02, 구현 착수 시 합의)
 
