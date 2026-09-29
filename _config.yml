@@ -7,5 +7,7 @@ exclude:
   - README.md
   - docs
   - supabase
+  - scripts
+  - data
   - files/PUT-EPUB-HERE.txt
   - images/PUT-IMAGES-HERE.txt

@@ -1,0 +1,193 @@
+/* =========================================================
+   말씀 페이지 (sermon/, sermon/<날짜>/) — style.css 위에 얹는다
+   원칙: 긴 스크롤 금지 — 장면·영상은 한 칸에서 넘기고, 탭을 바꿔도 칸 높이는 같다
+   릴스 칸의 색은 그 릴스의 색(--q-bg/--q-ink/--q-mute)을 그대로 쓴다
+   ========================================================= */
+body.sm{background:var(--ivory)}
+.sm button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ---------- 머리 ---------- */
+.sm-head{background:var(--night);color:var(--ivory);padding:30px 0 40px;position:relative;overflow:hidden}
+.sm-head::after{content:"";position:absolute;right:-120px;top:-160px;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,rgba(43,169,183,.32),rgba(149,158,37,.12) 55%,transparent 72%);pointer-events:none}
+.sm-head .wrap{position:relative;z-index:1}
+.sm-crumb{display:flex;gap:8px;align-items:center;font-size:12.5px;color:#98C0C0;margin-bottom:22px}
+.sm-crumb a{color:#C8DEDF;text-decoration:none}
+.sm-crumb a:hover{color:var(--ivory)}
+.sm-kicker{font-size:13px;letter-spacing:.06em;color:var(--gold-l);font-weight:600}
+.sm-head h1{font-family:var(--serif);font-weight:800;font-size:clamp(32px,5.2vw,52px);line-height:1.16;letter-spacing:-.02em;margin-top:10px;text-wrap:balance}
+.sm-meta{font-size:15px;color:#B6D2D2;margin-top:10px}
+.sm-q{font-family:var(--serif);font-weight:700;font-size:clamp(17px,2.2vw,21px);line-height:1.6;color:var(--ivory);margin-top:22px;max-width:32em;opacity:.94;text-wrap:pretty}
+.sm-q::before{content:"Q.";color:var(--gold-l);margin-right:8px}
+.sm-head-idx h1{font-size:clamp(34px,5.6vw,56px)}
+
+/* ---------- 한 칸 무대 (탭 + 고정 높이) ---------- */
+.sm-stage{padding:34px 0 38px}
+.sm-stage .wrap{max-width:1040px}
+.st-tabs{display:flex;gap:4px;background:var(--night);border-radius:999px;padding:5px;width:max-content;max-width:100%;overflow-x:auto;scrollbar-width:none;margin-bottom:16px}
+.st-tabs::-webkit-scrollbar{display:none}
+.st-tabs button{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:#C8DEDF;font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
+.st-frame{display:grid}
+.st-p{grid-area:1/1;min-width:0;border-radius:24px;padding:34px 38px;display:flex;flex-direction:column;justify-content:center}
+html.js .st-p:not(.on){visibility:hidden;pointer-events:none}
+html.js .st-p.on{animation:riseIn .4s ease both}
+html:not(.js) .st-frame{gap:18px}
+html:not(.js) .st-p{grid-area:auto}
+.st-kicker{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.72;margin-bottom:12px}
+
+/* 넘김 */
+.cz-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.cz-track::-webkit-scrollbar{display:none}
+.cz-slide{flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always}
+html.js .cz[data-lock]:not(.open) .cz-track{overflow-x:hidden}
+.cz-bar{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:18px}
+.cz-arrow{-webkit-appearance:none;appearance:none;width:40px;height:40px;border-radius:50%;border:2px solid currentColor;background:transparent;color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:opacity .2s}
+.cz-arrow svg{width:18px;height:18px}
+.cz-arrow:disabled{opacity:.25;cursor:default}
+.cz-dots{display:flex;gap:8px}
+.cz-dots i{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.25;transition:opacity .2s,width .2s}
+.cz-dots i.on{opacity:.9;width:22px;border-radius:4px}
+html:not(.js) .cz-bar{display:none}
+
+/* ---------- 릴스 퀴즈 칸 ---------- */
+.qz{background:var(--q-bg);color:var(--q-ink)}
+.qz .cz-slide{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;padding:4px 2px}
+.qz h2{font-weight:800;font-size:clamp(28px,4vw,40px);line-height:1.22;letter-spacing:-.02em;text-wrap:balance}
+.qz-sub{font-size:16px;font-weight:600;margin-top:10px;color:var(--q-mute)}
+.qz-note{list-style:none;background:#FBF8F1;color:#1C1814;padding:6px 24px;box-shadow:0 2px 0 rgba(0,0,0,.06),0 18px 36px -18px rgba(0,0,0,.35);transform:rotate(-1.2deg)}
+.qz-note li+li{border-top:1px dashed rgba(28,24,20,.18)}
+.qz-note label{display:flex;align-items:center;gap:15px;padding:13px 0;font-size:17px;font-weight:600;cursor:pointer;color:#1C1814}
+.qz-note input{position:absolute;opacity:0;width:1px;height:1px}
+.qz-note .box{flex:none;width:25px;height:25px;border:2.5px solid #1C1814;position:relative;background:#fff}
+.qz-note .box::after{content:"";position:absolute;left:5px;top:-7px;width:11px;height:22px;border:solid #B23A22;border-width:0 4px 4px 0;transform:rotate(42deg) scale(0);transform-origin:60% 70%;transition:transform .16s cubic-bezier(.3,1.5,.5,1)}
+.qz-note input:checked+.box::after{transform:rotate(42deg) scale(1)}
+.qz-note input:focus-visible+.box{outline:3px solid #1C7682;outline-offset:3px}
+.qz .btn{background:var(--q-ink);color:var(--q-bg);border:0;margin-top:24px;font-size:16px;padding:15px 28px;-webkit-appearance:none;appearance:none}
+.qz-opts{display:flex;flex-direction:column;gap:12px}
+.qz-opt{-webkit-appearance:none;appearance:none;background:transparent;color:var(--q-ink);border:2.5px solid var(--q-ink);font-size:17px;font-weight:700;padding:15px 24px;border-radius:999px;cursor:pointer;text-align:left;transition:background .15s,color .15s}
+.qz-opt.on{background:var(--q-ink);color:var(--q-bg)}
+.qz-hint{font-size:15.5px;font-weight:600;color:var(--q-mute);margin-top:16px;opacity:0;transition:opacity .3s}
+.qz.picked .qz-hint,html:not(.js) .qz-hint{opacity:1}
+.qz-art{width:100%;max-width:400px;height:auto;aspect-ratio:540/452;justify-self:center;display:block;
+  -webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,#000 62%,transparent 100%)}
+.qz-txt h3{font-weight:800;font-size:clamp(24px,3.2vw,32px);line-height:1.28;letter-spacing:-.015em;text-wrap:balance}
+.qz-txt p{font-size:17px;margin-top:10px;color:var(--q-mute);font-weight:500}
+
+/* ---------- 1분 영상 칸 ---------- */
+.sh-p{background:var(--night);color:var(--ivory)}
+.sh{display:grid;grid-template-columns:190px 1fr;gap:40px;align-items:center;padding:2px}
+.sh-txt h2{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.2vw,32px);line-height:1.28;text-wrap:balance}
+.sh-txt p:not(.st-kicker){font-size:16px;line-height:1.7;color:#C8DEDF;margin-top:12px;max-width:30em}
+.sh-more{display:inline-flex;gap:8px;align-items:baseline;margin-top:20px;font-weight:700;font-size:15px;color:var(--gold-l);text-decoration:none;border-bottom:2px solid var(--gold);padding-bottom:3px}
+.sh-more span{font-weight:500;opacity:.8}
+
+/* ---------- 영상 틀 (눌렀을 때 재생) ---------- */
+.yt{-webkit-appearance:none;appearance:none;display:block;position:relative;border:0;padding:0;background:#000;cursor:pointer;overflow:hidden;border-radius:16px;width:100%;color:var(--night)}
+.yt img{width:100%;height:100%;object-fit:cover;opacity:.95;transition:transform .5s}
+.yt-play{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center;transition:transform .2s;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.yt-play svg{width:28px;height:28px;margin-left:3px}
+.yt-wide,.yt-frame.yt-wide{aspect-ratio:16/9}
+.yt-tall,.yt-frame.yt-tall{aspect-ratio:9/16;border-radius:14px}
+.yt-tall .yt-play{width:48px;height:48px;margin:-24px 0 0 -24px}.yt-tall .yt-play svg{width:22px;height:22px}
+.yt-frame{display:block;border:0;width:100%;background:#000;border-radius:16px}
+@media(hover:hover){.yt:hover img{transform:scale(1.03)}.yt:hover .yt-play{transform:scale(1.08)}}
+
+/* ---------- 설교 전체 + 정보 ---------- */
+.sm-watch{padding:10px 0 44px}
+.sm-watch .wrap{max-width:1040px;display:grid;grid-template-columns:1.55fr 1fr;gap:18px 40px;align-items:center}
+.sw-info{display:grid;gap:0}
+.sw-info div{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.sw-info div:last-child{border-bottom:0}
+.sw-info dt{font-size:12.5px;font-weight:600;color:var(--soft);padding-top:2px}
+.sw-info dd{font-size:15px;line-height:1.5;color:var(--ink)}
+.sw-links{grid-column:1/-1;display:flex;gap:22px;font-size:14px;font-weight:600}
+.sw-links a{color:var(--teal-d);text-decoration:none}
+
+/* ---------- 예배 안내 한 줄 ---------- */
+.sm-visit{background:var(--mid);color:var(--ivory);padding:22px 0}
+.sm-visit .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px}
+.sm-visit p{font-size:14.5px;line-height:1.6;color:#DCEBE9}
+.sm-visit b{display:block;color:var(--ivory);font-weight:700}
+.sm-visit .btn{flex:none;padding:11px 20px;font-size:14px}
+
+/* ---------- 이전·다음 ---------- */
+.sm-pager{background:var(--ivory);padding:20px 0;border-top:1px solid var(--line)}
+.sm-pager .wrap{display:flex;justify-content:space-between;gap:20px}
+.sm-pager a{text-decoration:none;font-family:var(--serif);font-weight:700;font-size:16px;color:var(--ink)}
+.sm-pager a span{display:block;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--soft);margin-bottom:3px}
+.sm-pager .nx{text-align:right}
+
+/* ---------- 푸터 (압축) ---------- */
+.sm-foot{padding:26px 0 24px}
+.sm-foot p{font-size:12.5px;line-height:1.7;opacity:.72}
+.sm-foot .sf-name{font-family:var(--serif);font-weight:700;font-size:16px;color:var(--ivory);opacity:1;margin-bottom:4px}
+.sm-foot .sf-name span{font-family:var(--sans);font-size:12px;font-weight:500;color:#98C0C0;margin-left:6px}
+.sm-foot .sf-copy{margin-top:8px;opacity:.45}
+
+/* ---------- 말씀 모음 ---------- */
+.ix-p{background:#fff}
+.ix-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:start}
+.ix-latest{display:block;text-decoration:none;color:var(--ink)}
+.ix-thumb{display:block;position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--night)}
+.ix-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.ix-badge{position:absolute;left:14px;top:14px;background:var(--gold);color:var(--night);font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px}
+.ix-date{display:block;font-size:13px;font-weight:600;color:var(--teal-d);margin-top:16px}
+.ix-title{display:block;font-family:var(--serif);font-weight:800;font-size:clamp(22px,2.8vw,28px);line-height:1.3;margin-top:6px}
+.ix-ref{display:block;font-size:14px;color:var(--soft);margin-top:4px}
+.ix-q{display:block;font-family:var(--serif);font-weight:700;font-size:16px;line-height:1.6;margin-top:12px;opacity:.86;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ix-q::before{content:"Q. ";color:var(--gold)}
+@media(hover:hover){.ix-latest:hover .ix-thumb img{transform:scale(1.03)}.sx:hover .sx-title{color:var(--teal-d)}}
+.sx-h{font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--soft);margin-bottom:6px}
+.sx-side{color:var(--ink)}
+.sx-page{display:grid;align-content:start}
+.sx{display:grid;grid-template-columns:78px 1fr;column-gap:14px;row-gap:2px;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.sx-date{grid-row:span 2;font-size:13px;font-weight:600;color:var(--teal-d);padding-top:3px;font-variant-numeric:tabular-nums}
+.sx-title{font-family:var(--serif);font-weight:700;font-size:17px;line-height:1.35}
+.sx-ref{font-size:13px;color:var(--soft)}
+.sx-side .cz-bar{justify-content:flex-start;margin-top:14px;color:var(--night)}
+
+.bk{display:grid;grid-template-columns:160px 1fr;gap:36px;align-items:start}
+.bk-cover{width:160px;border-radius:10px;box-shadow:0 14px 30px rgba(15,58,64,.2)}
+.bk h2{font-family:var(--serif);font-weight:800;font-size:clamp(22px,3vw,28px);line-height:1.3}
+.bk-sub{font-size:14px;color:var(--soft);margin-top:6px}
+.bk-lessons{list-style:none;display:grid;grid-template-columns:1fr 1fr;column-gap:30px;margin-top:10px}
+.bk-lessons li{padding:12px 0;border-bottom:1px solid var(--line)}
+.ls-n{display:block;font-size:12.5px;font-weight:600;color:var(--teal-d)}
+.ls-q{display:block;font-family:var(--serif);font-weight:700;font-size:15.5px;line-height:1.45;margin-top:3px}
+.bk-dl{font-size:13.5px;color:var(--soft);margin-top:16px}
+.bk-dl a{color:var(--teal-d);font-weight:700}
+
+/* ---------- 반응형 ---------- */
+@media(max-width:760px){
+  .sm-head{padding:22px 0 30px}
+  .sm-crumb{margin-bottom:16px}
+  .sm-q{margin-top:16px}
+  .sm-stage{padding:22px 0 26px}
+  .st-tabs{width:100%}
+  .st-tabs button{flex:1 0 auto;font-size:13.5px;padding:10px 14px}
+  .st-p{padding:24px 20px;border-radius:20px}
+  .qz .cz-slide{grid-template-columns:1fr;gap:18px;align-content:start}
+  .qz-note{padding:4px 18px;transform:rotate(-.8deg)}
+  .qz-note label{font-size:16px;padding:12px 0}
+  .qz .btn{width:100%;justify-content:center;margin-top:18px}
+  .qz-art{max-width:250px}
+  .sh{grid-template-columns:118px 1fr;gap:18px;align-items:start}
+  .sh-txt h2{font-size:21px}
+  .sh-txt p:not(.st-kicker){font-size:14.5px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+  .sh-more{font-size:14px;flex-wrap:wrap}
+  .sm-watch .wrap{grid-template-columns:1fr;gap:14px}
+  .sm-visit .wrap{flex-direction:column;align-items:stretch;gap:12px}
+  .sm-visit .btn{justify-content:center}
+  .ix-grid{grid-template-columns:1fr;gap:26px}
+  .bk{grid-template-columns:90px 1fr;gap:16px}
+  .bk-cover{width:90px}
+  .bk-body{display:contents}
+  .bk-body h2{align-self:center;font-size:20px}
+  .bk-sub,.bk-lessons,.bk-dl{grid-column:1/-1}
+  .bk-lessons{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;scrollbar-width:none;margin:6px -20px 0;padding:0 20px;scroll-padding:0 20px}
+  .bk-lessons::-webkit-scrollbar{display:none}
+  .bk-lessons li{flex:0 0 78%;scroll-snap-align:start;background:var(--ivory);border:0;border-radius:14px;padding:16px 18px}
+}
+@media(hover:none){.st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}}
+@media(prefers-reduced-motion:reduce){html.js .st-p.on{animation:none}}

@@ -48,6 +48,7 @@ const CHECKS = [
   ['예배안내', page('/worship.html', '예배안내')],
   ['PPT 허브 화면', page('/ppt/', '주일예배 준비실')],
   ['주보 화면', page('/bt/', '주보 만들기')],
+  ['말씀 모음', page('/sermon/', '말씀')],
   ['최신 설교(sermon.json)', sermon],
   ['PPT 서버 함수(api)', fn('api')],
   ['주보 서버 함수(bt)', fn('bt')],
