@@ -19,6 +19,7 @@
 8. **API 키·시크릿을 코드나 이 문서에 절대 쓰지 말 것**. `.env`는 `.gitignore`에 포함 확인 후 작업 시작. 키는 Supabase Edge Function secrets에만 존재
 9. **이 repo가 public이면 소스가 전부 공개된다는 전제로 작업**: PIN 검증·권한 확인은 클라이언트 JS가 아니라 반드시 Supabase(RLS 정책 또는 Edge Function)에서 수행. 클라이언트 코드에 PIN 값·검증 로직을 두지 말 것
 10. 실제 PIN 값, 담당자 개인 이메일 등 민감값은 코드·문서·커밋 메시지 어디에도 기록 금지 (DB에만)
+11. **내부 문서·서버 소스는 kzion.net으로 서빙하지 않는다**(2026-09-29): GitHub Pages가 repo 전체를 그대로 배포해 `CLAUDE.html`·`docs/`·`supabase/*.sql`이 공개 URL로 열리고 색인 가능했다. 루트 `_config.yml`의 `exclude`로 차단(CLAUDE.md·README.md·docs·supabase). 새 내부 문서·폴더를 만들면 이 목록에 추가. 단 repo 자체가 public이므로 GitHub에서는 여전히 보인다 — 규칙 8~10은 그대로 유효
 
 ## 구현 확정 결정 (2026-07-02, 구현 착수 시 합의)
 
