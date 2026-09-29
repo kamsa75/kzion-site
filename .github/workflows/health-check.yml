@@ -1,0 +1,31 @@
+name: 상태 점검
+
+# 밖에서 보이는 것만 확인(홈페이지·PPT·주보 화면, 서버 함수, 최신 설교, 내부 문서 차단).
+# 실패하면 GitHub가 저장소 주인에게 메일을 보낸다. 저장소·사이트는 아무것도 바꾸지 않는다.
+# 시각은 UTC — 아래 주석은 서머타임(PDT) 기준이며 겨울에는 1시간 이르게 돈다.
+on:
+  schedule:
+    - cron: '0 14 * * *'            # 매일 07:00
+    - cron: '0 17,20,23 * * 6'      # 토 10:00·13:00·16:00
+    - cron: '0 2 * * 0'             # 토 19:00
+    - cron: '0 13,15,16,17 * * 0'   # 주일 06:00·08:00·09:00·10:00 (예배 10:45 전)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: health-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 점검
+        run: node .github/scripts/health-check.mjs
