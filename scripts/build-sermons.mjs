@@ -27,6 +27,13 @@ const CH = {
   pastor: '이영래 목사',
 };
 const ADDRESS = `${CH.street}, ${CH.city}, ${CH.state} ${CH.zip}`;
+const IG = { id: 'seattlezionchurch', url: 'https://www.instagram.com/seattlezionchurch/' };
+const IG_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.25" fill="currentColor"/></svg>';
+// 인스타그램 버튼 — 게시된 릴스가 있으면 그 릴스로, 없으면 교회 계정으로
+const igButton = (href) => `<a class="ig" href="${esc(href || IG.url)}" target="_blank" rel="noopener">
+                    <span class="ig-logo">${IG_LOGO}</span>
+                    <span class="ig-t"><b>인스타그램에서 보기</b><span>@${IG.id}</span></span>
+                  </a>`;
 
 const PALETTE = {            // 릴스 색 (쇼츠 파이프라인 팔레트와 같은 값)
   amber:  { bg: '#F0C24A', ink: '#1C1814', mute: '#604A1E' },
@@ -179,10 +186,9 @@ function reelPanel(r, d, { base, goHref, id }) {
                 <h3>이 질문의 답은 설교에 있어요.</h3>
                 <div class="qs-acts">
                   <a class="btn qs-go" href="${goHref}">설교 듣기 ${ARROW}</a>
-                  ${r.video ? `<button class="qs-btn qs-play" type="button">${PLAY}<span>릴스로 보기</span></button>` : ''}
-                  ${r.instagram ? `<a class="qs-btn" href="${esc(r.instagram)}" target="_blank" rel="noopener"><span>인스타그램</span></a>` : ''}
                   <button class="qs-btn qs-again" type="button"><span>다시 풀기</span></button>
                 </div>
+                ${igButton(r.instagram)}
               </div>`;
   return `
         <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
@@ -199,12 +205,10 @@ function reelPanel(r, d, { base, goHref, id }) {
           </div>
           <div class="qz-view qz-story" aria-live="polite">
             <div class="qs-bars">${Array.from({ length: r.scenes.length + 1 }, () => '<i><b></b></i>').join('')}</div>
-            <p class="qs-chip"></p>
             <div class="qs-stage">${scenes}${end}
             </div>
             <button class="qs-zone prev" type="button" aria-label="이전 장면"></button>
             <button class="qs-zone next" type="button" aria-label="다음 장면"></button>
-            ${r.video ? `<div class="qs-video" hidden><video preload="none" playsinline controls data-src="${base}${esc(r.video)}"></video><button class="qs-close" type="button" aria-label="닫기">×</button></div>` : ''}
           </div>
         </div>`;
 }
@@ -322,17 +326,37 @@ function indexPage(all) {
   const list = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: '말씀', url, inLanguage: 'ko', publisher: CHURCH_LD,
     mainEntity: { '@type': 'ItemList', itemListElement: all.slice().reverse().map((d, i) => ({ '@type': 'ListItem', position: i + 1, url: `${url}${d.date}/`, name: d.title })) } };
 
-  // 이번 주 질문 — 퀴즈가 있는 가장 최근 설교
-  const qs = all.filter((d) => d.reels.length);
-  const qd = qs[qs.length - 1];
-  const weekly = qd ? `
-<section class="sm-stage sm-weekly" aria-label="이번 주 질문">
+  // 질문으로 만나는 설교 — 퀴즈와 그 설교를 한 묶음으로. 설교마다 묶음 하나, 같은 자리에 겹쳐 두고 하나만 보인다
+  // (가장 최근 묶음이 처음 보임. '모든 질문' 카드를 누르면 그 묶음·질문으로 바뀜). 최근 12개 질문까지만 이 페이지에 싣는다
+  const withQ = all.filter((d) => d.reels.length).slice().reverse();
+  const pairs = [];
+  let qCount = 0;
+  for (const d of withQ) { if (qCount >= 12) break; pairs.push(d); qCount += d.reels.length; }
+  const pairUnit = (d, i) => `
+      <div class="pr${i ? '' : ' on'}" id="p-${d.date}" data-tabs>
+        <div class="pr-top">
+          ${d.reels.length > 1 ? `<div class="st-tabs" role="tablist" aria-label="${esc(d.title)} 질문">
+            ${d.reels.map((r, k) => `<button role="tab" type="button" aria-selected="${k ? 'false' : 'true'}">${esc(r.question)}</button>`).join('\n            ')}
+          </div>` : ''}
+        </div>
+        <div class="st-frame">${d.reels.map((r) => reelPanel(r, d, { base: `${d.date}/`, goHref: `${d.date}/#watch`, id: `w-${d.date}-${r.n}` })).join('')}
+        </div>
+        <a class="pr-sermon" href="${d.date}/">
+          <span class="pr-thumb"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상" loading="lazy"><span class="pr-play">${PLAY}</span></span>
+          <span class="pr-body">
+            <span class="pr-k">이 질문의 설교 · ${mdDate(d.date)} 주일</span>
+            <span class="pr-title">${esc(d.title)}</span>
+            <span class="pr-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
+          </span>
+          <span class="pr-go">설교 보기 ${ARROW}</span>
+        </a>
+      </div>`;
+  const weekly = pairs.length ? `
+<section class="sm-stage sm-weekly" aria-label="질문으로 만나는 설교">
   <div class="wrap">
-    <div class="wk-head">
-      <p class="wk-k">이번 주 질문</p>
-      <p class="wk-s"><a href="${qd.date}/">${mdDate(qd.date)} 설교 「${esc(qd.title)}」</a>에서</p>
+    <div class="wk-head"><h2 class="wk-k">질문으로 만나는 설교</h2><p class="wk-s">질문에 답해 보고, 그 답이 담긴 설교를 들어 보세요.</p></div>
+    <div class="pr-stack">${pairs.map(pairUnit).join('')}
     </div>
-    ${tabsBox('이번 주 질문', qd.reels.map((r) => r.question), qd.reels.map((r) => reelPanel(r, qd, { base: `${qd.date}/`, goHref: `${qd.date}/#watch`, id: `w${r.n}` })), ' st-quiz')}
   </div>
 </section>` : '';
 
@@ -362,12 +386,12 @@ function indexPage(all) {
 
   // 모든 질문 — 질문 카드, 한 칸에서 넘김(최근 12개), 누르면 그 설교에서 풀기
   const allQ = [];
-  for (const d of all.slice().reverse()) for (const r of d.reels) allQ.push({ d, r });
+  for (const d of pairs) d.reels.forEach((r, k) => allQ.push({ d, r, k }));
   const qPages = [];
   const QPER = 3;
   for (let i = 0; i < Math.min(allQ.length, 12); i += QPER) qPages.push(allQ.slice(i, i + QPER));
-  const qcard = ({ d, r }) => { const p = PALETTE[r.color] || PALETTE.amber;
-    return `<a class="qx" href="${d.date}/#q${r.n}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+  const qcard = ({ d, r, k }) => { const p = PALETTE[r.color] || PALETTE.amber;
+    return `<a class="qx" href="${d.date}/#q${r.n}" data-pair="p-${d.date}" data-q="${k}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
                 ${r.scenes[0]?.image ? `<img src="${d.date}/${esc(r.scenes[0].image)}" alt="" loading="lazy">` : ''}
                 <span class="qx-q">${esc(r.question)}</span>
                 <span class="qx-s">${mdDate(d.date)} · ${esc(d.title)}</span>

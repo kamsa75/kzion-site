@@ -49,7 +49,7 @@
   document.querySelectorAll('.qz').forEach(function (q) {
     var story = q.querySelector('.qz-story'); if (!story) return;
     var scenes = story.querySelectorAll('.qs-s'), bars = story.querySelectorAll('.qs-bars i');
-    var chip = story.querySelector('.qs-chip'), cur = -1, timer = null;
+    var cur = -1, timer = null;
     q.style.setProperty('--dur', STEP + 'ms');
 
     function show(i) {
@@ -65,10 +65,7 @@
       if (last) { bars[cur].classList.add('done'); return; }
       if (!reduce) timer = setTimeout(function () { if (!q.classList.contains('paused')) show(cur + 1); }, STEP);
     }
-    function open(label) {
-      if (chip) chip.textContent = label || '';
-      q.classList.add('open'); show(0);
-    }
+    function open() { q.classList.add('open'); show(0); }
     function reset() {
       clearTimeout(timer); q.classList.remove('open', 'picked', 'ended', 'paused');
       q.querySelectorAll('input').forEach(function (i) { i.checked = false; });
@@ -90,16 +87,13 @@
     }
     q.querySelectorAll('.qz-note input').forEach(function (i) { i.addEventListener('change', meter); });
     var go = q.querySelector('.qz-next');
-    if (go) go.addEventListener('click', function () {
-      var k = meter();
-      open(m.dataset.n + '개 중 ' + k + '개 체크');
-    });
+    if (go) go.addEventListener('click', function () { meter(); open(); });
     // 고르기: 고른 카드가 떠오르고, 안내 한 줄을 읽을 틈을 준 뒤 결과로
     q.querySelectorAll('.qz-card').forEach(function (c) {
       c.addEventListener('click', function () {
         if (q.classList.contains('picked')) return;
         c.classList.add('on'); q.classList.add('picked');
-        setTimeout(function () { open('나의 선택 · ' + c.querySelector('.qc-t').textContent); }, 1400);
+        setTimeout(open, 1400);
       });
     });
 
@@ -120,16 +114,6 @@
     var again = story.querySelector('.qs-again');
     if (again) again.addEventListener('click', reset);
 
-    // 릴스로 보기: 이 칸 안에서 원본 애니메이션 재생
-    var play = story.querySelector('.qs-play'), box = story.querySelector('.qs-video');
-    if (play && box) {
-      var v = box.querySelector('video');
-      play.addEventListener('click', function () {
-        if (!v.src) v.src = v.getAttribute('data-src');
-        box.hidden = false; v.currentTime = 0; v.play().catch(function () {});
-      });
-      box.querySelector('.qs-close').addEventListener('click', function () { v.pause(); box.hidden = true; });
-    }
   });
 
   // 탭 — 칸 높이는 가장 긴 탭에 맞춰 고정(CSS grid 겹치기), 여기서는 보이는 칸만 바꾼다
@@ -148,5 +132,21 @@
     panels.forEach(function (p, k) { if (location.hash && p.id && '#' + p.id === location.hash) start = k; });
     show(start);
     if (start) box.scrollIntoView({ block: 'start' });
+    box._show = show;
+  });
+
+  // 말씀 모음: '모든 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
+  var stack = document.querySelector('.pr-stack');
+  if (stack) document.querySelectorAll('.qx[data-pair]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var unit = document.getElementById(a.getAttribute('data-pair')); if (!unit) return;
+      e.preventDefault();
+      stack.querySelectorAll('.pr').forEach(function (u) {
+        u.classList.toggle('on', u === unit);
+        if (u !== unit) u.querySelectorAll('.qz').forEach(function (p) { if (p._stop) p._stop(); });
+      });
+      if (unit._show) unit._show(+a.getAttribute('data-q'));
+      stack.closest('section').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
   });
 })();

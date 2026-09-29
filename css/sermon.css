@@ -103,9 +103,7 @@ html.js .qz:not(.open) .qz-story,html.js .qz.open .qz-ask{opacity:0;transform:sc
 .qs-bars i.run b{animation:fillbar var(--dur,5s) linear forwards}
 .qz.paused .qs-bars i.run b{animation-play-state:paused}
 @keyframes fillbar{to{width:100%}}
-.qs-chip{align-self:flex-start;margin-top:14px;font-size:13px;line-height:16px;height:28px;font-weight:700;background:var(--q-ink);color:var(--q-bg);padding:6px 12px;border-radius:999px;white-space:nowrap}
-.qs-chip:empty{visibility:hidden}
-.qs-stage{flex:1;display:grid;margin-top:8px}
+.qs-stage{flex:1;display:grid;margin-top:14px}
 .qs-s{grid-area:1/1;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility .5s}
 .qs-s.on{opacity:1;visibility:inherit}
 html:not(.js) .qs-s{opacity:1;visibility:inherit;grid-area:auto}
@@ -132,11 +130,21 @@ html:not(.js) .qs-s{opacity:1;visibility:inherit;grid-area:auto}
 .qs-zone{position:absolute;top:40px;bottom:0;z-index:2;border:0;background:transparent;cursor:pointer;padding:0}
 .qs-zone.prev{left:0;width:30%}.qs-zone.next{right:0;width:70%}
 .qz.ended .qs-zone{display:none}
-html:not(.js) .qs-zone,html:not(.js) .qs-bars,html:not(.js) .qs-chip{display:none}
-.qs-video[hidden]{display:none}
-.qs-video{position:absolute;inset:0;z-index:5;background:var(--q-bg);display:flex;align-items:center;justify-content:center;padding:12px}
-.qs-video video{height:100%;max-height:100%;aspect-ratio:9/16;border-radius:14px;background:#000;box-shadow:0 20px 40px -20px rgba(0,0,0,.5)}
-.qs-close{position:absolute;right:14px;top:10px;width:40px;height:40px;border-radius:50%;border:2px solid var(--q-ink);background:var(--q-bg);color:var(--q-ink);font-size:24px;line-height:1;cursor:pointer}
+html:not(.js) .qs-zone,html:not(.js) .qs-bars{display:none}
+/* 인스타그램 버튼 */
+.ig{display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:7px 20px 7px 7px;border-radius:999px;background:#fff;color:#1C1814;text-decoration:none;position:relative;z-index:3;
+  box-shadow:0 14px 28px -14px rgba(0,0,0,.45);transition:transform .2s}
+.ig-logo{position:relative;width:44px;height:44px;border-radius:13px;flex:none;color:#fff;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%);
+  box-shadow:0 10px 20px -8px rgba(214,36,159,.7);animation:igFloat 2.8s ease-in-out infinite}
+.ig-logo::after{content:"";position:absolute;inset:-5px;border-radius:17px;border:2px solid rgba(214,36,159,.35);animation:igPulse 2.8s ease-out infinite}
+.ig-logo svg{width:25px;height:25px}
+.ig-t{display:flex;flex-direction:column;text-align:left;line-height:1.3}
+.ig-t b{font-size:14.5px;font-weight:800}
+.ig-t span{font-size:12.5px;font-weight:700;background:linear-gradient(90deg,#d6249f,#8a3ab9 60%,#285AEB);-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes igFloat{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-6px) rotate(5deg)}}
+@keyframes igPulse{0%{opacity:.9;transform:scale(.9)}70%,100%{opacity:0;transform:scale(1.25)}}
+@media(hover:hover){.ig:hover{transform:translateY(-3px)}}
 
 /* ---------- 1분 영상 칸 ---------- */
 .sh-p{background:var(--night);color:var(--ivory)}
@@ -180,9 +188,26 @@ html:not(.js) .qs-zone,html:not(.js) .qs-bars,html:not(.js) .qs-chip{display:non
 .sm-pager a span{display:block;font-family:var(--sans);font-size:12px;font-weight:600;color:var(--soft);margin-bottom:3px}
 .sm-pager .nx{text-align:right}
 
-/* ---------- 말씀 모음: 이번 주 질문 ---------- */
+/* ---------- 말씀 모음: 질문으로 만나는 설교(퀴즈 + 그 설교 묶음) ---------- */
 .sm-weekly{padding-bottom:6px}
 .wk-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.pr-stack{display:grid}
+.pr{grid-area:1/1;min-width:0}
+html.js .pr:not(.on){visibility:hidden;pointer-events:none}
+html.js .pr.on{animation:riseIn .4s ease both}
+html:not(.js) .pr-stack{gap:28px}
+html:not(.js) .pr{grid-area:auto}
+.pr-top:empty{display:none}
+.pr-sermon{display:grid;grid-template-columns:168px 1fr auto;gap:20px;align-items:center;margin-top:12px;background:#fff;border-radius:18px;padding:12px 22px 12px 12px;text-decoration:none;color:var(--ink);transition:transform .2s}
+.pr-thumb{position:relative;display:block;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--night)}
+.pr-thumb img{width:100%;height:100%;object-fit:cover}
+.pr-play{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:var(--gold);color:var(--night);display:flex;align-items:center;justify-content:center}
+.pr-play svg{width:16px;height:16px;margin-left:2px}
+.pr-k{display:block;font-size:12.5px;font-weight:600;color:var(--teal-d)}
+.pr-title{display:block;font-family:var(--serif);font-weight:800;font-size:20px;line-height:1.3;margin-top:3px}
+.pr-ref{display:block;font-size:13.5px;color:var(--soft);margin-top:2px}
+.pr-go{font-size:14.5px;font-weight:700;color:var(--teal-d);white-space:nowrap;border-bottom:2px solid var(--gold);padding-bottom:3px}
+@media(hover:hover){.pr-sermon:hover{transform:translateY(-3px)}}
 .wk-k{font-family:var(--serif);font-weight:800;font-size:clamp(22px,3vw,28px);color:var(--ink)}
 .wk-s{font-size:14px;color:var(--soft)}
 .wk-s a{color:var(--teal-d);font-weight:600;text-decoration:none}
@@ -254,6 +279,10 @@ html:not(.js) .qs-zone,html:not(.js) .qs-bars,html:not(.js) .qs-chip{display:non
   .sh-more{font-size:14px}
   .sm-watch .wrap{grid-template-columns:1fr;gap:14px}
   .sm-visit .wrap{flex-direction:column;align-items:stretch;gap:12px}
+  .pr-sermon{grid-template-columns:112px 1fr;gap:14px;padding:10px 14px 10px 10px}
+  .pr-go{display:none}
+  .pr-title{font-size:17px}
+  .ig{margin-top:14px}
   .sm-visit .btn{justify-content:center}
   .ix-grid{grid-template-columns:1fr;gap:26px}
   .qx-page{grid-template-columns:1fr;gap:12px}
@@ -271,6 +300,6 @@ html:not(.js) .qs-zone,html:not(.js) .qs-bars,html:not(.js) .qs-chip{display:non
 }
 @media(hover:none){.st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}.qz-card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){
-  html.js .st-p.on,.qs-s.on .qs-art,.qs-s.on .qs-txt h3,.qs-s.on .qs-txt p{animation:none}
+  html.js .st-p.on,html.js .pr.on,.qs-s.on .qs-art,.qs-s.on .qs-txt h3,.qs-s.on .qs-txt p,.ig-logo,.ig-logo::after{animation:none}
   .qs-s.on mark::after{animation:none;transform:scaleX(1)}
 }
