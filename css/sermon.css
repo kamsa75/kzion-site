@@ -72,7 +72,18 @@ html.js .qz:not(.open) .qz-story,html.js .qz.open .qz-ask{opacity:0;transform:sc
 .qz-note input:checked~.qz-it{background:linear-gradient(transparent 58%,color-mix(in srgb,var(--q-bg) 70%,transparent) 58%)}
 .qz-note input:focus-visible+.box{outline:3px solid #1C7682;outline-offset:3px}
 @keyframes stamp{0%{transform:scale(1)}40%{transform:scale(1.28) rotate(-6deg)}100%{transform:scale(1)}}
-.qz-meter{display:flex;align-items:center;gap:14px;margin-top:22px}
+.qz-go{display:flex;align-items:center;gap:18px;margin-top:22px}
+.qz-meter{flex:1;display:flex;align-items:center;gap:14px}
+/* 다음으로: 글 없이 화살표만. 하나라도 체크하면 숨 쉬듯 커졌다 작아진다 */
+.qz-next{-webkit-appearance:none;appearance:none;flex:none;width:62px;height:62px;border-radius:50%;border:0;cursor:pointer;background:var(--q-ink);color:var(--q-bg);
+  display:flex;align-items:center;justify-content:center;padding:0;position:relative;transition:transform .15s}
+.qz-next svg{width:26px;height:26px}
+.qz-next::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--q-ink);opacity:0}
+.qz.ready .qz-next{animation:breathe 1.8s ease-in-out infinite}
+.qz.ready .qz-next::after{animation:ring 1.8s ease-out infinite}
+.qz-next:active{transform:scale(.94)}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes ring{0%{opacity:.6;transform:scale(.9)}80%,100%{opacity:0;transform:scale(1.25)}}
 .qm-track{position:relative;flex:1;height:8px;border-radius:4px;background:color-mix(in srgb,var(--q-ink) 16%,transparent)}
 .qm-track i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:4px;background:var(--q-ink);transition:width .35s cubic-bezier(.3,1.3,.5,1)}
 .qm-track b{position:absolute;top:-5px;width:2px;height:18px;background:var(--q-ink);opacity:.5}
@@ -252,7 +263,6 @@ html:not(.js) .pr{grid-area:auto}
   .qz-ask{grid-template-columns:1fr;gap:18px;align-content:start}
   .qz-note{padding:2px 18px;transform:rotate(-.8deg)}
   .qz-note label{font-size:16px;padding:11px 0}
-  .qz .btn{width:100%;justify-content:center;margin-top:16px}
   .qz-cards{gap:8px}
   .qc-l{font-size:32px}.qc-t{font-size:14px}
   .qz-card{padding:16px 6px 14px}
@@ -289,5 +299,6 @@ html:not(.js) .pr{grid-area:auto}
 @media(hover:none){.st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}.qz-card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){
   html.js .st-p.on,html.js .pr.on,.qs-s.on .qs-art,.qs-s.on .qs-txt h3,.qs-s.on .qs-txt p,.qs-s.on .qe-sermon{animation:none}
+  .qz.ready .qz-next,.qz.ready .qz-next::after{animation:none}
   .qs-s.on mark::after{animation:none;transform:scaleX(1)}
 }

@@ -157,11 +157,13 @@ function reelPanel(r, d, { base, goHref, id }) {
     ? `<ul class="qz-note">
                 ${r.items.map((t, i) => `<li><label><input type="checkbox" name="${id}-${i}"><span class="box" aria-hidden="true"></span><span class="qz-it">${esc(t)}</span></label></li>`).join('\n                ')}
               </ul>
-              <div class="qz-meter" data-t="${r.threshold}" data-n="${n}">
-                <span class="qm-track"><i></i><b style="left:${(r.threshold / n * 100).toFixed(1)}%"></b></span>
-                <span class="qm-txt"><em>0</em> / ${n}</span>
-              </div>
-              <button class="btn qz-next" type="button">결과 보기 ${ARROW}</button>`
+              <div class="qz-go">
+                <div class="qz-meter" data-t="${r.threshold}" data-n="${n}">
+                  <span class="qm-track"><i></i><b style="left:${(r.threshold / n * 100).toFixed(1)}%"></b></span>
+                  <span class="qm-txt"><em>0</em> / ${n}</span>
+                </div>
+                <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
+              </div>`
     : `<div class="qz-cards">
                 ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
               </div>`;

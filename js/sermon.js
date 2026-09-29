@@ -76,6 +76,7 @@
       m.querySelector('.qm-track i').style.width = (k / n * 100) + '%';
       m.querySelector('em').textContent = k;
       m.classList.toggle('hit', k >= t);
+      q.classList.toggle('ready', k > 0);
       return k;
     }
     q.querySelectorAll('.qz-note input').forEach(function (i) { i.addEventListener('change', meter); });
