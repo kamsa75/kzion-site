@@ -27,13 +27,6 @@ const CH = {
   pastor: '이영래 목사',
 };
 const ADDRESS = `${CH.street}, ${CH.city}, ${CH.state} ${CH.zip}`;
-const IG = { id: 'seattlezionchurch', url: 'https://www.instagram.com/seattlezionchurch/' };
-const IG_LOGO = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.25" fill="currentColor"/></svg>';
-// 인스타그램 버튼 — 게시된 릴스가 있으면 그 릴스로, 없으면 교회 계정으로
-const igButton = (href) => `<a class="ig" href="${esc(href || IG.url)}" target="_blank" rel="noopener">
-                    <span class="ig-logo">${IG_LOGO}</span>
-                    <span class="ig-t"><b>인스타그램에서 보기</b><span>@${IG.id}</span></span>
-                  </a>`;
 
 const PALETTE = {            // 릴스 색 (쇼츠 파이프라인 팔레트와 같은 값)
   amber:  { bg: '#F0C24A', ink: '#1C1814', mute: '#604A1E' },
@@ -182,13 +175,19 @@ function reelPanel(r, d, { base, goHref, id }) {
               </div>`).join('');
   const end = `
               <div class="qs-s qs-end">
-                <p class="qs-endk">${esc(d.title)} · ${esc(scriptureLabel(d))}</p>
-                <h3>이 질문의 답은 설교에 있어요.</h3>
-                <div class="qs-acts">
-                  <a class="btn qs-go" href="${goHref}">설교 듣기 ${ARROW}</a>
-                  <button class="qs-btn qs-again" type="button"><span>다시 풀기</span></button>
+                <div class="qe-txt">
+                  <h3>이 질문의 답은 설교에 있어요.</h3>
+                  <div class="qs-acts">
+                    <a class="btn qs-go" href="${goHref}">설교 듣기 ${ARROW}</a>
+                    <button class="qs-btn qs-again" type="button"><span>다시 풀기</span></button>
+                  </div>
                 </div>
-                ${igButton(r.instagram)}
+                <a class="qe-sermon" href="${goHref}">
+                  <span class="qe-thumb"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상"><span class="qe-play">${PLAY}</span></span>
+                  <span class="qe-k">${mdDate(d.date)} 주일 설교</span>
+                  <span class="qe-title">${esc(d.title)}</span>
+                  <span class="qe-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
+                </a>
               </div>`;
   return `
         <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
@@ -341,15 +340,6 @@ function indexPage(all) {
         </div>
         <div class="st-frame">${d.reels.map((r) => reelPanel(r, d, { base: `${d.date}/`, goHref: `${d.date}/#watch`, id: `w-${d.date}-${r.n}` })).join('')}
         </div>
-        <a class="pr-sermon" href="${d.date}/">
-          <span class="pr-thumb"><img src="${thumb(d.videoId)}" alt="${esc(d.title)} 설교 영상" loading="lazy"><span class="pr-play">${PLAY}</span></span>
-          <span class="pr-body">
-            <span class="pr-k">이 질문의 설교 · ${mdDate(d.date)} 주일</span>
-            <span class="pr-title">${esc(d.title)}</span>
-            <span class="pr-ref">${esc(scriptureLabel(d))} 설교 · ${esc(d.preacher)}</span>
-          </span>
-          <span class="pr-go">설교 보기 ${ARROW}</span>
-        </a>
       </div>`;
   const weekly = pairs.length ? `
 <section class="sm-stage sm-weekly" aria-label="질문으로 만나는 설교">
