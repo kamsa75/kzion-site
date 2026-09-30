@@ -166,6 +166,9 @@ function reelPanel(r, d, { base, goHref, id }) {
               </div>`
     : `<div class="qz-cards">
                 ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
+              </div>
+              <div class="qz-go qz-go-c">
+                <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
               </div>`;
   const scenes = r.scenes.map((s) => `
               <div class="qs-s">

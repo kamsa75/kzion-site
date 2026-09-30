@@ -102,7 +102,10 @@ html.js .qz:not(.open) .qz-story,html.js .qz.open .qz-ask{opacity:0;transform:sc
 .qz-card:nth-child(1) .qc-l{color:#964A2C}.qz-card:nth-child(2) .qc-l{color:#1E5C58}.qz-card:nth-child(3) .qc-l{color:#343C78}
 .qc-t{font-size:15.5px;font-weight:700;text-align:center;line-height:1.35}
 @media(hover:hover){.qz-card:hover{transform:translateY(-6px) rotate(0)}}
-.qz.picked .qz-card{opacity:.35;transform:scale(.94)}
+.qz.picked .qz-card{opacity:.4;transform:scale(.94)}
+.qz.nudge .qz-card{animation:nudge .45s ease}
+@keyframes nudge{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.qz-go-c{justify-content:flex-end}
 .qz.picked .qz-card.on{opacity:1;transform:translateY(-8px) scale(1.06) rotate(0);box-shadow:0 22px 40px -18px rgba(0,0,0,.5)}
 
 /* 결과 = 이야기(스토리)처럼: 위 진행 막대, 좌우 눌러 넘김, 장면마다 그림이 천천히 다가옴 */

@@ -81,13 +81,18 @@
     }
     q.querySelectorAll('.qz-note input').forEach(function (i) { i.addEventListener('change', meter); });
     var go = q.querySelector('.qz-next');
-    if (go) go.addEventListener('click', function () { meter(); open(); });
-    // 고르기: 고른 카드가 떠오르고, 안내 한 줄을 읽을 틈을 준 뒤 결과로
+    if (go) go.addEventListener('click', function () {
+      // 고르기 퀴즈는 하나를 골라야 넘어간다 — 안 골랐으면 카드가 살짝 흔들려 알려 준다
+      if (q.getAttribute('data-format') !== 'A' && !q.classList.contains('picked')) {
+        q.classList.add('nudge'); setTimeout(function () { q.classList.remove('nudge'); }, 500); return;
+      }
+      meter(); open();
+    });
+    // 고르기: 고른 카드가 떠오르고 안내 한 줄이 나타난다. 화살표를 누르기 전까지는 다른 카드로 바꿀 수 있다
     q.querySelectorAll('.qz-card').forEach(function (c) {
       c.addEventListener('click', function () {
-        if (q.classList.contains('picked')) return;
-        c.classList.add('on'); q.classList.add('picked');
-        setTimeout(open, 1400);
+        q.querySelectorAll('.qz-card').forEach(function (x) { x.classList.toggle('on', x === c); });
+        q.classList.add('picked', 'ready');
       });
     });
 
