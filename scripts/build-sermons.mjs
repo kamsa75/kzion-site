@@ -518,25 +518,29 @@ function homeWord(all) {
       </div>
       <a class="hw-all" href="sermon/">말씀 전체 보기 ${ARROW}</a>
     </div>`;
+  // 최신 설교 영상 카드 — 그 자리 재생. 첫 화면 '말씀 듣기'가 이 칸(#word-video)을 바로 연다
+  const vid = (cls) => `
+        <div class="${cls}" id="word-video"${cls.includes('st-p') ? ' role="tabpanel"' : ''}>
+          <div class="ix-media">${video(latest.videoId, `${latest.title} 설교 영상`, 'ix-yt')}<span class="ix-badge">최근 설교</span></div>
+          <a class="ix-link" href="sermon/${latest.date}/">
+            <span class="ix-date">${koDate(latest.date)} 주일예배</span>
+            <span class="ix-title">${esc(latest.title)}</span>
+            <span class="ix-ref">${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}</span>
+            ${latest.coreQuestion ? `<span class="ix-q">${esc(latest.coreQuestion)}</span>` : ''}
+          </a>
+        </div>`;
+  // 퀴즈가 있으면: 질문 탭들 + 마지막에 '▶ 이번 설교 영상' 탭(처음엔 퀴즈가 열려 있음)
   const stage = q ? `
     <div class="pr on" id="h-${q.date}" data-tabs>
       <div class="pr-top">
-        ${q.reels.length > 1 ? `<div class="st-tabs" role="tablist" aria-label="${esc(q.title)} 질문">
+        <div class="st-tabs" role="tablist" aria-label="${esc(q.title)} 질문과 설교 영상">
           ${q.reels.map((r, k) => `<button role="tab" type="button" aria-selected="${k ? 'false' : 'true'}">${esc(r.question)}</button>`).join('\n          ')}
-        </div>` : ''}
+          <button role="tab" type="button" aria-selected="false" class="st-tab-vid"><span aria-hidden="true">▶</span> 이번 설교 영상</button>
+        </div>
       </div>
-      <div class="st-frame">${q.reels.map((r) => reelPanel(r, q, { base: `sermon/${q.date}/`, goHref: `sermon/${q.date}/#watch`, id: `h-${q.date}-${r.n}` })).join('')}
+      <div class="st-frame">${q.reels.map((r) => reelPanel(r, q, { base: `sermon/${q.date}/`, goHref: `sermon/${q.date}/#watch`, id: `h-${q.date}-${r.n}` })).join('')}${vid('st-p hw-latest')}
       </div>
-    </div>` : `
-    <div class="hw-latest">
-      <div class="ix-media">${video(latest.videoId, `${latest.title} 설교 영상`, 'ix-yt')}<span class="ix-badge">이번 주 말씀</span></div>
-      <a class="ix-link" href="sermon/${latest.date}/">
-        <span class="ix-date">${koDate(latest.date)} 주일예배</span>
-        <span class="ix-title">${esc(latest.title)}</span>
-        <span class="ix-ref">${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}</span>
-        ${latest.coreQuestion ? `<span class="ix-q">${esc(latest.coreQuestion)}</span>` : ''}
-      </a>
-    </div>`;
+    </div>` : vid('hw-latest');
   const lead = q ? `${esc(q.title)} · ${esc(scriptureLabel(q))} — 질문에 답해 보면, 그 답이 담긴 설교가 이어집니다.`
     : `${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}`;
   return `${HOME_A}

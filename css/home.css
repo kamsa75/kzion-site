@@ -35,7 +35,10 @@ body.home{background:var(--ivory)}
 .hw .st-tabs button{color:#C8DEDF}
 .hw .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
 
-/* 퀴즈가 아직 없는 주 — 최신 설교를 그 자리 재생 카드로 */
+.hw .st-tab-vid{color:var(--gold-l)}
+.hw .st-tab-vid span{font-size:11px;margin-right:3px}
+.hw .st-frame > .hw-latest{padding:28px}
+/* 최신 설교 영상 카드 — 퀴즈 옆 탭, 또는 퀴즈가 없는 주엔 이것만 */
 .hw-latest{background:var(--ivory);color:var(--ink);border-radius:24px;padding:28px;display:grid;grid-template-columns:1.25fr 1fr;gap:34px;align-items:center}
 
 /* 최근 설교 3편(글자 링크) + 교재 */
@@ -101,6 +104,7 @@ body.home{background:var(--ivory)}
   .home .hero h1.hero-name span{display:block;margin:2px 0 0}
   .hw{padding:40px 0 34px}
   .hw-head{align-items:flex-start;margin-bottom:16px}
+  .hw .st-tab-vid{order:-1}   /* 폰에선 탭 줄이 넘쳐 옆으로 밀리므로 영상 탭을 맨 앞에(처음 열리는 건 그대로 퀴즈) */
   .hw-all{padding:4px 0}
   .hw-foot{grid-template-columns:1fr;gap:12px}
   .hw-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;scrollbar-width:none;margin:0 -20px;padding:0 20px;scroll-padding:0 20px}

@@ -148,7 +148,10 @@
     var start = 0;
     panels.forEach(function (p, k) { if (location.hash && p.id && '#' + p.id === location.hash) start = k; });
     show(start);
-    if (start) box.scrollIntoView({ block: 'start', behavior: 'instant' });
+    if (start) {
+      var toBox = function () { box.scrollIntoView({ block: 'start', behavior: 'instant' }); };
+      toBox(); window.addEventListener('load', function () { setTimeout(toBox, 0); });   // 브라우저의 #주소 점프가 뒤늦게 덮어써도 탭 줄이 보이게
+    }
     box._show = show;
   });
 
@@ -186,6 +189,19 @@
       lesson(+m[1]);
     }
   }
+
+  // 같은 페이지의 탭 칸을 가리키는 링크(예: 홈 '말씀 듣기' → #word-video) — 그 탭을 열고 탭 줄이 보이게 내려간다
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    var id = a.getAttribute('href').slice(1), p = id && document.getElementById(id);
+    var box = p && p.getAttribute('role') === 'tabpanel' && p.closest('[data-tabs]');
+    if (!box) return;
+    a.addEventListener('click', function (e) {
+      if (!box._show) return;
+      e.preventDefault();
+      box._show([].slice.call(box.querySelectorAll('.st-frame > [role="tabpanel"]')).indexOf(p));
+      box.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+  });
 
   // 말씀 모음: '최근 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
   var stack = document.querySelector('.pr-stack');
