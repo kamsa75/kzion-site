@@ -513,7 +513,7 @@ function homeWord(all) {
     <div class="hw-head">
       <div>
         <p class="hw-k">말씀 · ${mdDate(d.date)} 주일 설교</p>
-        <h2 class="hw-h">${q ? '질문으로 만나는 설교' : '이번 주 말씀'}</h2>
+        <h2 class="hw-h">${q ? '질문으로 만나는 설교' : '최근 주일 설교'}</h2>
         <p class="hw-s">${lead}</p>
       </div>
       <a class="hw-all" href="sermon/">말씀 전체 보기 ${ARROW}</a>
