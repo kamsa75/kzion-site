@@ -21,6 +21,7 @@
 10. 실제 PIN 값, 담당자 개인 이메일 등 민감값은 코드·문서·커밋 메시지 어디에도 기록 금지 (DB에만)
 11. **내부 문서·서버 소스는 kzion.net으로 서빙하지 않는다**(2026-09-29): GitHub Pages가 repo 전체를 그대로 배포해 `CLAUDE.html`·`docs/`·`supabase/*.sql`이 공개 URL로 열리고 색인 가능했다. 루트 `_config.yml`의 `exclude`로 차단(CLAUDE.md·README.md·docs·supabase). 새 내부 문서·폴더를 만들면 이 목록에 추가. 단 repo 자체가 public이므로 GitHub에서는 여전히 보인다 — 규칙 8~10은 그대로 유효
 12. **상태 점검**(2026-09-29): `.github/workflows/health-check.yml`이 매일 07:00 + 토·주일 아침 여러 번(PT) 밖에서 보이는 것만 확인 — 홈·예배안내·`/ppt/`·`/bt/` 화면, 서버 함수 `api`·`bt` 응답, `sermon.json` 갱신(10일 이내), 내부 문서 차단(규칙 11). 실패 시 GitHub가 저장소 주인에게 메일. 읽기 전용이며 저장소·사이트·쇼츠 파이프라인을 바꾸지 않는다. 페이지 제목(`<title>`)이나 서버 함수 주소를 바꾸면 `.github/scripts/health-check.mjs`도 함께 고칠 것
+13. **말씀 페이지 `/sermon/`**(2026-09-29, 규칙 6의 예외 — 본부장님 승인): 설교 페이지는 손으로 쓰지 않고 생성기가 만든다 — `scripts/export-sermons.py`(본부장님 Mac에서 실행, 쇼츠 작업 폴더는 **읽기만**, 쇼츠 코드 import 금지) → `data/sermons/*.json` → `node scripts/build-sermons.mjs` → `sermon/`·`sitemap.xml`. 생성된 HTML·sitemap은 직접 고치지 말 것(템플릿 build-sermons.mjs, 스타일 css/sermon.css). 공개 조건·설계 상세는 비공개 저장소 church-ops의 설계 문서. **자동 갱신 봇의 main 자동 커밋 허용**(규칙 5의 예외): `scripts/publish-sermons.sh`가 별도 사본(`~/kzion-site-bot`)에서 `data/sermons`·`sermon/`·`sitemap.xml`만 커밋·푸시한다. 모든 공개 페이지 상단 메뉴에 "말씀". 공식 영어 이름 **Korean Zion Presbyterian Church**. 전화번호는 사이트에 넣지 않는다. "시애틀 한인교회"를 이름처럼 쓰지 않는다 — "시애틀 시온장로교회는 시애틀에 있는 한인교회입니다." 문장을 상단·푸터에. **푸터는 모든 공개 페이지가 `scripts/footer.html` 하나를 공유**(`python3 scripts/apply-footer.py`), 스타일 `css/footer.css`
 
 ## 구현 확정 결정 (2026-07-02, 구현 착수 시 합의)
 
