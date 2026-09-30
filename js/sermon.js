@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var STEP = 3500;   // 결과 장면 하나가 머무는 시간(ms)
+  var STEP = 3000;   // 결과 장면 하나가 머무는 시간(ms)
 
   // 메뉴 열기 — 홈은 main.js가 이미 맡으므로 건너뛴다(두 번 붙으면 열자마자 닫힘)
   var toggle = document.querySelector('.nav-toggle'), links = document.querySelector('.nav-links');

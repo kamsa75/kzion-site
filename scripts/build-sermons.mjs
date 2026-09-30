@@ -223,7 +223,7 @@ function reelPanel(r, d, { base, goHref, id }) {
             <div class="qs-stage">${scenes}${end}
             </div>
             <button class="qs-zone prev" type="button" aria-label="이전 장면"></button>
-            <button class="qs-zone next" type="button" aria-label="다음 장면"></button>
+            <button class="qs-zone next" type="button" aria-label="다음 장면"><span class="qs-arrow" aria-hidden="true">${CHEV('M9 5l7 7-7 7')}</span></button>
           </div>
         </div>`;
 }
