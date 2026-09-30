@@ -3,10 +3,11 @@
 (function () {
   'use strict';
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var STEP = 5200;   // 결과 장면 하나가 머무는 시간(ms)
+  var STEP = 3000;   // 결과 장면 하나가 머무는 시간(ms)
 
+  // 메뉴 열기 — 홈은 main.js가 이미 맡으므로 건너뛴다(두 번 붙으면 열자마자 닫힘)
   var toggle = document.querySelector('.nav-toggle'), links = document.querySelector('.nav-links');
-  if (toggle && links) toggle.addEventListener('click', function () { links.classList.toggle('open'); });
+  if (toggle && links && !document.querySelector('script[src*="main.js"]')) toggle.addEventListener('click', function () { links.classList.toggle('open'); });
 
   // 영상: 눌렀을 때만 유튜브를 불러와 그 자리에서 재생
   document.querySelectorAll('.yt').forEach(function (b) {
@@ -18,6 +19,25 @@
       f.allowFullscreen = true;
       f.className = b.className.replace('yt ', 'yt-frame ');
       b.parentNode.replaceChild(f, b);
+    });
+  });
+
+  // 1분 영상의 '설교에서 이어 듣기' — 새 창 대신 아래 전체 설교를 그 시각부터 그 자리에서 재생
+  document.querySelectorAll('.sh-more[data-start]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var box = document.querySelector('#watch .sw-video'); if (!box) return;
+      var cur = box.querySelector('.yt, .yt-frame'); if (!cur) return;
+      e.preventDefault();
+      var id = cur.getAttribute('data-yt') || (cur.src.match(/embed\/([\w-]+)/) || [])[1];
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&start=' + a.getAttribute('data-start');
+      f.title = cur.getAttribute('aria-label') || cur.title || '설교 영상';
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      f.allowFullscreen = true;
+      f.className = 'yt-frame yt-wide';
+      f.setAttribute('data-yt', id);
+      box.replaceChild(f, cur);
+      document.getElementById('watch').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     });
   });
 
@@ -128,7 +148,10 @@
     var start = 0;
     panels.forEach(function (p, k) { if (location.hash && p.id && '#' + p.id === location.hash) start = k; });
     show(start);
-    if (start) box.scrollIntoView({ block: 'start' });
+    if (start) {
+      var toBox = function () { box.scrollIntoView({ block: 'start', behavior: 'instant' }); };
+      toBox(); window.addEventListener('load', function () { setTimeout(toBox, 0); });   // 브라우저의 #주소 점프가 뒤늦게 덮어써도 탭 줄이 보이게
+    }
     box._show = show;
   });
 
@@ -162,10 +185,23 @@
     var m = /^#lesson-(\d)$/.exec(location.hash), book = document.getElementById('book');
     if (m && book) {
       var box = book.closest('[data-tabs]'), ps = box ? [].slice.call(box.querySelectorAll('.st-frame > [role="tabpanel"]')) : [];
-      if (box && box._show) { box._show(ps.indexOf(book)); box.scrollIntoView({ block: 'start' }); }
+      if (box && box._show) { box._show(ps.indexOf(book)); box.scrollIntoView({ block: 'start', behavior: 'instant' }); }
       lesson(+m[1]);
     }
   }
+
+  // 같은 페이지의 탭 칸을 가리키는 링크(예: 홈 '말씀 듣기' → #word-video) — 그 탭을 열고 탭 줄이 보이게 내려간다
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    var id = a.getAttribute('href').slice(1), p = id && document.getElementById(id);
+    var box = p && p.getAttribute('role') === 'tabpanel' && p.closest('[data-tabs]');
+    if (!box) return;
+    a.addEventListener('click', function (e) {
+      if (!box._show) return;
+      e.preventDefault();
+      box._show([].slice.call(box.querySelectorAll('.st-frame > [role="tabpanel"]')).indexOf(p));
+      box.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    });
+  });
 
   // 말씀 모음: '최근 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
   var stack = document.querySelector('.pr-stack');

@@ -29,6 +29,9 @@ body.sm{background:var(--ivory)}
 .st-tabs button{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:#C8DEDF;font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
 .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
 .st-frame{display:grid}
+/* 주소 #book·#q1 등으로 들어오면 위 메뉴·탭 줄이 가리지 않게 여유를 둔다 */
+[data-tabs]{scroll-margin-top:84px}
+.st-frame > [id]{scroll-margin-top:172px}
 .st-p{grid-area:1/1;min-width:0;border-radius:24px;padding:34px 38px;position:relative;overflow:hidden}
 html.js .st-p:not(.on){visibility:hidden;pointer-events:none}
 html.js .st-p.on{animation:riseIn .4s ease both}
@@ -160,6 +163,15 @@ html:not(.js) .qs-s{opacity:1;visibility:inherit;grid-area:auto}
 .qs-zone{position:absolute;top:40px;bottom:0;z-index:2;border:0;background:transparent;cursor:pointer;padding:0}
 .qs-zone.prev{left:0;width:30%}.qs-zone.next{right:0;width:70%}
 .qz.ended .qs-zone{display:none}
+/* 다음 장면 화살표 — 이야기가 흐르는 동안 오른쪽에 늘 보여, 눌러서 넘길 수 있다는 걸 알린다 */
+.qs-arrow{position:absolute;right:14px;top:50%;width:46px;height:46px;margin-top:-23px;border-radius:50%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--q-ink) 12%,transparent);color:var(--q-ink);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+  transition:background .2s,transform .2s;animation:qsNudge 2.4s ease-in-out infinite}
+.qs-arrow svg{width:22px;height:22px}
+@keyframes qsNudge{0%,70%,100%{transform:translateX(0)}82%{transform:translateX(5px)}}
+@media(hover:hover){.qs-zone.next:hover .qs-arrow{background:var(--q-ink);color:var(--q-bg);animation:none}}
+.qz.paused .qs-arrow{animation-play-state:paused}
+.qs-s:not(.qs-end) .qs-txt{padding-right:58px}   /* 화살표 자리를 비워 글자와 겹치지 않게 */
 html:not(.js) .qs-zone,html:not(.js) .qs-bars{display:none}
 /* ---------- 1분 영상 칸 ---------- */
 .sh-p{background:var(--night);color:var(--ivory)}
@@ -327,6 +339,9 @@ html:has(.lp[open]){overflow:hidden}
 
 /* ---------- 반응형 ---------- */
 @media(max-width:760px){
+  .qs-arrow{right:10px;top:auto;bottom:12px;width:38px;height:38px;margin-top:0}
+  .qs-s:not(.qs-end) .qs-txt{padding-right:44px}
+  .qs-arrow svg{width:18px;height:18px}
   .sm-head{padding:20px 0 28px}
   .sm-crumb{margin-bottom:12px}
   .sm-tag{font-size:12.5px;margin-bottom:10px}
@@ -395,7 +410,7 @@ html:has(.lp[open]){overflow:hidden}
 @media(hover:none){.st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}.qz-card:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){
   .lp[open],.lp.out,.lp::backdrop{animation:none}
-  html.js .st-p.on,html.js .pr.on,.qs-s.on .qs-art,.qs-s.on .qs-txt h3,.qs-s.on .qs-txt p,.qs-s.on .qe-sermon{animation:none}
+  html.js .st-p.on,html.js .pr.on,.qs-arrow,.qs-s.on .qs-art,.qs-s.on .qs-txt h3,.qs-s.on .qs-txt p,.qs-s.on .qe-sermon{animation:none}
   .qz.ready .qz-next,.qz.ready .qz-next::after{animation:none}
   .qs-s.on mark::after{animation:none;transform:scaleX(1)}
 }

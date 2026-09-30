@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>시애틀 시온장로교회</title>
-<meta name="description" content="시애틀 시온장로교회 — 당신이 이 곳에서 천국을 누리면 좋겠습니다. 워싱턴주 쇼어라인. 담임 이영래 목사. 주일예배 오전 10:45.">
-<meta property="og:title" content="시애틀 시온장로교회">
-<meta property="og:description" content="당신이 이 곳에서 천국을 누리면 좋겠습니다.">
+<title>시애틀 시온장로교회 | 시애틀에 있는 한인교회 · 쇼어라인 주일예배 오전 10:45</title>
+<meta name="description" content="시애틀 시온장로교회(Korean Zion Presbyterian Church)는 시애틀에 있는 한인교회입니다. 쇼어라인 주일예배 오전 10:45. 매주 주일 설교와 질문으로 만나는 말씀, 소그룹 성경공부 교재 「부르심」. 담임 이영래 목사.">
+<meta property="og:title" content="시애틀 시온장로교회 — 시애틀에 있는 한인교회">
+<meta property="og:description" content="당신이 이곳에서 천국을 누리면 좋겠습니다. 쇼어라인 주일예배 오전 10:45.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ko_KR">
+<meta property="og:site_name" content="시애틀 시온장로교회">
 <meta property="og:url" content="https://kzion.net/">
 <meta property="og:image" content="https://kzion.net/images/young2.jpg">
 <link rel="canonical" href="https://kzion.net/">
@@ -19,9 +20,12 @@
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <link rel="stylesheet" href="css/style.css?v=20260626ao">
 <link rel="stylesheet" href="css/footer.css?v=20260929a">
+<link rel="stylesheet" href="css/sermon.css?v=20260930a">
+<link rel="stylesheet" href="css/home.css?v=20260930a">
 <script>document.documentElement.className+=' js';</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "Church", "name": "시애틀 시온장로교회", "alternateName": "Korean Zion Presbyterian Church", "description": "시애틀 시온장로교회는 시애틀에 있는 한인교회입니다. 담임 이영래 목사.", "url": "https://kzion.net/", "image": "https://kzion.net/images/young2.jpg", "address": {"@type": "PostalAddress", "streetAddress": "17920 Meridian Ave N", "addressLocality": "Shoreline", "addressRegion": "WA", "postalCode": "98133", "addressCountry": "US"}, "geo": {"@type": "GeoCoordinates", "latitude": 47.7593417, "longitude": -122.3345482}, "sameAs": ["https://www.youtube.com/@kzionchurch", "https://www.instagram.com/seattlezionchurch", "https://www.facebook.com/kzionchurch"]}</script>
 </head>
-<body>
+<body class="home">
 
 <nav class="nav">
   <div class="wrap">
@@ -37,20 +41,19 @@
   </div>
 </nav>
 
-<!-- 히어로 -->
+<!-- 첫 화면 — 교회 이름·지역·예배 시간·주소를 글자로(검색) -->
 <header class="hero" id="top">
   <div class="hero-orb"></div>
   <div class="wrap">
     <div class="grid">
       <div>
-        <div class="eyebrow" style="animation:riseIn .7s ease both">Seattle · Shoreline</div>
-        <h1><span>당신이 이곳에서</span><span><em>천국을 누리면</em></span><span>좋겠습니다.</span></h1>
-        <p class="lead">시애틀 시온장로교회 · 주일 오전 10시 45분.<br>처음 오시는 분도 편안하게, 예배가 끝나면 따뜻한 교제가 있습니다.</p>
+        <h1 class="hero-name">시애틀 시온장로교회 <span>Korean Zion Presbyterian Church</span></h1>
+        <p class="hero-poem"><span>당신이 이곳에서</span><span><em>천국을 누리면</em></span><span>좋겠습니다.</span></p>
+        <p class="lead">주일예배 <b>일요일 오전 10:45</b> · 본당<br>17920 Meridian Ave N, Shoreline, WA 98133</p>
         <div class="cta-row">
-          <a href="worship.html" class="btn btn-teal">예배 안내 보기 <span class="ar">→</span></a>
-          <a href="#community" class="btn btn-line">설교 다시 보기</a>
+          <a href="#word-video" class="btn btn-teal">말씀 듣기 <span class="ar">↓</span></a>
+          <a href="worship.html" class="btn btn-line">예배 안내</a>
         </div>
-        <div class="badge"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>주일예배 <b>일요일 오전 10:45</b> · 본당</span></div>
       </div>
       <div class="hero-gallery" aria-label="시애틀 시온장로교회 성도들의 모습">
         <div class="gframe gframe-a">
@@ -70,15 +73,86 @@
   </div>
 </header>
 
-<!-- Google 리뷰 (실제 후기 5개 · 가로 자동 스크롤) -->
-<section class="voices" id="voices">
+<!-- 말씀:시작 — scripts/build-sermons.mjs가 채운다. 직접 고치지 말 것 -->
+<section class="hw" id="word" aria-label="말씀">
   <div class="wrap">
-    <div class="vhead reveal">
-      <span class="stars" aria-label="별점 5점 만점에 5점">★★★★★</span>
-      <span class="vlabel">Google 리뷰</span>
+    <div class="hw-head">
+      <div>
+        <p class="hw-k">말씀 · 9월 27일 주일 설교</p>
+        <h2 class="hw-h">이번 주 말씀</h2>
+        <p class="hw-s">사사기 11장 1-11절 설교 · 이영래 목사</p>
+      </div>
+      <a class="hw-all" href="sermon/">말씀 전체 보기 <span class="ar" aria-hidden="true">→</span></a>
+    </div>
+    <div class="pr-stack">
+        <div class="hw-latest" id="word-video">
+          <div class="ix-media"><button class="yt ix-yt" type="button" data-yt="r3uXC9mU8Wg" aria-label="유전자, 환경, 은혜 설교 영상 재생">
+          <img src="https://i.ytimg.com/vi/r3uXC9mU8Wg/hqdefault.jpg" alt="유전자, 환경, 은혜 설교 영상" loading="lazy">
+          <span class="yt-play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span>
+        </button><span class="ix-badge">최근 설교</span></div>
+          <a class="ix-link" href="sermon/2026-09-27/">
+            <span class="ix-date">2026년 9월 27일 주일예배</span>
+            <span class="ix-title">유전자, 환경, 은혜</span>
+            <span class="ix-ref">사사기 11장 1-11절 설교 · 이영래 목사</span>
+            <span class="ix-q">타고난 유전자와 상처투성이 환경이 내 인생의 결말을 완전히 정해버리는가, 아니면 그것을 뛰어넘을 길이 있는가?</span>
+          </a>
+        </div>
+    </div>
+    <div class="hw-foot">
+      <p class="hw-lab">최근 주일 설교</p>
+      <div class="hw-list">
+        <a href="sermon/2026-09-27/"><span class="hw-d">2026.09.27</span><span class="hw-t">유전자, 환경, 은혜</span><span class="hw-r">사사기 11장 1-11절</span></a>
+        <a href="sermon/2026-09-20/"><span class="hw-d">2026.09.20</span><span class="hw-t">내가 깨달았나이다</span><span class="hw-r">시편 73편 1-28절</span></a>
+        <a href="sermon/2026-09-13/"><span class="hw-d">2026.09.13</span><span class="hw-t">약속을 떠난 사람</span><span class="hw-r">창세기 36장 1-43절</span></a>
+      </div>
+      <a class="hw-book" href="sermon/#book"><img src="images/calling05-793x1024.jpg" alt="" width="40" height="52" loading="lazy"><span><b>소그룹 성경공부 교재 「부르심」</b>6과 맛보기 <span class="ar" aria-hidden="true">→</span></span></a>
     </div>
   </div>
-  <div class="marquee" aria-label="구글 리뷰 모음">
+</section>
+<!-- 말씀:끝 -->
+
+<!-- 처음 오시는 분께 — 주일 아침 / 예배 시간·오시는 길 / 다녀간 분들 (한 칸, 탭 — 높이 고정) -->
+<section class="hx" id="first" aria-label="처음 오시는 분께">
+  <div class="wrap">
+    <div class="st-box" data-tabs>
+      <div class="hx-head">
+        <div><p class="hw-k">First visit</p><h2 class="hx-h">처음 오시는 분께</h2></div>
+        <div class="st-tabs" role="tablist" aria-label="처음 오시는 분 안내">
+          <button role="tab" type="button" aria-selected="true">주일 아침</button>
+          <button role="tab" type="button" aria-selected="false">예배 · 오시는 길</button>
+          <button role="tab" type="button" aria-selected="false">다녀간 분들</button>
+        </div>
+      </div>
+      <div class="st-frame">
+        <div class="st-p hx-p" role="tabpanel">
+          <p class="hx-intro">처음이라 어색할 일이 없도록, 도착부터 미리 한번 걸어볼게요.</p>
+          <div class="steps">
+          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">01</div><h3>도착 · 주차</h3></div><div class="step-back"><p>교회 주차장에 편히 대시면 돼요. 입구에서 맞아드릴게요.</p></div></div></div>
+          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">02</div><h3>예배</h3></div><div class="step-back"><p>10시 45분 예배. 처음이시면 그냥 앉아 계셔도 괜찮아요.</p></div></div></div>
+          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">03</div><h3>자녀</h3></div><div class="step-back"><p>예배 시간 동안 주일학교에서 아이들을 돌봐 드려요.</p></div></div></div>
+          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">04</div><h3>교제</h3></div><div class="step-back"><p>예배 후엔 따뜻한 교제. 편한 만큼만 머무시면 돼요.</p></div></div></div>
+          </div>
+        </div>
+        <div class="st-p hx-p" role="tabpanel">
+          <div class="visit">
+            <div class="visit-times">
+              <h3 class="hx-sub">예배 시간</h3>
+              <div class="info-row"><span>주일예배</span><span>일요일 오전 10:45 · 본당</span></div>
+              <div class="info-row"><span>주일학교</span><span>일요일 오전 10:45 · 교육관</span></div>
+              <div class="info-row"><span>수요통독</span><span>수요일 오전 10:00 · 오후 7:30 · 두란노실</span></div>
+              <div class="info-row"><span>토요예배</span><span>매주 오전 7:00 · 본당</span></div>
+            </div>
+            <div class="visit-where">
+              <h3 class="hx-sub">오시는 길</h3>
+              <p class="vw-name">시애틀 시온장로교회<br><span>Korean Zion Presbyterian Church</span></p>
+              <p>17920 Meridian Ave N<br>Shoreline, WA 98133</p>
+              <p class="vw-links"><a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도 →</a><a href="worship.html">주차 · 대중교통 안내 →</a></p>
+            </div>
+          </div>
+        </div>
+        <div class="st-p hx-p hx-voices" role="tabpanel">
+          <div class="vhead"><span class="stars" aria-label="별점 5점 만점에 5점">★★★★★</span><span class="vlabel">Google 리뷰</span></div>
+          <div class="marquee" aria-label="구글 리뷰 모음">
     <div class="marquee-track">
       <div class="quote"><span class="stars sm" aria-label="별 5개">★★★★★</span><p>“시애틀에 일자리를 잡아서 아내와 함께 다닐 교회를 찾았어요. 자유롭고 화기애애한 분위기가 너무 좋아서 등록했어요.”</p><div class="who">— MH Choi</div></div>
       <div class="quote"><span class="stars sm" aria-label="별 5개">★★★★★</span><p>“이곳에서 말씀을 듣고, 찬양을 드리고, 신앙의 좋은 선배님들의 삶의 모습을 보며 배우며 신앙생활해서 참 좋아요.”</p><div class="who">— Yunhee Im</div></div>
@@ -90,111 +164,19 @@
       <div class="quote" aria-hidden="true"><span class="stars sm">★★★★★</span><p>“정말 사람들이 마음 문이 열린 교회 같아요! 누구 할 것 없이 너무 따뜻하고 서로 안아주는 사랑하는 공동체 같아요!”</p><div class="who">— Esther</div></div>
       <div class="quote" aria-hidden="true"><span class="stars sm">★★★★★</span><p>“시온장로교회 추천해드립니다! 예배와 커뮤니티가 너무 좋아서 여기로 정착했습니다. 환영합니다!”</p><div class="who">— sungjik cha</div></div>
       <div class="quote" aria-hidden="true"><span class="stars sm">★★★★★</span><p>“하나님이 사랑하시는 교회! 열정 넘치는 목사님과 사랑 많은 성도들이 하나님 나라 확장을 위해 힘쓰는 교회, 시온장로교회!”</p><div class="who">— Yeon Hong</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- 처음 오시는 분 + 예배시간/오시는 길 -->
-<section class="block light" id="first">
-  <div class="wrap">
-    <div class="reveal"><div class="eyebrow">First visit</div><h2 class="t">주일 아침, 이렇게 흘러가요.</h2><p class="intro">처음이라 어색할 일이 없도록, 도착부터 미리 한번 걸어볼게요.</p></div>
-    <div class="two" style="margin-top:38px">
-      <div class="reveal">
-        <div class="steps">
-          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">01</div><h3>도착 · 주차</h3></div><div class="step-back"><p>교회 주차장에 편히 대시면 돼요. 입구에서 맞아드릴게요.</p></div></div></div>
-          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">02</div><h3>예배</h3></div><div class="step-back"><p>10시 45분 예배. 처음이시면 그냥 앉아 계셔도 괜찮아요.</p></div></div></div>
-          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">03</div><h3>자녀</h3></div><div class="step-back"><p>예배 시간 동안 주일학교에서 아이들을 돌봐 드려요.</p></div></div></div>
-          <div class="step"><div class="step-inner"><div class="step-front"><div class="n">04</div><h3>교제</h3></div><div class="step-back"><p>예배 후엔 따뜻한 교제. 편한 만큼만 머무시면 돼요.</p></div></div></div>
-        </div>
-      </div>
-      <div class="info-card reveal">
-        <h3>예배 시간 · 오시는 길</h3>
-        <div class="info-row"><span>주일예배</span><span>일요일 오전 10:45 · 본당</span></div>
-        <div class="info-row"><span>주일학교</span><span>일요일 오전 10:45 · 교육관</span></div>
-        <div class="info-row"><span>수요통독</span><span>수요일 오전 10:00 · 오후 7:30 · 두란노실</span></div>
-        <div class="info-row"><span>토요예배</span><span>매주 오전 7:00 · 본당</span></div>
-        <p class="info-addr">17920 Meridian Ave N, Shoreline, WA 98133<br><a href="https://maps.google.com/maps?q=17920%20Meridian%20Ave%20N%20Shoreline%2C%20WA%2098133" target="_blank" rel="noopener">구글 지도에서 보기 →</a></p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 온라인 헌금 띠 -->
-<section class="give" id="give">
-  <div class="wrap">
-    <div class="gt reveal">
-      <a href="https://www.paypal.com/donate/?hosted_button_id=ZRCRQD95SA2VU" class="btn btn-dark" target="_blank" rel="noopener">온라인 헌금 <span class="ar">→</span></a>
-      <p>PayPal로 안전하게 헌금하실 수 있습니다.</p>
-      <p class="note">결제는 PayPal의 보안 페이지에서 진행되며, 어떠한 개인 정보(이름, 카드번호, 주소, 연락처 등)도 교회 홈페이지에 저장되지 않습니다.</p>
-    </div>
-  </div>
-</section>
-
-<!-- 마음 날씨 -->
-<section class="block weather" id="weather">
-  <div class="wrap">
-    <div class="head reveal">
-      <div class="liveweather" id="liveWx"><span class="wx-load">시애틀 날씨를 불러오는 중…</span></div>
-      <h2 class="t">그렇다면,<br class="br-m">오늘 당신의 마음 날씨는?</h2>
-      <p class="intro">시애틀 하늘처럼 마음에도 날씨가 있죠.<br>지금의 마음을 고르면,<br class="br-m">그 마음에 어울리는 말씀을 건네드려요.</p>
-    </div>
-    <div class="moods reveal" id="moods"></div>
-    <div class="w-result" id="wResult">
-      <p class="verse" id="wVerse"></p>
-      <p class="ref" id="wRef"></p>
-      <a class="more" id="wMore" href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener">이 마음에 어울리는 설교 듣기 →</a>
-    </div>
-  </div>
-</section>
-
-<!-- 최근 설교 (유튜브 임베드 유지) -->
-<section class="block light" id="community" style="padding-bottom:44px">
-  <div class="wrap">
-    <div class="reveal"><div class="eyebrow">설교</div><h2 class="t">지난 말씀, 다시 보기.</h2></div>
-    <div class="sc-grid">
-      <div class="reveal">
-        <div class="sermon-embed">
-          <iframe id="sermonFrame" src="https://www.youtube.com/embed/iop55gOcbag" title="시애틀 시온장로교회 설교 영상"
-            loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-        </div>
-        <div class="sermon-date">이영래 목사</div>
-        <div class="sermon-title" id="sermonTitle">집착과 갈망 (창 30:1-24)</div>
-      </div>
-      <div class="more-card reveal">
-        <h3>매주, 새로운 말씀</h3>
-        <p>놓친 주일이 있어도 괜찮아요.<br>교회 유튜브 채널에서 지난 설교를 언제든 다시 들으실 수 있어요.</p>
-        <a class="btn btn-teal" href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener">전체 설교 보기 (유튜브) <span class="ar">→</span></a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- eBook '부르심' -->
-<section class="block" id="ebook" style="padding-top:0;padding-bottom:40px">
-  <div class="wrap">
-    <div class="reveal"><div class="eyebrow">eBook</div><h2 class="t">소그룹 성경공부 교재</h2></div>
-    <div class="ebook">
-      <div class="cover reveal"><img src="images/calling05-793x1024.jpg" alt="부르심 표지" loading="lazy" onerror="this.closest('.cover').style.display='none'"></div>
-      <div class="reveal">
-        <h3>부르심</h3>
-        <p class="sub">저자: 이영래 목사<br>평신도 리더들을 위한 소그룹 성경공부 교재</p>
-        <a class="btn btn-teal" href="files/부르심_3.0.epub" download="부르심.epub">eBook 다운로드 (ePub) <span class="ar">→</span></a>
-        <div class="howto">
-          <strong>이용 방법</strong><br>
-          교재는 ePub 형식의 전자책으로 제공됩니다. 스마트폰, 태블릿, 컴퓨터에서 전자책 뷰어 앱으로 열람하실 수 있습니다.<br>
-          • iPhone / iPad: Apple Books<br>
-          • Android: Lithium, ReadEra, Moon+ Reader<br>
-          • PC: Calibre, Adobe Digital Editions
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 시애틀 여행 선물 띠 (푸터 직전 · 한 줄, 까딱이는 선물상자) -->
-<section class="gift-section">
-  <a href="travel.html" class="gift" aria-label="시애틀 하루 코스 선물 받기 — 시애틀 여행 페이지로 이동">
-    <span class="gift-box">
+<!-- 마무리 — 헌금 · 여행 선물 한 줄 -->
+<section class="endbar">
+  <div class="wrap">
+    <div class="eb-give"><a href="https://www.paypal.com/donate/?hosted_button_id=ZRCRQD95SA2VU" class="btn btn-dark" target="_blank" rel="noopener">온라인 헌금 <span class="ar">→</span></a><p>PayPal 보안 페이지에서 진행되며, 개인 정보는 교회 홈페이지에 저장되지 않습니다.</p></div>
+    <a href="travel.html" class="gift" aria-label="시애틀 하루 코스 선물 받기 — 시애틀 여행 페이지로 이동"><span class="gift-box">
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <g class="gx-body">
           <rect x="20" y="46" width="60" height="46" rx="6" fill="var(--teal)"/>
@@ -213,8 +195,8 @@
         </g>
       </svg>
     </span>
-    <span class="gift-msg">방문해주신 당신께 — 오늘 날씨·일몰까지 담아, 시애틀 하루 코스를 선물로 준비했어요.</span>
-  </a>
+    <span class="gift-msg">방문해주신 당신께, 시애틀 하루 코스를 선물로 준비했어요.</span></a>
+  </div>
 </section>
 
 <footer class="site-footer sf">
@@ -245,6 +227,7 @@
 <!-- 문의 상담창 오브 (처음 오시나요?) -->
 <button class="orb" id="orb" aria-label="문의 열기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
 
-<script src="js/main.js?v=20260626ao" defer></script>
+<script src="js/main.js?v=20260930a" defer></script>
+<script src="js/sermon.js?v=20260930a" defer></script>
 </body>
 </html>
