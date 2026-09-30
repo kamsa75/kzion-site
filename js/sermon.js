@@ -5,8 +5,9 @@
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var STEP = 5200;   // 결과 장면 하나가 머무는 시간(ms)
 
+  // 메뉴 열기 — 홈은 main.js가 이미 맡으므로 건너뛴다(두 번 붙으면 열자마자 닫힘)
   var toggle = document.querySelector('.nav-toggle'), links = document.querySelector('.nav-links');
-  if (toggle && links) toggle.addEventListener('click', function () { links.classList.toggle('open'); });
+  if (toggle && links && !document.querySelector('script[src*="main.js"]')) toggle.addEventListener('click', function () { links.classList.toggle('open'); });
 
   // 영상: 눌렀을 때만 유튜브를 불러와 그 자리에서 재생
   document.querySelectorAll('.yt').forEach(function (b) {
@@ -18,6 +19,25 @@
       f.allowFullscreen = true;
       f.className = b.className.replace('yt ', 'yt-frame ');
       b.parentNode.replaceChild(f, b);
+    });
+  });
+
+  // 1분 영상의 '설교에서 이어 듣기' — 새 창 대신 아래 전체 설교를 그 시각부터 그 자리에서 재생
+  document.querySelectorAll('.sh-more[data-start]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var box = document.querySelector('#watch .sw-video'); if (!box) return;
+      var cur = box.querySelector('.yt, .yt-frame'); if (!cur) return;
+      e.preventDefault();
+      var id = cur.getAttribute('data-yt') || (cur.src.match(/embed\/([\w-]+)/) || [])[1];
+      var f = document.createElement('iframe');
+      f.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&start=' + a.getAttribute('data-start');
+      f.title = cur.getAttribute('aria-label') || cur.title || '설교 영상';
+      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      f.allowFullscreen = true;
+      f.className = 'yt-frame yt-wide';
+      f.setAttribute('data-yt', id);
+      box.replaceChild(f, cur);
+      document.getElementById('watch').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     });
   });
 

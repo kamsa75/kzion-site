@@ -1,0 +1,117 @@
+/* =========================================================
+   홈 (index.html) — style.css · footer.css · sermon.css 위에 얹는다
+   순서: 첫 화면 → 말씀(퀴즈 무대, 생성기가 채움) → 처음 오시는 분께(탭) → 헌금·여행 한 줄 → 푸터
+   원칙: 긴 스크롤 금지 — 여러 내용은 한 칸에서 탭으로, 칸 높이는 고정
+   ========================================================= */
+body.home{background:var(--ivory)}
+.home button{font-family:inherit;-webkit-tap-highlight-color:transparent}
+
+/* ---------- 첫 화면 ---------- */
+.home .hero{padding:58px 0 64px}
+.home .hero h1.hero-name{font-family:var(--sans);font-size:14px;font-weight:700;letter-spacing:.06em;line-height:1.5;color:#A6DBE0;margin:0 0 18px;animation:riseIn .7s ease both}
+.home .hero h1.hero-name span{display:inline-block;opacity:1;animation:none;font-family:var(--sans);font-weight:500;font-size:12.5px;letter-spacing:.04em;color:#7FAFB2;margin-left:8px}
+.hero-poem{font-family:var(--serif);font-weight:800;font-size:clamp(36px,5.8vw,60px);line-height:1.14;letter-spacing:-.02em}
+.hero-poem span{display:block;opacity:0;animation:riseIn .85s cubic-bezier(.2,.7,.2,1) forwards}
+.hero-poem span:nth-child(1){animation-delay:.1s}.hero-poem span:nth-child(2){animation-delay:.26s}.hero-poem span:nth-child(3){animation-delay:.42s}
+.hero-poem em{font-style:normal;color:var(--gold-l)}
+.home .hero .lead{margin-top:22px;max-width:470px;line-height:1.75}
+.home .hero .lead b{color:var(--gold-l);font-weight:600}
+.home .hero-gallery{height:360px}
+.home .gframe-a{width:262px;height:330px}
+.home .gframe-b{width:184px;height:152px}
+
+/* ---------- 말씀 — 이번 주 질문 무대 ---------- */
+.hw{background:var(--night-2);color:var(--ivory);padding:56px 0 48px;position:relative;overflow:hidden}
+.hw::before{content:"";position:absolute;left:-160px;bottom:-220px;width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,rgba(43,169,183,.28),rgba(149,158,37,.08) 55%,transparent 72%);pointer-events:none}
+.hw .wrap{position:relative;max-width:1040px}
+.hw-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px 28px;flex-wrap:wrap;margin-bottom:22px}
+.hw-k{font-size:12.5px;font-weight:700;letter-spacing:.14em;color:var(--gold-l)}
+.hw-h{font-family:var(--serif);font-weight:800;font-size:clamp(28px,4.2vw,42px);line-height:1.2;letter-spacing:-.02em;margin-top:8px;text-wrap:balance}
+.hw-s{font-size:15px;line-height:1.65;color:#B6D2D2;margin-top:10px;max-width:40em;text-wrap:pretty}
+.hw-all{color:var(--ivory);font-weight:700;font-size:14.5px;text-decoration:none;white-space:nowrap;padding:10px 0;border-bottom:1px solid rgba(241,244,242,.35)}
+.hw-all:hover{border-bottom-color:var(--gold-l)}
+.hw .st-tabs{background:rgba(255,255,255,.08)}
+.hw .st-tabs button{color:#C8DEDF}
+.hw .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
+
+/* 퀴즈가 아직 없는 주 — 최신 설교를 그 자리 재생 카드로 */
+.hw-latest{background:var(--ivory);color:var(--ink);border-radius:24px;padding:28px;display:grid;grid-template-columns:1.25fr 1fr;gap:34px;align-items:center}
+
+/* 최근 설교 3편(글자 링크) + 교재 */
+.hw-foot{display:grid;grid-template-columns:1fr auto;gap:12px 32px;align-items:end;margin-top:28px;padding-top:22px;border-top:1px solid rgba(241,244,242,.14)}
+.hw-lab{grid-column:1/-1;font-size:12px;font-weight:700;letter-spacing:.16em;color:#8DB5B6}
+.hw-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.hw-list a{display:grid;row-gap:3px;text-decoration:none;color:var(--ivory);min-width:0}
+.hw-d{font-size:12.5px;font-weight:600;color:var(--mint);font-variant-numeric:tabular-nums}
+.hw-t{font-family:var(--serif);font-weight:700;font-size:16.5px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .2s}
+.hw-r{font-size:12.5px;color:#9CBFC0}
+.hw-book{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ivory);font-size:13px;line-height:1.45}
+.hw-book img{width:40px;height:auto;border-radius:2px;box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.hw-book b{display:block;font-family:var(--serif);font-weight:700;font-size:14.5px}
+@media(hover:hover){.hw-list a:hover .hw-t{color:var(--gold-l)}.hw-book:hover b{color:var(--gold-l)}}
+
+/* ---------- 처음 오시는 분께 (탭, 높이 고정) ---------- */
+.hx{background:var(--ivory);padding:58px 0}
+.hx .wrap{max-width:1040px}
+.hx-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px 24px;flex-wrap:wrap;margin-bottom:18px}
+.hx-head .hw-k{color:var(--gold)}
+.hx-h{font-family:var(--serif);font-weight:800;font-size:clamp(26px,3.6vw,36px);line-height:1.2;letter-spacing:-.02em;margin-top:8px;color:var(--ink)}
+.hx-head .st-tabs{margin-bottom:0}
+.hx-p{background:var(--paper);color:var(--ink);align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+.hx-intro{font-size:15px;color:var(--soft);margin-bottom:20px}
+@media(min-width:841px){.hx .steps{grid-template-columns:repeat(4,1fr)}}
+.hx .step,.hx .step-front{background:var(--ivory)}
+.hx-sub{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--teal-d);margin-bottom:10px}
+.visit{display:grid;grid-template-columns:1.3fr 1fr;gap:44px;align-items:start}
+.visit .info-row{border-bottom-color:var(--line)}
+.visit .info-row span:first-child{color:var(--soft)}
+.visit-where p{font-size:14.5px;line-height:1.6;color:var(--ink)}
+.visit-where p+p{margin-top:10px}
+.vw-name{font-family:var(--serif);font-weight:700;font-size:18px!important}
+.vw-name span{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--soft)}
+.vw-links{display:flex;gap:18px;flex-wrap:wrap}
+.vw-links a{color:var(--teal-d);font-weight:700;text-decoration:none}
+.hx-voices{overflow:hidden}
+.hx-voices .vhead{justify-content:flex-start}
+.hx-voices .marquee{margin:6px -38px 0;overflow:hidden}
+.hx-voices .marquee .quote{background:#fff}
+
+/* ---------- 마무리 한 줄 ---------- */
+.endbar{background:var(--paper);border-top:1px solid var(--line);padding:22px 0}
+.endbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px 24px;flex-wrap:wrap}
+.eb-give{display:flex;align-items:center;gap:16px}
+.eb-give .btn{padding:11px 20px;font-size:14px;flex:none}
+.eb-give p{font-size:12.5px;color:var(--soft);max-width:300px;line-height:1.5}
+.endbar .gift{margin:0;justify-content:flex-start}
+.endbar .gift-box{width:38px;height:38px}
+.endbar .gift-msg{font-size:14px}
+
+/* ---------- 반응형 ---------- */
+@media(max-width:840px){
+  .home .hero-gallery{height:auto}
+  .home .gframe-a{max-width:420px;height:clamp(200px,50vw,260px)}
+  .visit{grid-template-columns:1fr;gap:18px}
+  .visit .info-row{flex-direction:row;align-items:baseline;justify-content:flex-start;gap:12px;padding:8px 0;font-size:13.5px}
+  .visit .info-row span:first-child{flex:none;width:58px;font-size:12.5px}
+  .hw-latest{grid-template-columns:1fr;gap:18px;padding:20px}
+}
+@media(max-width:760px){
+  .home .hero{padding:40px 0 44px}
+  .home .hero h1.hero-name span{display:block;margin:2px 0 0}
+  .hw{padding:40px 0 34px}
+  .hw-head{align-items:flex-start;margin-bottom:16px}
+  .hw-all{padding:4px 0}
+  .hw-foot{grid-template-columns:1fr;gap:12px}
+  .hw-list{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;scrollbar-width:none;margin:0 -20px;padding:0 20px;scroll-padding:0 20px}
+  .hw-list::-webkit-scrollbar{display:none}
+  .hw-list a{flex:0 0 72%;scroll-snap-align:start;background:rgba(255,255,255,.06);border-radius:14px;padding:14px 16px}
+  .hw-t{white-space:normal}
+  .hx{padding:40px 0}
+  .hx-head{align-items:flex-start}
+  .hx-head .st-tabs{width:100%}
+  .hx-head .st-tabs button{flex:1 0 auto;font-size:13.5px;padding:10px 12px}
+  .hx-voices .marquee{margin:6px -20px 0}
+  .eb-give{flex-direction:column;align-items:flex-start;gap:8px}
+}
+@media(hover:none){.hw .st-tabs button:hover{background:transparent}.hw .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}}

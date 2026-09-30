@@ -72,7 +72,7 @@
       { q: '대중교통으로 갈 수 있나요? (버스·라이트레일)', k: ['대중교통', '버스', '지하철', '전철', '기차', '라이트레일', 'light rail', 'link', 'transit', '교통', '여행'], a: '대중교통으로 오기 편해요! 🚉<br>· <b>교회 바로 앞</b>: Meridian Ave N에 Metro <b>333·346번</b> 버스 정류장이 있어요. 특히 346번은 라이트레일 <b>Shoreline South/148th</b>역과 연결돼 환승이 편해요.<br>· <b>라이트레일</b>: 1 Line <b>Shoreline North/185th</b>역에서 교회까지 도보 약 15~20분(우버 약 5분).<br>· <b>버스</b>: Aurora Ave의 <b>RapidRide E Line</b>도 자주 다녀요(정류장에서 도보 약 12~15분).<br>정확한 실시간 도보·환승 경로는 아래 링크가 가장 정확해요.<br><a href="https://www.google.com/maps/dir/?api=1&destination=17920+Meridian+Ave+N+Shoreline+WA+98133&travelmode=transit" target="_blank" rel="noopener">실시간 대중교통 길찾기 →</a>' },
       { q: '예배 분위기는 어떤가요?', k: ['분위기', '어떤 교회', '어떤 곳', '느낌'], a: '마음 문이 열린 따뜻한 공동체예요. 예배 후엔 함께 떡과 커피를 나누는 교제가 있어요.<br><span style="opacity:.72;font-size:13px">— “정말 사람들이 마음 문이 열린 교회 같아요!” (성도 후기)</span>' },
       { q: '헌금은 어떻게 하나요?', k: ['헌금', '후원', 'offering', '봉헌', '기부'], a: '본당에 들어가기 전, 입구에 비치된 헌금함이 있습니다. 또한 홈페이지 PayPal로도 안전하게 가능해요.<br><a href="https://www.paypal.com/donate/?hosted_button_id=ZRCRQD95SA2VU" target="_blank" rel="noopener">온라인 헌금하기</a>' },
-      { q: '설교를 미리 들어볼 수 있나요?', k: ['설교', '유튜브', '말씀', '영상', '예배 영상', '미리'], a: '네, 유튜브 채널 @kzionchurch에서 지난 설교를 언제든 보실 수 있어요.<br><a href="https://www.youtube.com/@kzionchurch" target="_blank" rel="noopener">유튜브 채널 보기</a>' }
+      { q: '설교를 미리 들어볼 수 있나요?', k: ['설교', '유튜브', '말씀', '영상', '예배 영상', '미리'], a: '네, 말씀 페이지에서 주일 설교 영상을 그 자리에서 바로 보실 수 있어요.<br><a href="sermon/">말씀 보기</a>' }
     ];
 
     var panel = document.createElement('div');
