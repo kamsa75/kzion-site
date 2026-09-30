@@ -9,17 +9,39 @@
   var toggle = document.querySelector('.nav-toggle'), links = document.querySelector('.nav-links');
   if (toggle && links && !document.querySelector('script[src*="main.js"]')) toggle.addEventListener('click', function () { links.classList.toggle('open'); });
 
-  // 영상: 눌렀을 때만 유튜브를 불러와 그 자리에서 재생
-  document.querySelectorAll('.yt').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var f = document.createElement('iframe');
-      f.src = 'https://www.youtube.com/embed/' + b.getAttribute('data-yt') + '?autoplay=1&rel=0&playsinline=1';
-      f.title = b.getAttribute('aria-label');
-      f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-      f.allowFullscreen = true;
-      f.className = b.className.replace('yt ', 'yt-frame ');
-      b.parentNode.replaceChild(f, b);
+  // 영상: 처음엔 썸네일만(빠른 첫 화면). 영상 칸이 실제로 화면에 보이면 그 자리에 유튜브 플레이어를 미리 넣어 둔다 —
+  // 방문자가 누르는 곳이 곧 플레이어라 한 번에 소리와 함께 재생된다(아이폰 등은 스크립트로 소리 있는 자동 재생을 막음).
+  // 준비되기 전에 누르면 그때 불러와 재생을 시도한다.
+  function toFrame(b, autoplay) {
+    if (!b.parentNode) return;
+    var f = document.createElement('iframe');
+    f.src = 'https://www.youtube.com/embed/' + b.getAttribute('data-yt') + '?rel=0&playsinline=1' + (autoplay ? '&autoplay=1' : '');
+    f.title = b.getAttribute('aria-label');
+    f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    f.allowFullscreen = true;
+    f.className = b.className.replace('yt ', 'yt-frame ');
+    f.setAttribute('data-yt', b.getAttribute('data-yt'));
+    b.parentNode.replaceChild(f, b);
+  }
+  // 화면 근처(넘김 칸 안에서 가려진 건 제외 — 관찰자가 판단)에 있고, 숨은 탭·장면(visibility)이 아닐 때만 준비
+  var ytIO = 'IntersectionObserver' in window && new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (e.isIntersecting && getComputedStyle(e.target).visibility === 'visible') { ytIO.unobserve(e.target); toFrame(e.target, false); }
     });
+  }, { rootMargin: '200px 0px' });
+  // 탭을 바꾸거나 장면이 넘어가 새로 보이게 됐을 때 — 지금 화면 근처에 보이면 바로 준비.
+  // sure: 부르는 쪽이 이미 보이는 줄 안다(결과 마지막 장은 서서히 나타나 그 순간엔 아직 hidden으로 읽힘)
+  function armIn(root, sure) {
+    if (!ytIO || !root) return;
+    root.querySelectorAll('button.yt').forEach(function (b) {
+      if (b.closest('.cz-track')) return;   // 넘김 칸 안의 영상은 관찰자가 넘길 때 판단
+      var r = b.getBoundingClientRect();
+      if ((sure || getComputedStyle(b).visibility === 'visible') && r.width && r.bottom > -200 && r.top < innerHeight + 200) { ytIO.unobserve(b); toFrame(b, false); }
+    });
+  }
+  document.querySelectorAll('button.yt').forEach(function (b) {
+    b.addEventListener('click', function () { if (ytIO) ytIO.unobserve(b); toFrame(b, true); });
+    if (ytIO) ytIO.observe(b);
   });
 
   // 1분 영상의 '설교에서 이어 듣기' — 새 창 대신 아래 전체 설교를 그 시각부터 그 자리에서 재생
@@ -82,7 +104,7 @@
       });
       var last = cur === scenes.length - 1;
       q.classList.toggle('ended', last);
-      if (last) { bars[cur].classList.add('done'); return; }
+      if (last) { bars[cur].classList.add('done'); armIn(scenes[cur], true); return; }
       if (!reduce) timer = setTimeout(function () { if (!q.classList.contains('paused')) show(cur + 1); }, STEP);
     }
     function open() { q.classList.add('open'); show(0); }
@@ -142,6 +164,7 @@
         p.classList.toggle('on', k === i); p.setAttribute('aria-hidden', k === i ? 'false' : 'true');
         if (k !== i && p._stop) p._stop();
       });
+      armIn(panels[i]);
     }
     tabs.forEach(function (tb, i) { tb.addEventListener('click', function () { show(i); }); });
     // 주소 끝 #q1 처럼 특정 질문으로 들어오면 그 탭을 연다
@@ -211,6 +234,7 @@
       e.preventDefault();
       stack.querySelectorAll('.pr').forEach(function (u) {
         u.classList.toggle('on', u === unit);
+        if (u === unit) armIn(u);
         if (u !== unit) u.querySelectorAll('.qz').forEach(function (p) { if (p._stop) p._stop(); });
       });
       if (unit._show) unit._show(+a.getAttribute('data-q'));
