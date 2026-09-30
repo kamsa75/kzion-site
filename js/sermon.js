@@ -132,6 +132,41 @@
     box._show = show;
   });
 
+  // 교재 맛보기: 과를 누르면 그 과 한 장이 뜬다. 위 화살표로 옆 과, 바깥·× ·Esc로 닫힘. 주소 #lesson-3 으로 바로 열 수 있다
+  var sheets = document.querySelectorAll('dialog.lp');
+  if (sheets.length && sheets[0].showModal) {
+    var lesson = function (n, swap) {
+      var d = document.getElementById('lesson-' + n); if (!d) return;
+      d.classList.toggle('sw', !!swap); d.classList.remove('out');
+      d.showModal(); d.querySelector('.lp-body').scrollTop = 0;
+    };
+    var shut = function (d, then) {
+      if (reduce || then) { d.close(); if (then) then(); return; }
+      d.classList.add('out');
+      setTimeout(function () { d.classList.remove('out'); d.close(); }, 200);
+    };
+    document.querySelectorAll('[data-lesson]').forEach(function (b) {
+      b.addEventListener('click', function () { lesson(+b.getAttribute('data-lesson')); });
+    });
+    sheets.forEach(function (d) {
+      d.querySelector('.lp-x').addEventListener('click', function () { shut(d); });
+      d.addEventListener('click', function (e) { if (e.target === d) shut(d); });   // 장 바깥(배경)
+      d.querySelectorAll('[data-go]').forEach(function (b) {
+        b.addEventListener('click', function () { var n = +b.getAttribute('data-go'); shut(d, function () { lesson(n, true); }); });
+      });
+      d.addEventListener('keydown', function (e) {
+        var b = e.key === 'ArrowRight' ? d.querySelector('[data-go]:last-of-type') : e.key === 'ArrowLeft' ? d.querySelector('[data-go]') : null;
+        if (b && !b.disabled) b.click();
+      });
+    });
+    var m = /^#lesson-(\d)$/.exec(location.hash), book = document.getElementById('book');
+    if (m && book) {
+      var box = book.closest('[data-tabs]'), ps = box ? [].slice.call(box.querySelectorAll('.st-frame > [role="tabpanel"]')) : [];
+      if (box && box._show) { box._show(ps.indexOf(book)); box.scrollIntoView({ block: 'start' }); }
+      lesson(+m[1]);
+    }
+  }
+
   // 말씀 모음: '최근 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
   var stack = document.querySelector('.pr-stack');
   if (stack) document.querySelectorAll('.qx[data-pair]').forEach(function (a) {

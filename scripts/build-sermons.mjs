@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20260929d';
+const V = '20260929e';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -28,15 +28,35 @@ const PALETTE = {            // 릴스 색 (쇼츠 파이프라인 팔레트와 
   teal:   { bg: '#1E5C58', ink: '#FFFFFF', mute: '#B4D6CE' },
 };
 
-// 소그룹 성경공부 교재 '부르심' — 과 제목과 목사님 원문 속 질문(글자 그대로)
+// 소그룹 성경공부 교재 '부르심' — 과 제목·입구 질문(q)과 맛보기(본문 표기·'성경 속으로' 질문 3개·나눔 1개·그 과의 질문 수)
+// 질문은 목사님 원문 글자 그대로(띄어쓰기 한 곳만 교정). 성경 번역문은 저작권 때문에 싣지 않고 장절 표기만 쓴다.
 const LESSONS = [
-  ['제자로 부르심', '왜 예수님은 하고 많은 배 중에서 하필이면 베드로의 배에 올라타셨을까요?'],
-  ['자기부인과 십자가', '당신은 주님의 제자가 되기 위해 무엇을 포기했습니까?'],
-  ['성령과 제자', '당신은 예수님을 믿을 때에 성령을 받으셨습니까?'],
-  ['제자의 자세', '어떻게 해야 내게 주어진 십자가가 나에게 기쁨이 될 수 있을까요?'],
-  ['제자들의 모임', '예수님이 부활하시고 승천하시면서 제자들에게 분부하신 것은 무엇입니까?'],
-  ['사명', '당신은 지금 사명을 따라 살고 있습니까?'],
+  { t: '제자로 부르심', q: '왜 예수님은 하고 많은 배 중에서 하필이면 베드로의 배에 올라타셨을까요?',
+    ref: ['누가복음 5:1-11', '마가복음 3:13-15'], total: 10,
+    qs: ['왜 예수님은 하고 많은 배 중에서 하필이면 베드로의 배에 올라타셨을까요?', '제자가 될 수 있는 자격은 누구로부터 옵니까?', '제자로 부름 받았다는 것은 어떤 의미일까요?'],
+    share: '당신이 그리스도인이 된 계기는 무엇입니까? 당신은 어떻게 제자로 부름 받았습니까?' },
+  { t: '자기부인과 십자가', q: '당신은 주님의 제자가 되기 위해 무엇을 포기했습니까?',
+    ref: ['누가복음 9:18-27', '마태복음 16:13-28'], total: 9,
+    qs: ['예수님이 제자들에게 같은 질문을 두 번 나눠서 하십니다. 어떤 질문입니까?', '베드로는 어떻게 ‘예수님이 그리스도인 줄’ 알게 되었나요?', '자기를 부인한다는 말씀은 무슨 의미입니까?'],
+    share: '지금 내가 내려놓은 나의 십자가는 무엇입니까?' },
+  { t: '성령과 제자', q: '당신은 예수님을 믿을 때에 성령을 받으셨습니까?',
+    ref: ['사도행전 6:3-4', '로마서 8:9-11', '갈라디아서 5:16-26'], total: 8,
+    qs: ['초대교회가 일곱집사를 선출할 때 기준으로 삼은 조건은 무엇입니까?', '성령세례는 하나님이 주시는 선물입니다. 이 선물은 무엇을 위해 주시는 것일까요?', '당신은 성령의 사람입니까?'],
+    share: '당신은 성령충만하십니까?' },
+  { t: '제자의 자세', q: '어떻게 해야 내게 주어진 십자가가 나에게 기쁨이 될 수 있을까요?',
+    ref: ['시편 119:92', '마태복음 20장', '마태복음 11:28-30'], total: 8,
+    qs: ['다윗은 기가 막힌 고난을 수없이 겪었던 사람입니다. 그런데, 그가 그의 고난 중에도 멸망하지 않고 승리할 수 있었던 비결 한 가지를 이야기해 줍니다. 아래 말씀을 읽고 그 비결을 이야기해 봅시다.', '한 데나리온은 무엇을 의미하는 걸까요?', '나는 주님이 메어주신 멍에를 생각할 때 어떤 느낌이 듭니까?'],
+    share: '당신이 기대하는 보상은 무엇이고 지금 받고 있는 보상은 무엇입니까?' },
+  { t: '제자들의 모임', q: '예수님이 부활하시고 승천하시면서 제자들에게 분부하신 것은 무엇입니까?',
+    ref: ['사도행전 1:4-5', '사도행전 1:12-14', '사도행전 2:40-47'], total: 7,
+    qs: ['예수님이 부활하시고 승천하시면서 제자들에게 분부하신 것은 무엇입니까?', '예수님의 분부를 받은 제자들은 어떻게 했습니까?', '성도들은 무엇을 따라 교제하고 성만찬을 나누고 기도했습니까? (42절)'],
+    share: '지금 여러분에게 제자리는 어디입니까?' },
+  { t: '사명', q: '당신은 지금 사명을 따라 살고 있습니까?',
+    ref: ['마태복음 28:16-20', '디모데전서 4:16', '마가복음 16장'], total: 8,
+    qs: ['이 위대한 명령이 주어진 곳은 어디입니까?', '가라는 명령의 의미는 무엇입니까?', '주님이 이 명령을 하시면서 제자들에게 하신 약속은 무엇입니까?'],
+    share: '당신은 지금 사명을 따라 살고 있습니까?' },
 ];
+const EPUB = 'files/%EB%B6%80%EB%A5%B4%EC%8B%AC_3.0.epub';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const koDate = (d) => { const [y, m, dd] = d.split('-').map(Number); return `${y}년 ${m}월 ${dd}일`; };
@@ -394,23 +414,23 @@ function indexPage(all) {
       </div>` : '';
 
   const bookPanel = `
-      <div class="st-p ix-p" role="tabpanel">
+      <div class="st-p ix-p" role="tabpanel" id="book">
         <div class="bk">
           <img class="bk-cover" src="${up}images/calling05-793x1024.jpg" alt="소그룹 성경공부 교재 부르심 표지" loading="lazy">
           <div class="bk-body">
             <h2>소그룹 성경공부 교재, 부르심</h2>
             <p class="bk-sub">${CH.pastor} · 평신도 리더들을 위한 소그룹 성경공부 · 6과</p>
             <ol class="bk-lessons">
-              ${LESSONS.map(([t, q], i) => `<li><span class="ls-n">${i + 1}과 · ${t}</span><span class="ls-q">${esc(q)}</span></li>`).join('\n              ')}
+              ${LESSONS.map((l, i) => `<li><button class="ls" type="button" data-lesson="${i + 1}" aria-haspopup="dialog"><span class="ls-n">${i + 1}과 · ${l.t}</span><span class="ls-q">${esc(l.q)}</span><span class="ls-go">맛보기</span></button></li>`).join('\n              ')}
             </ol>
-            <p class="bk-dl"><a href="${up}files/%EB%B6%80%EB%A5%B4%EC%8B%AC_3.0.epub" download="부르심.epub">eBook 내려받기 (ePub)</a> · Apple Books, ReadEra 등 전자책 앱에서 열람</p>
+            <p class="bk-dl"><a href="${up}${EPUB}" download="부르심.epub">eBook 내려받기 (ePub)</a> · Apple Books, ReadEra 등 전자책 앱에서 열람</p>
           </div>
         </div>
       </div>`;
 
   const tabs = ['주일 설교', ...(allQ.length ? ['최근 질문'] : []), '성경공부 교재'];
   const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), bookPanel];
-  return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list] }) + nav(up) + `
+  return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list, BOOK_LD] }) + nav(up) + `
 <main>
 <header class="sm-head sm-head-idx">
   <div class="wrap">
@@ -426,9 +446,60 @@ ${weekly}
     ${tabsBox('말씀', tabs, panels)}
   </div>
 </section>
+${lessonSheets(up)}
 ${visit(up)}
 </main>
 ` + footer(up);
+}
+
+// 교재 맛보기 — 과마다 한 장. 글은 HTML에 그대로 두고(검색), 누를 때만 띄운다
+const BOOK_LD = {
+  '@context': 'https://schema.org', '@type': 'Book', name: '부르심', alternateName: '소그룹 성경공부 교재 부르심',
+  author: { '@type': 'Person', name: '이영래' }, publisher: CHURCH_LD, inLanguage: 'ko', bookFormat: 'https://schema.org/EBook',
+  genre: '소그룹 성경공부', isAccessibleForFree: true, url: `${SITE}/sermon/#book`,
+  hasPart: LESSONS.map((l, i) => ({ '@type': 'Chapter', position: i + 1, name: `${i + 1}과 ${l.t}`, url: `${SITE}/sermon/#lesson-${i + 1}` })),
+};
+function lessonSheets(up) {
+  const N = LESSONS.length;
+  const arrow = (d) => `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="${d}"/></svg>`;
+  return `<div class="lp-set">${LESSONS.map((l, i) => { const n = i + 1;
+    return `
+<dialog class="lp" id="lesson-${n}" aria-labelledby="lp-${n}-t">
+  <div class="lp-bar">
+    <span class="lp-book">부르심 <i>소그룹 성경공부</i></span>
+    <span class="lp-pg">
+      <button type="button" data-go="${n - 1}" aria-label="이전 과"${n === 1 ? ' disabled' : ''}>${arrow('M10 3 5 8l5 5')}</button>
+      <b>${n}</b><span>/ ${N}</span>
+      <button type="button" data-go="${n + 1}" aria-label="다음 과"${n === N ? ' disabled' : ''}>${arrow('M6 3l5 5-5 5')}</button>
+    </span>
+    <button class="lp-x" type="button" aria-label="닫기">${arrow('M3.5 3.5l9 9M12.5 3.5l-9 9')}</button>
+  </div>
+  <div class="lp-body">
+    <header class="lp-head">
+      <p class="lp-no">제${n}과</p>
+      <h3 id="lp-${n}-t">${esc(l.t)}</h3>
+      <p class="lp-ref"><span>본문</span>${l.ref.map((r) => `<em>${esc(r)}</em>`).join('')}</p>
+    </header>
+    <h4 class="lp-sec">성경 속으로</h4>
+    <ol class="lp-qs">
+      ${l.qs.map((q) => `<li><p>${esc(q)}</p><span class="lp-lines" aria-hidden="true"></span></li>`).join('\n      ')}
+    </ol>
+    <div class="lp-share">
+      <h4>나눔</h4>
+      <p>${esc(l.share)}</p>
+    </div>
+    <div class="lp-more">
+      <img src="${up}images/calling05-793x1024.jpg" alt="" width="66" height="85" loading="lazy">
+      <div>
+        <p class="lp-count"><span class="lp-ticks" aria-hidden="true">${Array.from({ length: l.total }, (_, k) => `<i${k < l.qs.length ? ' class="on"' : ''}></i>`).join('')}</span>질문 ${l.total}개 가운데 ${l.qs.length}개</p>
+        <p class="lp-more-h">맛보기는 여기까지입니다.</p>
+        <p class="lp-more-p">제${n}과의 나머지 질문과 나눔은 교재에서 이어집니다. 교재를 내려받아 소그룹에서, 혹은 혼자서 차근차근 풀어 보세요.</p>
+        <a class="lp-dl" href="${up}${EPUB}" download="부르심.epub">교재 내려받기<small>무료 · ePub · 6과</small></a>
+      </div>
+    </div>
+  </div>
+</dialog>`; }).join('')}
+</div>`;
 }
 
 // ---------- sitemap ----------
