@@ -152,8 +152,13 @@ const bar = (n, label) => n < 2 ? '' : `
 // base: 이 칸이 놓이는 페이지에서 그림·영상 파일까지의 경로, goHref: 마지막 장의 '설교 듣기' 링크
 function reelPanel(r, d, { base, goHref, id }) {
   const p = PALETTE[r.color] || PALETTE.amber;
-  const n = r.format === 'A' ? r.items.length : 0;
-  const ask = r.format === 'A'
+  // 릴스 형식 3가지 — A 체크리스트 / C 고르기 / B 한 문장(고를 것 없이 화살표로 바로 넘어감)
+  const kind = r.format === 'A' && r.items?.length ? 'A' : r.format === 'C' && r.options?.length ? 'C' : 'B';
+  const n = kind === 'A' ? r.items.length : 0;
+  const nextBtn = `<div class="qz-go qz-go-c">
+                <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
+              </div>`;
+  const ask = kind === 'A'
     ? `<ul class="qz-note">
                 ${r.items.map((t, i) => `<li><label><input type="checkbox" name="${id}-${i}"><span class="box" aria-hidden="true"></span><span class="qz-it">${esc(t)}</span></label></li>`).join('\n                ')}
               </ul>
@@ -164,12 +169,11 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
                 <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
               </div>`
-    : `<div class="qz-cards">
+    : kind === 'C' ? `<div class="qz-cards">
                 ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
               </div>
-              <div class="qz-go qz-go-c">
-                <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
-              </div>`;
+              ${nextBtn}`
+    : nextBtn;
   const scenes = r.scenes.map((s) => `
               <div class="qs-s">
                 ${s.image ? `<img class="qs-art" src="${base}${esc(s.image)}" alt="" width="540" height="452" loading="lazy">` : ''}
@@ -191,13 +195,14 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
               </div>`;
   return `
-        <div class="st-p qz" role="tabpanel" id="${id}" data-format="${r.format}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+        <div class="st-p qz${kind === 'B' ? ' ready qz-b' : ''}" role="tabpanel" id="${id}" data-format="${kind}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
           <div class="qz-view qz-ask">
             <div class="qz-q">
               <p class="st-kicker">질문으로 만나는 설교</p>
-              <h2>${esc(r.question)}</h2>
-              <p class="qz-sub">${r.format === 'A' ? `${r.threshold}개 이상이면, 끝까지 보세요` : '하나를 골라 보세요'}</p>
-              ${r.format !== 'A' && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
+              <h2>${kind === 'B' ? mark(r.question, r.highlight) : esc(r.question)}</h2>
+              ${kind === 'A' ? `<p class="qz-sub">${r.threshold}개 이상이면, 끝까지 보세요</p>` : kind === 'C' ? '<p class="qz-sub">하나를 골라 보세요</p>' : ''}
+              ${kind === 'C' && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
+              ${kind === 'B' && r.hint ? `<p class="qz-lead">${esc(r.hint)}</p>` : ''}
             </div>
             <div class="qz-a">
               ${ask}

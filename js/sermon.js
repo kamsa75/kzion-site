@@ -83,7 +83,7 @@
     var go = q.querySelector('.qz-next');
     if (go) go.addEventListener('click', function () {
       // 고르기 퀴즈는 하나를 골라야 넘어간다 — 안 골랐으면 카드가 살짝 흔들려 알려 준다
-      if (q.getAttribute('data-format') !== 'A' && !q.classList.contains('picked')) {
+      if (q.getAttribute('data-format') === 'C' && !q.classList.contains('picked')) {
         q.classList.add('nudge'); setTimeout(function () { q.classList.remove('nudge'); }, 500); return;
       }
       meter(); open();

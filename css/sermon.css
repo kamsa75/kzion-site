@@ -106,6 +106,11 @@ html.js .qz:not(.open) .qz-story,html.js .qz.open .qz-ask{opacity:0;transform:sc
 .qz.nudge .qz-card{animation:nudge .45s ease}
 @keyframes nudge{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
 .qz-go-c{justify-content:flex-end}
+/* B형(한 문장) — 강조 낱말에 형광펜, 고를 것 없이 화살표로 */
+.qz-lead{font-size:17px;font-weight:600;margin-top:14px;color:var(--q-mute)}
+.qz-b h2 mark{background:none;color:inherit;position:relative;z-index:0;white-space:nowrap}
+.qz-b h2 mark::after{content:"";position:absolute;left:-2px;right:-2px;bottom:.08em;height:.38em;background:color-mix(in srgb,#FBF8F1 75%,transparent);z-index:-1}
+.qz-b h2{position:relative;z-index:0}
 .qz.picked .qz-card.on{opacity:1;transform:translateY(-8px) scale(1.06) rotate(0);box-shadow:0 22px 40px -18px rgba(0,0,0,.5)}
 
 /* 결과 = 이야기(스토리)처럼: 위 진행 막대, 좌우 눌러 넘김, 장면마다 그림이 천천히 다가옴 */
