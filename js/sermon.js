@@ -132,7 +132,7 @@
     box._show = show;
   });
 
-  // 말씀 모음: '모든 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
+  // 말씀 모음: '최근 질문' 카드를 누르면 위 '질문으로 만나는 설교' 묶음이 그 질문·설교로 바뀐다
   var stack = document.querySelector('.pr-stack');
   if (stack) document.querySelectorAll('.qx[data-pair]').forEach(function (a) {
     a.addEventListener('click', function (e) {

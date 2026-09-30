@@ -48,6 +48,9 @@ html:not(.js) .st-p{grid-area:auto}
 .cz-dots{display:flex;gap:8px}
 .cz-dots i{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.25;transition:opacity .2s,width .2s}
 .cz-dots i.on{opacity:.9;width:22px;border-radius:4px}
+.cz-num{gap:4px}
+.cz-num i{width:auto;height:auto;min-width:28px;padding:5px 8px;border-radius:999px;background:transparent;opacity:.5;font-style:normal;font-size:13px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+.cz-num i.on{opacity:1;width:auto;background:var(--night);color:var(--ivory)}
 html:not(.js) .cz-bar{display:none}
 
 /* ---------- 퀴즈 칸: 질문 화면 ↔ 결과(이야기) 화면이 같은 자리에서 바뀜 ---------- */
@@ -215,7 +218,7 @@ html:not(.js) .pr{grid-area:auto}
 .wk-s{font-size:14px;color:var(--soft)}
 .wk-s a{color:var(--teal-d);font-weight:600;text-decoration:none}
 
-/* ---------- 말씀 모음: 설교 목록 · 모든 질문 · 교재 ---------- */
+/* ---------- 말씀 모음: 설교 목록 · 최근 질문 · 교재 ---------- */
 .ix-p{background:#fff}
 .ix-grid{display:grid;grid-template-columns:1.25fr 1fr;gap:40px;align-items:start}
 .ix-latest{display:block;color:var(--ink)}

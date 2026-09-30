@@ -1,15 +1,6 @@
 // 말씀 페이지 생성 — data/sermons/*.json → sermon/<날짜>/index.html, sermon/index.html, sitemap.xml
-//
-// 원칙 (검색노출 설계 v1)
-//  · 글은 전부 HTML에 들어간다. 브라우저 JS는 보여주는 방식(탭·넘김·이야기 재생)만 바꾼다
-//  · 긴 스크롤 금지: 여러 장면·영상은 한 칸 안에서 넘기고, 칸 높이는 탭을 바꿔도 같다
-//  · 검색 키워드는 템플릿이 '항상' 같은 자리에 넣는다 — 교회 이름, "시애틀에 있는 한인교회",
-//    주일예배 설교, 성경 책·장 이름(예: 시편 73편 설교), 설교 주제어, 영어 이름
-//    ("시애틀 한인교회"를 이름처럼 쓰지 않는다 — 교회 이름으로 오해됨. 문장으로만)
-//  · 데이터에 없는 말은 만들지 않는다(추측 금지). 빈 값이면 그 줄을 생략
-//  · 푸터는 scripts/footer.html 하나를 모든 페이지가 같이 쓴다
-//
-// 실행: node scripts/build-sermons.mjs [데이터·출력 폴더(기본: 저장소 루트)]
+// 글은 전부 HTML에 넣고, JS는 보여주는 방식(탭·넘김·재생)만 바꾼다. 푸터는 scripts/footer.html 공용.
+// 실행: node scripts/build-sermons.mjs [출력 폴더(기본: 저장소 루트)]
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -141,10 +132,11 @@ const video = (id, label, cls, img) =>
         </button>`;
 
 // 한 칸 안에서 넘기는 장치(점·화살표) — 1분 영상, 지난 설교 목록, 질문 카드가 같은 부품을 쓴다
-const bar = (n, label) => n < 2 ? '' : `
+// num: 목록(지난 설교·최근 질문)은 점 대신 쪽 번호
+const bar = (n, label, num = false) => n < 2 ? '' : `
           <div class="cz-bar">
             <button class="cz-arrow prev" type="button" aria-label="이전 ${label}">${CHEV('M15 5l-7 7 7 7')}</button>
-            <div class="cz-dots">${Array.from({ length: n }, (_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>
+            <div class="cz-dots${num ? ' cz-num' : ''}">${Array.from({ length: n }, (_, i) => num ? `<i${i ? '' : ' class="on"'}>${i + 1}</i>` : `<i${i ? '' : ' class="on"'}></i>`).join('')}</div>
             <button class="cz-arrow next" type="button" aria-label="다음 ${label}">${CHEV('M9 5l7 7-7 7')}</button>
           </div>`;
 
@@ -331,8 +323,7 @@ function indexPage(all) {
   const list = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: '말씀', url, inLanguage: 'ko', publisher: CHURCH_LD,
     mainEntity: { '@type': 'ItemList', itemListElement: all.slice().reverse().map((d, i) => ({ '@type': 'ListItem', position: i + 1, url: `${url}${d.date}/`, name: d.title })) } };
 
-  // 질문으로 만나는 설교 — 퀴즈와 그 설교를 한 묶음으로. 설교마다 묶음 하나, 같은 자리에 겹쳐 두고 하나만 보인다
-  // (가장 최근 묶음이 처음 보임. '모든 질문' 카드를 누르면 그 묶음·질문으로 바뀜). 최근 12개 질문까지만 이 페이지에 싣는다
+  // 질문으로 만나는 설교 — 설교마다 퀴즈 묶음 하나, 같은 자리에 겹쳐 두고 하나만 보인다(최근 12개 질문까지)
   const withQ = all.filter((d) => d.reels.length).slice().reverse();
   const pairs = [];
   let qCount = 0;
@@ -365,7 +356,7 @@ function indexPage(all) {
             <p class="sx-h">지난 설교</p>
             <div class="cz-track">${pages.map((pg) => `
               <div class="cz-slide sx-page">${pg.map(card).join('')}</div>`).join('')}
-            </div>${bar(pages.length, '목록')}
+            </div>${bar(pages.length, '목록', true)}
           </div>` : '';
   const sermonsPanel = `
       <div class="st-p ix-p" role="tabpanel">
@@ -382,7 +373,7 @@ function indexPage(all) {
         </div>
       </div>`;
 
-  // 모든 질문 — 질문 카드, 한 칸에서 넘김(최근 12개), 누르면 그 설교에서 풀기
+  // 최근 질문 — 질문 카드, 한 칸에서 넘김(최근 12개), 누르면 위 묶음이 그 질문으로 바뀜
   const allQ = [];
   for (const d of pairs) d.reels.forEach((r, k) => allQ.push({ d, r, k }));
   const qPages = [];
@@ -396,10 +387,10 @@ function indexPage(all) {
               </a>`; };
   const questionsPanel = allQ.length ? `
       <div class="st-p ix-p qx-p cz" role="tabpanel">
-        <p class="sx-h">질문으로 만나는 설교 · ${allQ.length}개</p>
+        <p class="sx-h">최근 질문 · ${allQ.length}개</p>
         <div class="cz-track">${qPages.map((pg) => `
           <div class="cz-slide qx-page">${pg.map(qcard).join('')}</div>`).join('')}
-        </div>${bar(qPages.length, '질문')}
+        </div>${bar(qPages.length, '질문', true)}
       </div>` : '';
 
   const bookPanel = `
@@ -417,7 +408,7 @@ function indexPage(all) {
         </div>
       </div>`;
 
-  const tabs = ['주일 설교', ...(allQ.length ? ['모든 질문'] : []), '성경공부 교재'];
+  const tabs = ['주일 설교', ...(allQ.length ? ['최근 질문'] : []), '성경공부 교재'];
   const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), bookPanel];
   return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list] }) + nav(up) + `
 <main>

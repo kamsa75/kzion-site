@@ -1,20 +1,8 @@
 #!/usr/bin/env python3
-"""설교 페이지 데이터 내보내기 — 쇼츠 파이프라인 작업 폴더를 '읽기만' 해서 data/sermons/<날짜>.json 을 만든다.
+"""설교 페이지 데이터 내보내기 → data/sermons/<날짜>.json (이 저장소에만 쓴다. 원본 폴더는 읽기만)
 
-지키는 것 (검색노출 설계 5장 — 쇼츠 파이프라인 보호)
-  · ~/sermon-shorts 의 코드·설정은 import 하지 않는다(run.py import 금지). work/ 의 JSON·영상을 읽기만 한다
-  · work/ 안에는 아무것도 쓰지 않는다. 결과는 이 저장소(data/, sermon/<날짜>/ 그림)에만 쓴다
-  · 읽다가 깨진 파일을 만나면 그 설교만 건너뛴다(다음 회차에 다시)
-
-공개 공식 (매번 같은 규칙으로 자동 판단)
-  · 쇼츠: 유튜브에서 '공개'된 것만(oEmbed 200). 삭제·비공개는 빠진다
-  · 애니 릴스: 인스타·페이스북 게시(status=posted) 후 4시간이 지난 것만
-  · 둘 중 하나라도 있는 설교만 페이지를 만든다(제목·영상뿐인 얇은 페이지는 만들지 않음)
-  · 설교 대목 글은 교정 확인 전이라 아직 내보내지 않는다(설계 T4·T6)
-  · 성경 책 이름은 표(bible_books.json)에 있는 표기만 정식 이름으로 바꾼다. 없으면 받은 그대로(추측 금지)
-
-실행:  python3 scripts/export-sermons.py            → data/sermons/ 갱신
-       python3 scripts/export-sermons.py --preview  → 게시 전 릴스도 포함해 --out 폴더로(미리보기 전용, 커밋 금지)
+실행:  python3 scripts/export-sermons.py
+       python3 scripts/export-sermons.py --preview --out <폴더>   (미리보기 전용, 커밋 금지)
 """
 import argparse, datetime as dt, json, os, re, subprocess, sys, urllib.request, urllib.error
 from pathlib import Path
