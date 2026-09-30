@@ -62,8 +62,6 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 const koDate = (d) => { const [y, m, dd] = d.split('-').map(Number); return `${y}년 ${m}월 ${dd}일`; };
 const mdDate = (d) => { const [, m, dd] = d.split('-').map(Number); return `${m}월 ${dd}일`; };
 const dotDate = (d) => d.replace(/-/g, '.');
-const clock = (s) => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = Math.floor(s % 60);
-  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
 const scriptureLabel = (d) => d.scripturePhrase || d.scripture;
 const thumb = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const jsonld = (o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`;
@@ -240,7 +238,7 @@ function shortsPanel(d) {
                 <p class="st-kicker">1분 영상${n > 1 ? ` · ${i + 1}/${n}` : ''}</p>
                 <h2>${esc(c.title)}</h2>
                 <p>${esc(c.description)}</p>
-                <a class="sh-more" href="#watch" data-start="${c.start}">설교에서 이어 듣기 · ${clock(c.start)}부터</a>
+                <a class="sh-more" href="#watch" data-start="${c.start}">설교에서 이어 듣기</a>
               </div>
             </div>`).join('');
   return `

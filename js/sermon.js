@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var STEP = 5200;   // 결과 장면 하나가 머무는 시간(ms)
+  var STEP = 3500;   // 결과 장면 하나가 머무는 시간(ms)
 
   // 메뉴 열기 — 홈은 main.js가 이미 맡으므로 건너뛴다(두 번 붙으면 열자마자 닫힘)
   var toggle = document.querySelector('.nav-toggle'), links = document.querySelector('.nav-links');
@@ -148,7 +148,7 @@
     var start = 0;
     panels.forEach(function (p, k) { if (location.hash && p.id && '#' + p.id === location.hash) start = k; });
     show(start);
-    if (start) box.scrollIntoView({ block: 'start' });
+    if (start) box.scrollIntoView({ block: 'start', behavior: 'instant' });
     box._show = show;
   });
 
@@ -182,7 +182,7 @@
     var m = /^#lesson-(\d)$/.exec(location.hash), book = document.getElementById('book');
     if (m && book) {
       var box = book.closest('[data-tabs]'), ps = box ? [].slice.call(box.querySelectorAll('.st-frame > [role="tabpanel"]')) : [];
-      if (box && box._show) { box._show(ps.indexOf(book)); box.scrollIntoView({ block: 'start' }); }
+      if (box && box._show) { box._show(ps.indexOf(book)); box.scrollIntoView({ block: 'start', behavior: 'instant' }); }
       lesson(+m[1]);
     }
   }

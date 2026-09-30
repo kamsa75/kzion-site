@@ -29,6 +29,9 @@ body.sm{background:var(--ivory)}
 .st-tabs button{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:#C8DEDF;font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
 .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
 .st-frame{display:grid}
+/* 주소 #book·#q1 등으로 들어오면 위 메뉴·탭 줄이 가리지 않게 여유를 둔다 */
+.st-box{scroll-margin-top:84px}
+.st-frame > [id]{scroll-margin-top:150px}
 .st-p{grid-area:1/1;min-width:0;border-radius:24px;padding:34px 38px;position:relative;overflow:hidden}
 html.js .st-p:not(.on){visibility:hidden;pointer-events:none}
 html.js .st-p.on{animation:riseIn .4s ease both}
