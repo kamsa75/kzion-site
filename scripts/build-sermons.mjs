@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261002w';
+const V = '20261002x';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -286,7 +286,7 @@ function shortsPanel(d) {
 function tabsBox(label, tabs, panels, extraClass = '') {
   return `<div class="st-box${extraClass}" data-tabs>
     ${tabs.length > 1 ? `<div class="st-tabs" role="tablist" aria-label="${esc(label)}">
-      ${tabs.map((t, i) => `<button role="tab" type="button" aria-selected="${i ? 'false' : 'true'}">${esc(t)}</button>`).join('\n      ')}
+      ${tabs.map((t, i) => { const [l, s] = Array.isArray(t) ? t : [t]; return `<button role="tab" type="button" aria-selected="${i ? 'false' : 'true'}"${s ? ` aria-label="${esc(l)}"` : ''}>${s ? `<span class="t-l">${esc(l)}</span><span class="t-s" aria-hidden="true">${esc(s)}</span>` : esc(l)}</button>`; }).join('\n      ')}
     </div>` : ''}
     <div class="st-frame">${panels.join('')}
     </div>
@@ -470,7 +470,8 @@ function indexPage(all, cards = []) {
       </div>`;
 
   const hasPage = (w) => all.some((d) => d.date === w) ? `${w}/` : '';
-  const tabs = ['주일 설교', ...(allQ.length ? ['최근 질문'] : []), ...(cards.length ? ['말씀 배경화면'] : []), '성경공부 교재'];
+  // 폰에선 짧은 이름(오른쪽 탭 잘림 방지) — [긴 이름, 짧은 이름]
+  const tabs = [['주일 설교', '설교'], ...(allQ.length ? [['최근 질문', '질문']] : []), ...(cards.length ? [['말씀 배경화면', '배경화면']] : []), ['성경공부 교재', '교재']];
   const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), ...(cards.length ? [wpPanel(cards, '', hasPage)] : []), bookPanel];
   return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list, BOOK_LD] }) + nav(up) + `
 <main>
