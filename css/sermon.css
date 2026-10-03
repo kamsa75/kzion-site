@@ -419,6 +419,12 @@ html:has(.lp[open]){overflow:hidden}
 
 /* ---------- 말씀 배경화면(폰 배경화면 카드) — 쇼츠 파이프라인 말씀 카드(CONCEPT_LOCK v4.27) ---------- */
 .wp-lead{font-size:14px;color:var(--soft);margin:2px 0 14px}
+.wp-tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.wp-tag{-webkit-appearance:none;appearance:none;border:1px solid rgba(20,50,48,.2);background:transparent;color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;line-height:1.2;padding:7px 13px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s,border-color .2s}
+.wp-tag small{font-size:11.5px;font-weight:600;opacity:.5}
+.wp-tag[aria-pressed="true"]{background:var(--night);border-color:var(--night);color:var(--ivory)}
+.wp-tags-sep{width:1px;align-self:stretch;background:rgba(20,50,48,.2);margin:5px 2px}
+@media(hover:hover){.wp-tag:hover{border-color:var(--night)}}
 .wp-page{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-content:start;padding:4px 2px}
 .wpc{-webkit-appearance:none;appearance:none;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--ink);-webkit-tap-highlight-color:transparent}
 .wpc img{width:100%;height:auto;max-width:200px;aspect-ratio:1170/2532;object-fit:cover;border-radius:16px;box-shadow:0 10px 26px rgba(20,50,48,.16);transition:transform .25s}
@@ -439,11 +445,15 @@ html:has(.wp[open]){overflow:hidden}
 .wp-side{color:var(--ivory);max-width:300px}
 .wp-ref{font-family:var(--serif);font-weight:800;font-size:22px}
 .wp-verse{font-family:var(--serif);font-size:15.5px;line-height:1.7;margin-top:10px;opacity:.92;text-wrap:pretty}
+.wp-taglinks{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:12px}
+.wp-taglinks:empty{display:none}
+.wp-taglinks a{color:var(--gold-l);font-size:14px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .wp-how{font-size:13.5px;line-height:1.6;margin-top:18px;color:#C8DEDF}
 .wp-how b{color:var(--ivory)}
 .wp-save,.wp-go{display:inline-block;margin-top:14px;font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .wp-save{background:var(--ivory);color:var(--night);padding:11px 20px;border-radius:999px;margin-right:6px}
 .wp-go{color:var(--gold-l)}
+.wp-go[hidden]{display:none}                   /* 설교 페이지에서 연 카드는 '설교 듣기' 링크 숨김(이미 그 설교) */
 .wp-x{-webkit-appearance:none;appearance:none;position:absolute;top:-6px;right:-6px;z-index:2;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
 html.ios .wp-save{display:none}                 /* 아이폰 사파리는 내려받기 대신 길게 눌러 저장 */
 html:not(.ios) .wp-ios{display:none}
@@ -454,6 +464,9 @@ html:not(.ios) .wp-ios{display:none}
   .wp-img{height:min(68vh,620px)}
   .wp-side{max-width:none;text-align:center;padding:0 6px}
   .wp-verse{display:none}
+  .wp-taglinks{justify-content:center;margin-top:6px}
+  .wp-tags{gap:6px;margin-bottom:14px}
+  .wp-tag{font-size:13px;padding:6px 11px}
   .wp-ref{font-size:18px}
   .wp-how{margin-top:8px}
   .wp-x{top:-4px;right:4px}

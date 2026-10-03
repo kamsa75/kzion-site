@@ -85,6 +85,7 @@
     if (next) next.addEventListener('click', function () { go(cur + 1); });
     window.addEventListener('resize', function () { go(cur); });
     mark(0);
+    box._czReset = function () { dots = box.querySelectorAll('.cz-dots i'); track.scrollLeft = 0; mark(0); };   // 내용을 다시 채운 뒤(배경화면 태그) 처음 장으로
   });
 
   // 퀴즈
@@ -169,7 +170,8 @@
     tabs.forEach(function (tb, i) { tb.addEventListener('click', function () { show(i); }); });
     // 주소 끝 #q1 처럼 특정 질문으로 들어오면 그 탭을 연다
     var start = 0;
-    panels.forEach(function (p, k) { if (location.hash && p.id && '#' + p.id === location.hash) start = k; });
+    var hash = decodeURIComponent(location.hash);   // #wallpaper-소망 처럼 뒤에 태그가 붙어도 그 탭을 연다
+    panels.forEach(function (p, k) { if (hash && p.id && (hash === '#' + p.id || hash.indexOf('#' + p.id + '-') === 0)) start = k; });
     show(start);
     if (start) {
       var toBox = function () { box.scrollIntoView({ block: 'start', behavior: 'instant' }); };
@@ -247,17 +249,61 @@
   if (wp && wp.showModal) {
     if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) document.documentElement.classList.add('ios');
     var wImg = wp.querySelector('.wp-img'), wRef = wp.querySelector('.wp-ref'), wVerse = wp.querySelector('.wp-verse'),
-        wSave = wp.querySelector('.wp-save'), wGo = wp.querySelector('.wp-go');
+        wSave = wp.querySelector('.wp-save'), wGo = wp.querySelector('.wp-go'), wTags = wp.querySelector('.wp-taglinks'),
+        chipSet = ' ' + (wp.dataset.chips || '') + ' ';
     document.querySelectorAll('.wpc').forEach(function (b) {
       b.addEventListener('click', function () {
         wImg.src = b.dataset.wpImg; wImg.alt = b.dataset.wpRef + ' 말씀 배경화면 — ' + b.dataset.wpVerse;
         wRef.textContent = b.dataset.wpRef; wVerse.textContent = b.dataset.wpVerse;
         wSave.href = b.dataset.wpImg; wSave.setAttribute('download', b.dataset.wpName || '');
         if (b.dataset.wpSermon) { wGo.href = b.dataset.wpSermon; wGo.hidden = false; } else { wGo.hidden = true; }
+        wTags.textContent = '';   // 이 카드의 태그 중 칩으로 있는 것만 링크(누르면 그 태그 카드 모음)
+        (b.dataset.wpTags || '').split(' ').filter(function (x) { return x && chipSet.indexOf(' ' + x + ' ') >= 0; }).forEach(function (x) {
+          var a = document.createElement('a'); a.href = (wp.dataset.home || '') + '#wallpaper-' + encodeURIComponent(x); a.textContent = '#' + x; wTags.appendChild(a);
+        });
         wp.showModal();
       });
     });
     wp.querySelector('.wp-x').addEventListener('click', function () { wp.close(); });
     wp.addEventListener('click', function (e) { if (e.target === wp) wp.close(); });
+  }
+
+  // 배경화면 주제 태그: 칩을 누르면 그 태그 카드만 남기고 3장씩 다시 나눈다. 주소 #wallpaper-소망 (kzion.net/wallpaper#소망)으로 바로 열림
+  var wpBox = document.getElementById('wallpaper'), wpChips = wpBox ? wpBox.querySelectorAll('.wp-tag') : [];
+  if (wpChips.length) {
+    var wTrack = wpBox.querySelector('.cz-track'), wCards = [].slice.call(wTrack.querySelectorAll('.wpc')),
+        wDots = wpBox.querySelector('.cz-dots'), wBar = wpBox.querySelector('.cz-bar'), wCount = wpBox.querySelector('.wp-count');
+    var wpFilter = function (tag) {
+      if (![].some.call(wpChips, function (c) { return c.dataset.tag === tag; })) tag = '';
+      var list = wCards.filter(function (c) { return !tag || (' ' + c.dataset.wpTags + ' ').indexOf(' ' + tag + ' ') >= 0; });
+      wTrack.textContent = '';
+      for (var i = 0; i < list.length; i += 3) {
+        var s = document.createElement('div'); s.className = 'cz-slide wp-page';
+        list.slice(i, i + 3).forEach(function (c) { s.appendChild(c); }); wTrack.appendChild(s);
+      }
+      var pages = wTrack.children.length;
+      if (wDots) wDots.innerHTML = Array.apply(null, Array(pages)).map(function (_, k) { return '<i>' + (k + 1) + '</i>'; }).join('');
+      if (wBar) wBar.style.display = pages < 2 ? 'none' : '';
+      if (wCount) wCount.textContent = list.length;
+      wpChips.forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.tag === tag ? 'true' : 'false'); });
+      if (wpBox._czReset) wpBox._czReset();
+      return tag;
+    };
+    wpChips.forEach(function (c) {
+      c.addEventListener('click', function () { var tag = wpFilter(c.dataset.tag); history.replaceState(null, '', '#wallpaper' + (tag ? '-' + tag : '')); });
+    });
+    var wpFromHash = function () {
+      var h = decodeURIComponent(location.hash); if (h.indexOf('#wallpaper') !== 0) return false;
+      wpFilter(h.indexOf('#wallpaper-') === 0 ? h.slice(11) : ''); return true;
+    };
+    wpFromHash();
+    // 원본 창의 태그 링크를 같은 페이지에서 누르면: 창을 닫고 배경화면 탭을 열어 그 태그로
+    window.addEventListener('hashchange', function () {
+      if (!wpFromHash()) return;
+      if (wp && wp.open) wp.close();
+      var box = wpBox.closest('[data-tabs]');
+      if (box && box._show) box._show([].indexOf.call(box.querySelectorAll('.st-frame > [role="tabpanel"]'), wpBox));
+      if (box) box.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    });
   }
 })();

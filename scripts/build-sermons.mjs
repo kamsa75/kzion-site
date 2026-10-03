@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261002x';
+const V = '20261003a';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -229,8 +229,21 @@ function reelPanel(r, d, { base, goHref, id }) {
 }
 
 // ---------- 말씀 카드(폰 배경화면) ----------
+// 주제 태그 — 쇼츠 config.yaml verse_card.themes 와 같은 목록·순서(카드마다 1~2개). 성경 책 태그는 출처에서 자동
+const WP_THEMES = ['위로', '소망', '믿음', '사랑', '평안', '감사', '용기', '인도하심'];
+const WP_TAGS_MIN = 6;   // 카드가 이만큼 쌓여야 태그 칩을 보인다(1~2장일 때 칩 8개는 허전함)
+const wpTags = (c) => [...(c.themes || []), ...(c.book ? [c.book] : [])];
+// 칩으로 보일 태그: 주제는 1장 이상, 책은 2장 이상(한 장짜리 책 칩이 줄줄이 늘지 않게)
+function wpChipTags(cards) {
+  if (cards.length < WP_TAGS_MIN) return [];
+  const n = (t) => cards.filter((c) => wpTags(c).includes(t)).length;
+  const books = [...new Set(cards.map((c) => c.book).filter(Boolean))].filter((b) => n(b) >= 2)
+    .sort((a, b) => n(b) - n(a) || a.localeCompare(b, 'ko'));
+  return [...WP_THEMES.filter((t) => n(t) > 0), ...books].map((t) => ({ t, n: n(t), book: !WP_THEMES.includes(t) }));
+}
+let WP_CHIPS = [];   // main 에서 전체 카드로 한 번 계산 — 배경화면 탭 칩과 원본 창의 태그 링크가 같은 목록을 쓴다
 // base: 이 칸이 놓이는 페이지에서 sermon/ 폴더까지의 경로, sermonHref: 카드의 설교 페이지 주소를 만드는 함수
-const wpCard = (c, base, sermonHref) => `<button class="wpc" type="button" data-wp-img="${base}${esc(c.image)}" data-wp-ref="${esc(c.ref)}" data-wp-verse="${esc(c.verse)}" data-wp-name="시온장로교회-${esc(c.slug)}.jpg"${c.sermon && sermonHref(c.sermon) ? ` data-wp-sermon="${sermonHref(c.sermon)}"` : ''}>
+const wpCard = (c, base, sermonHref) => `<button class="wpc" type="button" data-wp-img="${base}${esc(c.image)}" data-wp-ref="${esc(c.ref)}" data-wp-verse="${esc(c.verse)}" data-wp-name="시온장로교회-${esc(c.slug)}.jpg" data-wp-tags="${esc(wpTags(c).join(' '))}"${c.sermon && sermonHref(c.sermon) ? ` data-wp-sermon="${sermonHref(c.sermon)}"` : ''}>
                 <img src="${base}${esc(c.thumb)}" alt="${esc(c.phrase)} 말씀 배경화면 — ${esc(c.verse)}" width="360" height="779" loading="lazy">
                 <span class="wpc-ref">${esc(c.ref)}</span>
               </button>`;
@@ -240,22 +253,27 @@ function wpPanel(cards, base, sermonHref) {
   for (let i = 0; i < cards.length; i += PER) pages.push(cards.slice(i, i + PER));
   return `
       <div class="st-p ix-p wp-p cz" role="tabpanel" id="wallpaper">
-        <p class="sx-h">말씀 배경화면 · ${cards.length}장</p>
-        <p class="wp-lead">카드를 누르면 휴대폰 배경화면 크기 원본이 열립니다. 사랑하는 이들에게도 나눠 주세요.</p>
+        <p class="sx-h">말씀 배경화면 · <span class="wp-count">${cards.length}</span>장</p>
+        <p class="wp-lead">카드를 누르면 휴대폰 배경화면 크기 원본이 열립니다. 사랑하는 이들에게도 나눠 주세요.</p>${WP_CHIPS.length ? `
+        <div class="wp-tags" role="group" aria-label="주제로 보기">
+          <button type="button" class="wp-tag" data-tag="" aria-pressed="true">전체 <small>${cards.length}</small></button>${WP_CHIPS.map((c, i) => `${c.book && !(WP_CHIPS[i - 1] || {}).book ? '<span class="wp-tags-sep" aria-hidden="true"></span>' : ''}
+          <button type="button" class="wp-tag" data-tag="${esc(c.t)}" aria-pressed="false">#${esc(c.t)} <small>${c.n}</small></button>`).join('')}
+        </div>` : ''}
         <div class="cz-track">${pages.map((pg) => `
           <div class="cz-slide wp-page">${pg.map((c) => wpCard(c, base, sermonHref)).join('')}</div>`).join('')}
         </div>${bar(pages.length, '배경화면', true)}
       </div>`;
 }
 
-const wpDialog = () => `
-<dialog class="wp" id="wp-view" aria-label="말씀 배경화면">
+const wpDialog = (home = '') => `
+<dialog class="wp" id="wp-view" aria-label="말씀 배경화면" data-home="${home}" data-chips="${esc(WP_CHIPS.map((c) => c.t).join(' '))}">
   <div class="wp-in">
     <button class="wp-x" type="button" aria-label="닫기">×</button>
     <img class="wp-img" src="" alt="">
     <div class="wp-side">
       <p class="wp-ref"></p>
       <p class="wp-verse"></p>
+      <p class="wp-taglinks"></p>
       <p class="wp-how wp-ios">사진을 길게 누른 뒤 <b>‘사진 앱에 저장’</b>을 누르세요. 사진 앱에서 공유 → 배경화면으로 지정.</p>
       <a class="wp-save" href="" download>배경화면 저장</a>
       <a class="wp-go" href="">이 말씀이 나온 설교 듣기 ${ARROW}</a>
@@ -362,7 +380,7 @@ ${cards.length ? `
     <div class="wp-row">${cards.map((c) => wpCard(c, '../', () => '')).join('')}</div>
     <p class="sw-links"><a href="../#wallpaper">말씀 배경화면 모두 보기</a></p>
   </div>
-</section>${wpDialog()}` : ''}
+</section>${wpDialog('../')}` : ''}
 ${visit(up)}
 ${prev || next ? `
 <nav class="sm-pager" aria-label="다른 설교">
@@ -640,6 +658,7 @@ for (const f of readdirSync(outDir)) {
 }
 const cardsF = join(dataDir, 'cards.json');
 const cards = existsSync(cardsF) ? JSON.parse(readFileSync(cardsF, 'utf8')) : [];
+WP_CHIPS = wpChipTags(cards);
 all.forEach((d, i) => {
   mkdirSync(join(outDir, d.date), { recursive: true });
   writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, all[i - 1], all[i + 1], cards.filter((c) => c.sermon === d.date)));

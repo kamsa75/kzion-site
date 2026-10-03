@@ -185,7 +185,8 @@ def export_cards(preview, root):
         unit = "편" if m and m.group(1) == "시편" else "장"
         phrase = f"{m.group(1)} {m.group(2)}{unit} {m.group(3)}" + (f"-{m.group(4)}" if m and m.group(4) else "") + "절" if m else it["ref"]
         c = {"slug": slug, "date": it["date"], "ref": it["ref"], "phrase": phrase, "verse": verse, "sermon": it.get("sermon_week") or "",
-             "image": f"wallpaper/{slug}.jpg", "thumb": f"wallpaper/{slug}-s.jpg"}
+             "image": f"wallpaper/{slug}.jpg", "thumb": f"wallpaper/{slug}-s.jpg",
+             "book": m.group(1) if m else "", "themes": [x for x in it.get("themes") or [] if isinstance(x, str)]}   # 배경화면 태그(주제 1~2개 + 성경 책)
         if preview and it.get("status") != "posted":
             c["previewOnly"] = True
         cards.append(c)
