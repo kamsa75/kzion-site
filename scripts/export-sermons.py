@@ -157,6 +157,41 @@ def export(vid_dir, books, preview, img_root, now):
             "topics": topics[:8], "shorts": shorts, "reels": reels, "passages": []}
 
 
+CARDS = Path.home() / "sermon-shorts" / "work" / "verse_cards" / "queue.json"
+
+
+def export_cards(preview, root):
+    """말씀 카드(폰 배경화면, 쇼츠 CONCEPT_LOCK v4.27) → data/sermons/cards.json + sermon/wallpaper/<이름>.jpg(원본)·-s.jpg(작은 그림).
+    공개 조건: 인스타에 실제로 게시된 카드만(미리보기는 대기 중인 것도). 원본 폴더는 읽기만."""
+    if not CARDS.exists():
+        return []
+    out_img = root / "sermon" / "wallpaper"
+    cards = []
+    for it in load(CARDS):
+        if not (it.get("status") == "posted" or (preview and it.get("status") == "ready")):
+            continue
+        src = Path(it.get("files", {}).get("wallpaper", ""))
+        if not src.exists():
+            continue
+        m = re.match(r"^\s*([가-힣]+)\s+(\d+):(\d+)(?:-(\d+))?\s*$", it["ref"])
+        slug = f"{it['date']}-{m.group(2)}-{m.group(3)}" if m else it["date"]
+        full, small = out_img / f"{slug}.jpg", out_img / f"{slug}-s.jpg"
+        out_img.mkdir(parents=True, exist_ok=True)
+        if not full.exists():
+            subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-vf", "scale=1170:-2", "-q:v", "4", str(full)], check=True)
+        if not small.exists():
+            subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-vf", "scale=360:-2", "-q:v", "5", str(small)], check=True)
+        verse = " ".join(l.replace("{", "").replace("}", "") for l in it.get("lines", []))
+        unit = "편" if m and m.group(1) == "시편" else "장"
+        phrase = f"{m.group(1)} {m.group(2)}{unit} {m.group(3)}" + (f"-{m.group(4)}" if m and m.group(4) else "") + "절" if m else it["ref"]
+        c = {"slug": slug, "date": it["date"], "ref": it["ref"], "phrase": phrase, "verse": verse, "sermon": it.get("sermon_week") or "",
+             "image": f"wallpaper/{slug}.jpg", "thumb": f"wallpaper/{slug}-s.jpg"}
+        if preview and it.get("status") != "posted":
+            c["previewOnly"] = True
+        cards.append(c)
+    return sorted(cards, key=lambda c: c["date"], reverse=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preview", action="store_true", help="게시 전 릴스도 포함(미리보기 전용)")
@@ -184,6 +219,11 @@ def main():
             f.write_text(text, encoding="utf-8")
             print("갱신:", f.name)
         keep.add(f.name)
+    cards = export_cards(a.preview, root)                       # 말씀 카드(폰 배경화면)
+    cf = data_dir / "cards.json"; ctext = json.dumps(cards, ensure_ascii=False, indent=2) + "\n"
+    if not cf.exists() or cf.read_text(encoding="utf-8") != ctext:
+        cf.write_text(ctext, encoding="utf-8"); print("갱신: cards.json")
+    keep.add("cards.json")
     for f in data_dir.glob("*.json"):
         if f.name not in keep:
             f.unlink(); print("제외(공개 조건 미충족):", f.name)

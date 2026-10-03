@@ -241,4 +241,23 @@
       stack.closest('section').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     });
   });
+
+  // 말씀 배경화면: 카드를 누르면 원본이 크게 뜬다. 아이폰은 길게 눌러 사진에 저장(내려받기 링크는 사파리에서 사진 앱으로 안 감), 그 외는 저장 버튼
+  var wp = document.getElementById('wp-view');
+  if (wp && wp.showModal) {
+    if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) document.documentElement.classList.add('ios');
+    var wImg = wp.querySelector('.wp-img'), wRef = wp.querySelector('.wp-ref'), wVerse = wp.querySelector('.wp-verse'),
+        wSave = wp.querySelector('.wp-save'), wGo = wp.querySelector('.wp-go');
+    document.querySelectorAll('.wpc').forEach(function (b) {
+      b.addEventListener('click', function () {
+        wImg.src = b.dataset.wpImg; wImg.alt = b.dataset.wpRef + ' 말씀 배경화면 — ' + b.dataset.wpVerse;
+        wRef.textContent = b.dataset.wpRef; wVerse.textContent = b.dataset.wpVerse;
+        wSave.href = b.dataset.wpImg; wSave.setAttribute('download', b.dataset.wpName || '');
+        if (b.dataset.wpSermon) { wGo.href = b.dataset.wpSermon; wGo.hidden = false; } else { wGo.hidden = true; }
+        wp.showModal();
+      });
+    });
+    wp.querySelector('.wp-x').addEventListener('click', function () { wp.close(); });
+    wp.addEventListener('click', function (e) { if (e.target === wp) wp.close(); });
+  }
 })();

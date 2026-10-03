@@ -414,3 +414,46 @@ html:has(.lp[open]){overflow:hidden}
   .qz.ready .qz-next,.qz.ready .qz-next::after{animation:none}
   .qs-s.on mark::after{animation:none;transform:scaleX(1)}
 }
+
+/* ---------- 말씀 배경화면(폰 배경화면 카드) — 쇼츠 파이프라인 말씀 카드(CONCEPT_LOCK v4.27) ---------- */
+.wp-lead{font-size:14px;color:var(--soft);margin:2px 0 14px}
+.wp-page{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-content:start;padding:4px 2px}
+.wpc{-webkit-appearance:none;appearance:none;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wpc img{width:100%;height:auto;max-width:200px;aspect-ratio:1170/2532;object-fit:cover;border-radius:16px;box-shadow:0 10px 26px rgba(20,50,48,.16);transition:transform .25s}
+.wpc-ref{font-family:var(--serif);font-weight:700;font-size:14px;color:var(--ink)}
+@media(hover:hover){.wpc:hover img{transform:translateY(-4px)}}
+.wpc:focus-visible img{outline:3px solid var(--teal-d);outline-offset:3px}
+.sm-cards{padding:8px 0 34px}
+.sm-cards .wrap{max-width:1040px}
+.wp-row{display:flex;gap:22px;flex-wrap:wrap;margin:6px 0 14px}
+.wp-row .wpc{width:min(200px,42vw)}
+
+.wp{border:0;padding:0;margin:auto;background:transparent;max-width:none;max-height:none;width:min(820px,calc(100vw - 24px))}
+.wp[open]{animation:lpIn .32s cubic-bezier(.2,.8,.2,1)}
+.wp::backdrop{background:rgba(12,40,44,.78);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+html:has(.wp[open]){overflow:hidden}
+.wp-in{position:relative;display:flex;gap:28px;align-items:center;justify-content:center}
+.wp-img{height:min(82vh,760px);width:auto;max-width:100%;aspect-ratio:1170/2532;border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.35);background:#eee;-webkit-touch-callout:default}
+.wp-side{color:var(--ivory);max-width:300px}
+.wp-ref{font-family:var(--serif);font-weight:800;font-size:22px}
+.wp-verse{font-family:var(--serif);font-size:15.5px;line-height:1.7;margin-top:10px;opacity:.92;text-wrap:pretty}
+.wp-how{font-size:13.5px;line-height:1.6;margin-top:18px;color:#C8DEDF}
+.wp-how b{color:var(--ivory)}
+.wp-save,.wp-go{display:inline-block;margin-top:14px;font-size:14.5px;font-weight:700;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.wp-save{background:var(--ivory);color:var(--night);padding:11px 20px;border-radius:999px;margin-right:6px}
+.wp-go{color:var(--gold-l)}
+.wp-x{-webkit-appearance:none;appearance:none;position:absolute;top:-6px;right:-6px;z-index:2;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:1;cursor:pointer}
+html.ios .wp-save{display:none}                 /* 아이폰 사파리는 내려받기 대신 길게 눌러 저장 */
+html:not(.ios) .wp-ios{display:none}
+@media(max-width:760px){
+  .wp-page{gap:10px}
+  .wpc-ref{font-size:12px}
+  .wp-in{flex-direction:column;gap:12px}
+  .wp-img{height:min(68vh,620px)}
+  .wp-side{max-width:none;text-align:center;padding:0 6px}
+  .wp-verse{display:none}
+  .wp-ref{font-size:18px}
+  .wp-how{margin-top:8px}
+  .wp-x{top:-4px;right:4px}
+}
+@media(prefers-reduced-motion:reduce){.wp[open]{animation:none}.wpc img{transition:none}}

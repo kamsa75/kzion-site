@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20260930b';
+const V = '20261002w';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -228,6 +228,41 @@ function reelPanel(r, d, { base, goHref, id }) {
         </div>`;
 }
 
+// ---------- 말씀 카드(폰 배경화면) ----------
+// base: 이 칸이 놓이는 페이지에서 sermon/ 폴더까지의 경로, sermonHref: 카드의 설교 페이지 주소를 만드는 함수
+const wpCard = (c, base, sermonHref) => `<button class="wpc" type="button" data-wp-img="${base}${esc(c.image)}" data-wp-ref="${esc(c.ref)}" data-wp-verse="${esc(c.verse)}" data-wp-name="시온장로교회-${esc(c.slug)}.jpg"${c.sermon && sermonHref(c.sermon) ? ` data-wp-sermon="${sermonHref(c.sermon)}"` : ''}>
+                <img src="${base}${esc(c.thumb)}" alt="${esc(c.phrase)} 말씀 배경화면 — ${esc(c.verse)}" width="360" height="779" loading="lazy">
+                <span class="wpc-ref">${esc(c.ref)}</span>
+              </button>`;
+
+function wpPanel(cards, base, sermonHref) {
+  const PER = 3, pages = [];
+  for (let i = 0; i < cards.length; i += PER) pages.push(cards.slice(i, i + PER));
+  return `
+      <div class="st-p ix-p wp-p cz" role="tabpanel" id="wallpaper">
+        <p class="sx-h">말씀 배경화면 · ${cards.length}장</p>
+        <p class="wp-lead">카드를 누르면 휴대폰 배경화면 크기 원본이 열립니다. 사랑하는 이들에게도 나눠 주세요.</p>
+        <div class="cz-track">${pages.map((pg) => `
+          <div class="cz-slide wp-page">${pg.map((c) => wpCard(c, base, sermonHref)).join('')}</div>`).join('')}
+        </div>${bar(pages.length, '배경화면', true)}
+      </div>`;
+}
+
+const wpDialog = () => `
+<dialog class="wp" id="wp-view" aria-label="말씀 배경화면">
+  <div class="wp-in">
+    <button class="wp-x" type="button" aria-label="닫기">×</button>
+    <img class="wp-img" src="" alt="">
+    <div class="wp-side">
+      <p class="wp-ref"></p>
+      <p class="wp-verse"></p>
+      <p class="wp-how wp-ios">사진을 길게 누른 뒤 <b>‘사진 앱에 저장’</b>을 누르세요. 사진 앱에서 공유 → 배경화면으로 지정.</p>
+      <a class="wp-save" href="" download>배경화면 저장</a>
+      <a class="wp-go" href="">이 말씀이 나온 설교 듣기 ${ARROW}</a>
+    </div>
+  </div>
+</dialog>`;
+
 // ---------- 1분 영상(쇼츠) 칸 ----------
 function shortsPanel(d) {
   const n = d.shorts.length;
@@ -280,7 +315,7 @@ function sermonLD(d, url) {
   return [v, crumbs];
 }
 
-function sermonPage(d, prev, next) {
+function sermonPage(d, prev, next, cards = []) {
   const url = `${SITE}/sermon/${d.date}/`, up = '../../';
   const sl = scriptureLabel(d);
   const title = `${d.title} — ${sl} 설교 | ${CH.suffix}`;
@@ -320,6 +355,14 @@ function sermonPage(d, prev, next) {
     <p class="sw-links"><a href="../">지난 설교 모두 보기</a></p>
   </div>
 </section>
+${cards.length ? `
+<section class="sm-cards" id="wallpaper" aria-label="이 설교의 말씀 카드">
+  <div class="wrap">
+    <div class="wk-head"><h2 class="wk-k">이 설교의 말씀 카드</h2><p class="wk-s">휴대폰 배경화면으로 저장하고, 사랑하는 이들에게 나눠 주세요.</p></div>
+    <div class="wp-row">${cards.map((c) => wpCard(c, '../', () => '')).join('')}</div>
+    <p class="sw-links"><a href="../#wallpaper">말씀 배경화면 모두 보기</a></p>
+  </div>
+</section>${wpDialog()}` : ''}
 ${visit(up)}
 ${prev || next ? `
 <nav class="sm-pager" aria-label="다른 설교">
@@ -333,11 +376,11 @@ ${prev || next ? `
 }
 
 // ---------- 말씀 모음 페이지 ----------
-function indexPage(all) {
+function indexPage(all, cards = []) {
   const url = `${SITE}/sermon/`, up = '../';
   const latest = all[all.length - 1], rest = all.slice(0, -1).reverse();
   const title = `말씀 — 주일 설교와 성경공부 교재 | ${CH.suffix}`;
-  const desc = `${CH.tag} 주일예배 설교 영상과 1분 말씀, 질문으로 만나는 설교, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
+  const desc = `${CH.tag} 주일예배 설교 영상과 1분 말씀, 질문으로 만나는 설교, 휴대폰 말씀 배경화면, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
   const list = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: '말씀', url, inLanguage: 'ko', publisher: CHURCH_LD,
     mainEntity: { '@type': 'ItemList', itemListElement: all.slice().reverse().map((d, i) => ({ '@type': 'ListItem', position: i + 1, url: `${url}${d.date}/`, name: d.title })) } };
 
@@ -426,8 +469,9 @@ function indexPage(all) {
         </div>
       </div>`;
 
-  const tabs = ['주일 설교', ...(allQ.length ? ['최근 질문'] : []), '성경공부 교재'];
-  const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), bookPanel];
+  const hasPage = (w) => all.some((d) => d.date === w) ? `${w}/` : '';
+  const tabs = ['주일 설교', ...(allQ.length ? ['최근 질문'] : []), ...(cards.length ? ['말씀 배경화면'] : []), '성경공부 교재'];
+  const panels = [sermonsPanel, ...(allQ.length ? [questionsPanel] : []), ...(cards.length ? [wpPanel(cards, '', hasPage)] : []), bookPanel];
   return head({ title, desc, url, image: thumb(latest.videoId), type: 'website', up, ld: [list, BOOK_LD] }) + nav(up) + `
 <main>
 <header class="sm-head sm-head-idx">
@@ -444,7 +488,7 @@ ${weekly}
     ${tabsBox('말씀', tabs, panels)}
   </div>
 </section>
-${lessonSheets(up)}
+${lessonSheets(up)}${cards.length ? wpDialog() : ''}
 ${visit(up)}
 </main>
 ` + footer(up);
@@ -593,13 +637,15 @@ for (const f of readdirSync(outDir)) {
     rmSync(join(outDir, f), { recursive: true }); console.log('지움: sermon/' + f + '/');
   }
 }
+const cardsF = join(dataDir, 'cards.json');
+const cards = existsSync(cardsF) ? JSON.parse(readFileSync(cardsF, 'utf8')) : [];
 all.forEach((d, i) => {
   mkdirSync(join(outDir, d.date), { recursive: true });
-  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, all[i - 1], all[i + 1]));
+  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, all[i - 1], all[i + 1], cards.filter((c) => c.sermon === d.date)));
   console.log('만듦: sermon/' + d.date + '/');
 });
 if (all.length) {
-  writeFileSync(join(outDir, 'index.html'), indexPage(all));
+  writeFileSync(join(outDir, 'index.html'), indexPage(all, cards));
   console.log('만듦: sermon/ (말씀 모음)');
 }
 writeHome(all);
