@@ -1270,7 +1270,8 @@ function renderOrderCard(S) {
         const pm = prayerMismatch(S);
         if (pm) {
           const w = el('div', 'order-warn');
-          w.textContent = `⚠️ 명단 순서는 ${pm.rotation} 님입니다 — PPT에 적힌 ${pm.ppt} 님으로 나갑니다`;
+          w.textContent = `⚠️ 명단 순서는 ${pm.rotation} 님, PPT에는 ${pm.ppt} 님 — 인쇄는 ${pm.ppt} 님으로 나갑니다.`
+            + ` 어느 쪽이 맞는지 정해 한쪽을 고쳐 주세요.`;
           list.appendChild(w);
         }
       }

@@ -128,8 +128,10 @@ function buildGate(S) {
   const pm = prayerMismatch(S);
   if (pm) {
     const w = PE('div', 'gate-order is-warn');
-    w.textContent = `⚠️ 대표기도 — 명단 순서는 ${pm.rotation} 님인데 PPT에 ${pm.ppt} 님으로 적혀 있습니다. `
-      + `이대로 인쇄하면 ${pm.ppt} 님으로 나갑니다 (바꾸려면 PPT 목사님 화면에서 고치세요)`;
+    w.textContent = `⚠️ 대표기도 — 명단 순서는 ${pm.rotation} 님, PPT에는 ${pm.ppt} 님. `
+      + `이대로 인쇄하면 ${pm.ppt} 님으로 나갑니다. `
+      + `${pm.ppt} 님이 맞으면 [명단·순서]에서 이번 주 기도를 바꾸고, `
+      + `${pm.rotation} 님이 맞으면 PPT 목사님 화면에서 고치세요.`;
     gate.appendChild(w);
   }
 
