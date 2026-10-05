@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=70">
+<link rel="stylesheet" href="css/ppt.css?v=72">
 </head>
 <body>
 
@@ -77,9 +77,14 @@
       </div>
 
       <div class="field">
-        <label>함께 읽는 구절 (짧은 구절) <span class="label-hint">— 크로마 밴드 슬라이드로 나옵니다</span></label>
+        <label>함께 읽는 구절 <span class="label-hint">— 짧은 구절(하단 카드)·긴 구절(큰 카드)·사진을 원하는 순서로. 칸마다 앞에 라이브 화면(그린) 1장이 자동으로 들어갑니다</span></label>
         <div id="reading-list"></div>
-        <button id="btn-add-reading" class="btn btn-outline btn-add">＋ 구절 페이지 추가</button>
+        <div class="rd-addrow">
+          <button id="btn-add-reading-short" class="btn btn-outline btn-add">＋ 짧은 구절</button>
+          <button id="btn-add-reading-long" class="btn btn-outline btn-add">＋ 긴 구절</button>
+          <button id="btn-add-reading-img" class="btn btn-outline btn-add">＋ 사진</button>
+        </div>
+        <input id="reading-file" type="file" accept="image/*" multiple hidden>
       </div>
 
       <div class="field">
@@ -351,17 +356,17 @@
 <script src="js/api.js?v=2"></script>
 <script src="js/template.js?v=4"></script>
 <script src="js/mock.js?v=10"></script>
-<script src="js/preview.js?v=29"></script>
+<script src="js/preview.js?v=30"></script>
 <script src="js/dragsort.js?v=2"></script>
-<script src="js/songs.js?v=37"></script>
-<script src="js/review.js?v=12"></script>
-<script src="js/pastor.js?v=22"></script>
-<script src="js/admin.js?v=8"></script>
-<script src="js/generate.js?v=52"></script>
-<script src="js/setorder.js?v=28"></script>
-<script src="js/choir.js?v=17"></script>
+<script src="js/songs.js?v=42"></script>
+<script src="js/review.js?v=13"></script>
+<script src="js/pastor.js?v=25"></script>
+<script src="js/admin.js?v=9"></script>
+<script src="js/generate.js?v=54"></script>
+<script src="js/setorder.js?v=31"></script>
+<script src="js/choir.js?v=18"></script>
 <script src="js/freshness.js?v=1"></script>
 <script src="js/conflict.js?v=1"></script>
-<script src="js/app.js?v=28"></script>
+<script src="js/app.js?v=30"></script>
 </body>
 </html>

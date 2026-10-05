@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /ppt/
 Disallow: /bt/
+
+Sitemap: https://kzion.net/sitemap.xml

@@ -121,11 +121,11 @@ function renderSlide(slide) {
 
     case 'score': { // 악보 통짜형
       el.className = 'slide slide--score';
+      if (slide.dark) el.classList.add('is-dark'); // 설교 사진: 다크 배경(세로 사진 여백, D44)
       if (slide.src) {
-        if (slide.is43) el.classList.add('is-43'); // 4:3 원본은 흰 배경 중앙 (지침 14번)
         const img = document.createElement('img');
         img.src = slide.src;
-        img.alt = '악보';
+        img.alt = slide.dark ? '사진' : '악보';
         el.appendChild(img);
       } else {
         const ph = document.createElement('div');
@@ -231,6 +231,23 @@ function fitVCardFull(root) {
     b.style.fontSize = s + 'px';
     while (b.scrollHeight > box.clientHeight + 1 && s > min && guard < 100) { s -= 0.5; b.style.fontSize = s + 'px'; guard++; }
   });
+}
+
+/* ============================================================
+   함께 읽는 구절 칸(D44) — 미리보기·PPT·상태판정 공용 정규화 (단일 소스).
+   저장 형태: 옛 데이터 = 문자열(짧은 구절) / 새 데이터 = { t:'short'|'long', text } | { t:'img', paths:[] }
+   반환은 항상 객체. 알 수 없는 t는 short로 취급(데이터 살리기, D41).
+   ============================================================ */
+function normReadingItem(x) {
+  if (typeof x === 'string') return { t: 'short', text: x };
+  if (!x || typeof x !== 'object') return { t: 'short', text: '' };
+  if (x.t === 'img') return { t: 'img', paths: Array.isArray(x.paths) ? x.paths.filter(Boolean) : [] };
+  return { t: x.t === 'long' ? 'long' : 'short', text: typeof x.text === 'string' ? x.text : '' };
+}
+// 칸에 내용이 있는가(상태 판정·초록 생략 규칙 공용)
+function readingItemHasContent(x) {
+  var it = normReadingItem(x);
+  return it.t === 'img' ? it.paths.length > 0 : !!it.text.trim();
 }
 
 /* ============================================================

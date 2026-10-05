@@ -158,9 +158,10 @@ const Review = (function () {
   function fitFilm(root) {
     root.querySelectorAll('.film-line').forEach(l => {
       if (!l.clientWidth) return;
-      let size = 11;
-      l.style.fontSize = size + 'px';
-      while (l.scrollWidth > l.clientWidth && size > 6) {
+      l.style.fontSize = '';                                   // CSS 규격(6.3cqh)으로 되돌린 뒤 측정
+      let size = parseFloat(getComputedStyle(l).fontSize) || 11;
+      const min = size * 0.55;
+      while (l.scrollWidth > l.clientWidth && size > min) {
         size -= 0.5;
         l.style.fontSize = size + 'px';
       }

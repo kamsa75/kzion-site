@@ -1,0 +1,13 @@
+# GitHub Pages(Jekyll) 설정
+# 내부 문서·서버 소스가 kzion.net 주소로 서빙(및 구글 색인)되지 않게 제외한다.
+# (CLAUDE.md 보안 규칙 11) — 사이트 페이지·배포 방식은 그대로, 아래 경로만 빠진다.
+# 새 내부 문서 폴더를 만들면 여기에 추가할 것.
+exclude:
+  - CLAUDE.md
+  - README.md
+  - docs
+  - supabase
+  - scripts
+  - data
+  - files/PUT-EPUB-HERE.txt
+  - images/PUT-IMAGES-HERE.txt
