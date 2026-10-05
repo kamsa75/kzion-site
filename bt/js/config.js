@@ -295,6 +295,16 @@ function buildOrderRows(S, opts) {
   });
 }
 
+// 대표기도 불일치 — PPT에 적힌 사람이 명단 순서(로테이션)가 정한 사람과 다를 때.
+//   대표기도는 PPT 값이 항상 이기므로(SHARED), 다르면 조용히 인쇄되지 않도록 알리기 위한 판정.
+//   편집 화면·인쇄 확인 화면이 같은 함수를 쓴다(판정이 갈리지 않게).
+function prayerMismatch(S) {
+  const ppt = String(((S && S.pastor) || {}).prayer || '').trim();
+  const rot = String((((S && S.serveWindow) || [])[0] || {}).prayer || '').trim();
+  if (!ppt || !rot || ppt === rot) return null;
+  return { ppt, rotation: rot };
+}
+
 // 성찬 위원 안내 — 성찬식(연 3회) 전 주에만 교회소식 카드에 '넣기' 버튼으로 제안.
 //   자동 삽입 아님(버튼을 눌러야 들어감), 넣은 뒤에는 일반 소식처럼 자유 수정·삭제 가능.
 const COMMUNION_NOTICE_TITLE = '성찬 위원 안내';

@@ -124,6 +124,15 @@ function buildGate(S) {
     gate.appendChild(sp);
   }
 
+  // 대표기도가 명단 순서와 다르면 인쇄 직전 마지막 경고(2026-10-05 실사고 — 지난주 담당자가 그대로 나갔음)
+  const pm = prayerMismatch(S);
+  if (pm) {
+    const w = PE('div', 'gate-order is-warn');
+    w.textContent = `⚠️ 대표기도 — 명단 순서는 ${pm.rotation} 님인데 PPT에 ${pm.ppt} 님으로 적혀 있습니다. `
+      + `이대로 인쇄하면 ${pm.ppt} 님으로 나갑니다 (바꾸려면 PPT 목사님 화면에서 고치세요)`;
+    gate.appendChild(w);
+  }
+
   // 이번 주 순서가 기본과 다르면 인쇄 직전 마지막 확인 줄(3단계 — 몰랐던 변화 방지)
   const chg = orderChangeSummary(S);
   if (chg) {

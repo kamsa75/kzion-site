@@ -1265,6 +1265,15 @@ function renderOrderCard(S) {
         isPPT ? 'PPT' : '자동'));
       row.appendChild(val);
       list.appendChild(row);
+      // 대표기도가 명단 순서와 다르면 바로 아래에 알린다(PPT 값이 이기므로 조용히 나가지 않게)
+      if (r.id === 'prayer') {
+        const pm = prayerMismatch(S);
+        if (pm) {
+          const w = el('div', 'order-warn');
+          w.textContent = `⚠️ 명단 순서는 ${pm.rotation} 님입니다 — PPT에 적힌 ${pm.ppt} 님으로 나갑니다`;
+          list.appendChild(w);
+        }
+      }
       return;
     }
 

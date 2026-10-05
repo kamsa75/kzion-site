@@ -262,3 +262,5 @@
   }
   .sheet-page:last-child{page-break-after:auto}
 }
+/* 대표기도 불일치 — 다른 안내보다 눈에 띄게(이게 조용히 지나가 지난주 담당자가 인쇄됐다) */
+.gate-order.is-warn{color:#8A2F1E; background:#FBE9E4; border-color:#E8BFB4}
