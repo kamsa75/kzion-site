@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261003a';
+const V = '20261005a';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -162,8 +162,14 @@ const bar = (n, label, num = false) => n < 2 ? '' : `
 // base: 이 칸이 놓이는 페이지에서 그림·영상 파일까지의 경로, goHref: 마지막 장의 '설교 듣기' 링크
 function reelPanel(r, d, { base, goHref, id }) {
   const p = PALETTE[r.color] || PALETTE.amber;
-  // 릴스 형식 3가지 — A 체크리스트 / C 고르기 / B 한 문장(고를 것 없이 화살표로 바로 넘어감)
-  const kind = r.format === 'A' && r.items?.length ? 'A' : r.format === 'C' && r.options?.length ? 'C' : 'B';
+  // 릴스 형식 6가지(쇼츠 애니 ①장면과 같음) — A 체크리스트 / C 고르기 3장 / D 둘 중 하나(2장) / E 말풀이(단어+속뜻) / F 숫자(열 명 중 k 명) / B 한 문장
+  // 고를 것이 있는 A·C·D 만 사용자가 눌러야 넘어가고, B·E·F 는 화살표로 바로 넘어감. 모르는 형식·빈 데이터는 B 로
+  const kind = r.format === 'A' && r.items?.length ? 'A'
+    : r.format === 'C' && r.options?.length ? 'C'
+    : r.format === 'D' && r.options?.length === 2 ? 'D'
+    : r.format === 'E' && r.word && r.meanings?.length ? 'E'
+    : r.format === 'F' && r.statK > 0 ? 'F' : 'B';
+  const passive = kind === 'B' || kind === 'E' || kind === 'F';
   const n = kind === 'A' ? r.items.length : 0;
   const nextBtn = `<div class="qz-go qz-go-c">
                 <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
@@ -179,8 +185,19 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
                 <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
               </div>`
-    : kind === 'C' ? `<div class="qz-cards">
-                ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
+    : kind === 'C' || kind === 'D' ? `<div class="qz-cards${kind === 'D' ? ' qz-two' : ''}">
+                ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join(kind === 'D' ? '\n                <span class="qz-vs" aria-hidden="true">vs</span>\n                ' : '\n                ')}
+              </div>
+              ${nextBtn}`
+    : kind === 'E' ? `<div class="qz-word">
+                <strong class="qw-w">‘${esc(r.word)}’</strong>
+                <ul class="qw-m">
+                ${r.meanings.map((t) => `<li>${esc(t)}</li>`).join('\n                ')}
+                </ul>
+              </div>
+              ${nextBtn}`
+    : kind === 'F' ? `<div class="qz-ten" role="img" aria-label="열 명 중 ${r.statK}명">
+                ${Array.from({ length: 10 }, (_, i) => `<i${i < r.statK ? ' class="on"' : ''} style="--i:${i}"></i>`).join('')}
               </div>
               ${nextBtn}`
     : nextBtn;
@@ -205,14 +222,14 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
               </div>`;
   return `
-        <div class="st-p qz${kind === 'B' ? ' ready qz-b' : ''}" role="tabpanel" id="${id}" data-format="${kind}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+        <div class="st-p qz${passive ? ' ready qz-b' : ''}" role="tabpanel" id="${id}" data-format="${kind}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
           <div class="qz-view qz-ask">
             <div class="qz-q">
               <p class="st-kicker">질문으로 만나는 설교</p>
-              <h2>${kind === 'B' ? mark(r.question, r.highlight) : esc(r.question)}</h2>
-              ${kind === 'A' ? `<p class="qz-sub">${r.threshold}개 이상이면, 끝까지 보세요</p>` : kind === 'C' ? '<p class="qz-sub">하나를 골라 보세요</p>' : ''}
-              ${kind === 'C' && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
-              ${kind === 'B' && r.hint ? `<p class="qz-lead">${esc(r.hint)}</p>` : ''}
+              <h2>${kind === 'B' || kind === 'E' ? mark(r.question, r.highlight) : esc(r.question)}</h2>
+              ${kind === 'A' ? `<p class="qz-sub">${r.threshold}개 이상이면, 끝까지 보세요</p>` : kind === 'C' ? '<p class="qz-sub">하나를 골라 보세요</p>' : kind === 'D' ? '<p class="qz-sub">둘 중 하나만 골라 보세요</p>' : ''}
+              ${(kind === 'C' || kind === 'D') && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
+              ${passive && r.hint ? `<p class="qz-lead">${esc(r.hint)}</p>` : ''}
             </div>
             <div class="qz-a">
               ${ask}

@@ -137,9 +137,15 @@ def export(vid_dir, books, preview, img_root, now):
                     "highlight": (r.get("highlight") or "").strip(),
                     "question": sc0.get("big", "").strip(), "hint": sc0.get("small", "").strip(), "scenes": scenes,
                     "topics": [h.lstrip("#") for h in r.get("hashtags", [])]}
-            if r.get("format") == "A":
+            fmt = r.get("format")
+            if fmt == "A":
                 item["items"] = r.get("items", []); item["threshold"] = r.get("threshold", 0)
-            else:
+            elif fmt == "E":                                   # 말풀이(2026-10-05): 단어 + 속뜻 2~3줄, 질문 속 단어를 강조
+                item["word"] = (r.get("word") or "").strip(); item["meanings"] = [m.strip() for m in r.get("meanings", []) if m.strip()]
+                item["highlight"] = item["word"]
+            elif fmt == "F":                                   # 숫자 훅(2026-10-05): 열 명 중 k 명(문장은 쇼츠가 목록에서 채운 scenes[0].big)
+                item["statK"] = int(r.get("stat_k") or 0)
+            else:                                              # C 고르기 3장 · D 둘 중 하나(2장) · B 는 빈 목록
                 item["options"] = [o.replace("\n", " ") for o in r.get("options", [])]
             if preview and not posted_ok:
                 item["previewOnly"] = True
