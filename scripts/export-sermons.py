@@ -162,13 +162,19 @@ CARDS = Path.home() / "sermon-shorts" / "work" / "verse_cards" / "queue.json"
 
 def export_cards(preview, root):
     """말씀 카드(폰 배경화면, 쇼츠 CONCEPT_LOCK v4.27) → data/sermons/cards.json + sermon/wallpaper/<이름>.jpg(원본)·-s.jpg(작은 그림).
-    공개 조건: 인스타에 실제로 게시된 카드만(미리보기는 대기 중인 것도). 원본 폴더는 읽기만."""
+    공개 조건(10-05 개정 — 홈페이지 먼저): 게시 시각(at)이 지난 카드(대기·게시됨·놓침 모두). 인스타 설명란이 홈페이지를 안내하므로
+    홈페이지에 먼저 뜨고 그 뒤 인스타·페이스북에 올라간다(쇼츠 쪽 verse_card.tick 이 이 봇을 먼저 돌리고 떴는지 확인한 뒤 게시).
+    미리보기는 시각 전 대기 카드도. 원본 폴더는 읽기만."""
     if not CARDS.exists():
         return []
     out_img = root / "sermon" / "wallpaper"
     cards = []
+    now = dt.datetime.now(dt.timezone.utc)
     for it in load(CARDS):
-        if not (it.get("status") == "posted" or (preview and it.get("status") == "ready")):
+        try: due = dt.datetime.fromisoformat(it["at"]) <= now
+        except (KeyError, ValueError): due = False
+        st = it.get("status")
+        if not (st == "posted" or (st in ("ready", "missed") and due) or (preview and st == "ready")):
             continue
         src = Path(it.get("files", {}).get("wallpaper", ""))
         if not src.exists():
