@@ -13,7 +13,9 @@
     "자존감",
     "불안",
     "걱정",
-    "평안"
+    "평안",
+    "두려움",
+    "마음챙김"
   ],
   "shorts": [
     {
@@ -43,6 +45,41 @@
       "thumb": "short-e-s-G0ADIL4.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "B",
+      "color": "sienna",
+      "instagram": "https://www.instagram.com/reel/DeN0ZR_jg07/",
+      "highlight": "왜 불안할까요",
+      "question": "확실히 이기는데 왜 불안할까요?",
+      "hint": "이미 이긴 싸움인데도 마음은 떨리죠",
+      "scenes": [
+        {
+          "big": "심리학에선 이걸 ‘손실 회피’라고 불러요",
+          "small": "이미 얻은 걸 잃을까 봐 더 무서운 마음",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "이미 결과는 정해져 있었어요",
+          "small": "그런데 마음은 계속 불안해했죠",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "불안은 어디서 멈출 수 있을까요?",
+          "small": "답은 이 설교에 있어요",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "불안",
+        "두려움",
+        "마음챙김",
+        "걱정",
+        "심리"
+      ],
+      "options": []
+    }
+  ],
   "passages": []
 }
