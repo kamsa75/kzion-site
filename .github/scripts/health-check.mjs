@@ -97,6 +97,11 @@ for (const [name, run] of CHECKS) {
   if (err) failed.push(name);
 }
 
+if (process.env.TEST_FAIL === 'true') {           // 수동 실행 '실패 메일 시험' — 일부러 실패시켜 알림 메일이 오는지 확인(2026-10-07)
+  console.log('✗ 실패 메일 시험 — 일부러 실패시킨 것입니다. 실제 문제는 없습니다');
+  failed.push('실패 메일 시험(실제 문제 아님)');
+}
+
 if (failed.length) {
   console.error('\n점검 실패 ' + failed.length + '건: ' + failed.join(', '));
   process.exit(1);
