@@ -529,7 +529,7 @@ function indexPage(all, cards = []) {
           <a class="rc" href="${d.date}/#shorts">
             <span class="rc-media">${s.thumb ? `<img src="${d.date}/${esc(s.thumb)}" alt="" loading="lazy">` : ''}<span class="rc-play" aria-hidden="true">${PLAY}</span></span>
             <span class="rc-q">${esc(s.title)}</span>
-            <span class="rc-s">${esc(d.title)} · ${esc(scriptureLabel(d))} · ${d.date.slice(0, 4)}년</span>
+            <span class="rc-s">${esc(d.title)} · ${esc(scriptureLabel(d))}</span>
           </a>`;
   const replayShelf = rpItems.length ? `
 <section class="sm-stage sm-replay" aria-label="다시 듣는 말씀">
