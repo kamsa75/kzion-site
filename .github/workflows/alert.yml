@@ -1,0 +1,36 @@
+name: ⚠️ 알림
+
+# 맥의 쇼츠 작업이 `gh workflow run alert.yml -f title=… -f detail=…` 로 돌린다(2026-10-08). 일부러 실패해서 GitHub 가 저장소 주인에게
+# 실패 메일을 보내게 하는 것이 목적 — 이미 도착이 확인된 유일한 메일 경로. 제목이 실행 이름(run-name)에, 내용은 로그에 보인다.
+# 저장소·사이트는 아무것도 바꾸지 않는다. 지금 쓰는 곳: 공개된 지 1시간 넘게 인스타·페이스북에 안 올라간 쇼츠(~/sermon-shorts/pipeline/alerts.py).
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        description: '한 줄 제목'
+        required: true
+        type: string
+      detail:
+        description: '내용'
+        required: false
+        type: string
+        default: ''
+
+run-name: ${{ inputs.title }}
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: 알림 내용
+        env:
+          TITLE: ${{ inputs.title }}
+          DETAIL: ${{ inputs.detail }}
+        run: |
+          echo "::error title=$TITLE::$DETAIL"
+          printf '%s\n\n%s\n' "$TITLE" "$DETAIL"
+          echo "(이 실행은 메일을 보내려고 일부러 실패합니다. 실제 점검은 '상태 점검' 워크플로)"
+          exit 1
