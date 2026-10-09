@@ -340,7 +340,7 @@ function shortsPanel(d) {
               </div>
             </div>`).join('');
   return `
-        <div class="st-p sh-p cz" role="tabpanel">
+        <div class="st-p sh-p cz" id="shorts" role="tabpanel">
           <div class="cz-track">${slides}
           </div>${bar(n, '영상')}
         </div>`;
@@ -526,7 +526,7 @@ function indexPage(all, cards = []) {
   const RPER = 3, rpPages = [];
   for (let i = 0; i < rpItems.length; i += RPER) rpPages.push(rpItems.slice(i, i + RPER));
   const rpCard = ({ d, s }) => `
-          <a class="rc" href="${d.date}/">
+          <a class="rc" href="${d.date}/#shorts">
             <span class="rc-media">${s.thumb ? `<img src="${d.date}/${esc(s.thumb)}" alt="" loading="lazy">` : ''}<span class="rc-play" aria-hidden="true">${PLAY}</span></span>
             <span class="rc-q">${esc(s.title)}</span>
             <span class="rc-s">${esc(d.title)} · ${esc(scriptureLabel(d))} · ${d.date.slice(0, 4)}년</span>
