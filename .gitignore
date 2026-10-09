@@ -1,3 +1,5 @@
 .DS_Store
 .claude/
 __pycache__/
+# 홈 퀴즈 견본(확인용, 2026-10-08) — 사이트 폴더 안에 만들지만 올리지 않는다
+quiz-preview.html

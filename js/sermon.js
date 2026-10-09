@@ -123,15 +123,14 @@
       return k;
     }
     q.querySelectorAll('.qz-note input').forEach(function (i) { i.addEventListener('change', meter); });
-    var go = q.querySelector('.qz-next');
-    if (go) go.addEventListener('click', function () {
+    q.querySelectorAll('.qz-next, .qz-pill, .qz-cover').forEach(function (go) { go.addEventListener('click', function () {   // B 표지 그림·글자 버튼도 같은 동작(10-08)
       // 고르기 퀴즈(C 3장·D 2장)는 하나를 골라야 넘어간다 — 안 골랐으면 카드가 살짝 흔들려 알려 준다
       var fmt = q.getAttribute('data-format');
       if ((fmt === 'C' || fmt === 'D') && !q.classList.contains('picked')) {
         q.classList.add('nudge'); setTimeout(function () { q.classList.remove('nudge'); }, 500); return;
       }
       meter(); open();
-    });
+    }); });
     // 고르기: 고른 카드가 떠오르고 안내 한 줄이 나타난다. 화살표를 누르기 전까지는 다른 카드로 바꿀 수 있다
     q.querySelectorAll('.qz-card').forEach(function (c) {
       c.addEventListener('click', function () {

@@ -29,6 +29,7 @@ body.sm{background:var(--ivory)}
 .st-tabs button{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:#C8DEDF;font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
 .st-tabs button[aria-selected="true"]{background:var(--ivory);color:var(--night)}
 .st-tabs .t-s{display:none}
+.st-tabs .t-ago{font-size:11px;font-weight:800;letter-spacing:.06em;opacity:.65;margin-right:2px}   /* 홈 (c) 상태: 지난주 질문 탭 표시 */
 .st-frame{display:grid}
 /* 주소 #book·#q1 등으로 들어오면 위 메뉴·탭 줄이 가리지 않게 여유를 둔다 */
 [data-tabs]{scroll-margin-top:84px}
@@ -118,6 +119,22 @@ html.js .qz:not(.open) .qz-story,html.js .qz.open .qz-ask{opacity:0;transform:sc
 .qz-b h2 mark{background:none;color:inherit;position:relative;z-index:0;white-space:nowrap}
 .qz-b h2 mark::after{content:"";position:absolute;left:-2px;right:-2px;bottom:.08em;height:.38em;background:color-mix(in srgb,#FBF8F1 75%,transparent);z-index:-1}
 .qz-b h2{position:relative;z-index:0}
+.qz-mk-text h2 mark,.qz-mk-text .qs-txt mark{color:var(--q-mark)}.qz-mk-text mark::after{display:none}
+.qz-mk-line mark::after{background:var(--q-ink);height:.07em;bottom:-.04em}
+/* B 표지(10-08): 이야기 첫 장면 그림을 종이에 붙인 표지로 — 뒤에 한 장 더 비치게(이어지는 장면이 있다는 느낌), 누르면 이야기 시작 */
+.qz-cover{-webkit-appearance:none;appearance:none;border:0;background:none;padding:0;cursor:pointer;justify-self:center;width:min(100%,400px);position:relative;display:block;color:inherit;transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.qz-cover::before{content:"";position:absolute;inset:6% -3% -2% 5%;background:color-mix(in srgb,#FBF8F1 55%,transparent);transform:rotate(-4deg);box-shadow:0 18px 30px -20px rgba(0,0,0,.45)}
+.qc-paper{position:relative;display:block;background:#FBF8F1;padding:12px 12px 40px;transform:rotate(2.2deg);box-shadow:0 2px 0 rgba(0,0,0,.06),0 26px 44px -22px rgba(0,0,0,.55)}
+.qc-paper img{display:block;width:100%;height:auto;aspect-ratio:540/452;object-fit:cover}
+.qc-paper::after{content:"";position:absolute;left:50%;top:-12px;width:86px;height:26px;margin-left:-43px;background:color-mix(in srgb,#FBF8F1 70%,var(--q-bg));opacity:.85;transform:rotate(-3deg)}
+@media(hover:hover){.qz-cover:hover{transform:translateY(-6px) rotate(-1deg)}}
+.qz-cover:focus-visible{outline:3px solid var(--q-ink);outline-offset:8px}
+.qz-pill{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;gap:10px;margin-top:26px;border:0;border-radius:999px;padding:15px 22px 15px 26px;background:var(--q-ink);color:var(--q-bg);font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s}
+.qz-pill svg{width:20px;height:20px;transition:transform .25s}
+@media(hover:hover){.qz-pill:hover svg{transform:translateX(4px)}}
+.qz-pill:active{transform:scale(.97)}
+.qz-pill:focus-visible{outline:3px solid var(--q-ink);outline-offset:4px}
+.qz-has-cover .qz-ask{grid-template-columns:1.05fr .95fr}
 .qz.picked .qz-card.on{opacity:1;transform:translateY(-8px) scale(1.06) rotate(0);box-shadow:0 22px 40px -18px rgba(0,0,0,.5)}
 /* D형(둘 중 하나) — 넓은 카드 2장, 가운데 vs (2026-10-05) */
 .qz-two{grid-template-columns:1fr auto 1fr;align-items:center}
@@ -374,6 +391,9 @@ html:has(.lp[open]){overflow:hidden}
   .qz{padding:0}
   .qz-view{padding:24px 20px}
   .qz-ask{grid-template-columns:1fr;gap:18px;align-content:start}
+  .qz-has-cover .qz-ask{grid-template-columns:1fr}
+  .qz-cover{width:min(78%,300px);margin-top:6px}
+  .qz-pill{margin-top:18px;font-size:15px;padding:13px 18px 13px 22px}
   .qz-note{padding:2px 18px;transform:rotate(-.8deg)}
   .qz-note label{font-size:16px;padding:11px 0}
   .qz-cards{gap:8px}

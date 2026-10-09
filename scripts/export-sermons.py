@@ -63,6 +63,22 @@ def scripture(ref, books):
 TITLE_RE = re.compile(r"^\s*\d{4}[.\-]\d{1,2}[.\-]\d{1,2}\s*(.+?)\s*\(([^)]+)\)\s*([가-힣]{2,4}\s*목사)\s*$")
 
 
+def crop_cover(src, out_dir, prefix):
+    """B(한 문장) 형식의 ①장면 그림(2026-10-08) — 홈페이지 퀴즈 첫 화면 표지. B 는 ①에 카드 빈자리가 없어 그림 전체가 온전함
+    (A·C·D·E·F 의 ①은 메모지·카드 자리가 비어 있어 쓰지 않음). 이미 있으면 건너뜀"""
+    name = f"{prefix}-1.jpg"
+    if (out_dir / name).exists():
+        return name
+    wh = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0", str(src)],
+                        capture_output=True, text=True, check=True).stdout.strip().split(",")
+    W, H = int(wh[0]), int(wh[1])
+    cw, y, ch = round(W * 0.2466), round(H * 0.1167), round(H * 0.4708)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-vf", f"crop={cw}:{ch}:{round(W * 0.0018)}:{y}", "-q:v", "4",
+                    str(out_dir / name)], check=True)
+    return name
+
+
 def crop_panels(src, out_dir, prefix, count=3):
     """릴스 키프레임(4장면 가로 이어붙임)에서 2~4장면 그림 부분만 잘라 저장. 이미 있으면 건너뜀."""
     names = [f"{prefix}-{k}.jpg" for k in range(2, 2 + count)]
@@ -138,6 +154,8 @@ def export(vid_dir, books, preview, img_root, now):
                     "question": sc0.get("big", "").strip(), "hint": sc0.get("small", "").strip(), "scenes": scenes,
                     "topics": [h.lstrip("#") for h in r.get("hashtags", [])]}
             fmt = r.get("format")
+            if fmt == "B" and kf.exists():
+                item["cover"] = crop_cover(kf, out_img, f"reel{r['n']}")
             if fmt == "A":
                 item["items"] = r.get("items", []); item["threshold"] = r.get("threshold", 0)
             elif fmt == "E":                                   # 말풀이(2026-10-05): 단어 + 속뜻 2~3줄, 질문 속 단어를 강조
