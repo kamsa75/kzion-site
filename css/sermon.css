@@ -502,6 +502,10 @@ html:not(.ios) .wp-ios{display:none}
 @media(max-width:760px){
   .wp-page{gap:10px}
   .wpc-ref{font-size:12px}
+  /* 설교 페이지 '이 설교의 말씀 카드'(10-08 본부장님): 폰에선 카드가 아래로 떨어져 스크롤이 길어짐 → 옆으로 넘기는 한 줄(2장은 나란히, 3장부터 살짝 보이며 넘김) */
+  .wp-row{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 2px;gap:12px;margin:4px 0 8px;padding:4px 2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .wp-row::-webkit-scrollbar{display:none}
+  .wp-row .wpc{flex:0 0 auto;width:min(38vw,170px);scroll-snap-align:start}
   .wp-in{flex-direction:column;gap:12px}
   .wp-img{height:min(68vh,620px)}
   .wp-side{max-width:none;text-align:center;padding:0 6px}
