@@ -60,6 +60,7 @@ def scripture(ref, books):
             "phrase": f"{book} {ch}{unit} {verses}"}
 
 
+TITLE_RE2 = re.compile(r"^\s*(.+?)\s*\(([^)]+)\)\s*([가-힣]{2,4}\s*목사)\s*$")   # 날짜 없는 옛 영상 제목(다시 듣는 말씀, 2026-10-08)
 TITLE_RE = re.compile(r"^\s*\d{4}[.\-]\d{1,2}[.\-]\d{1,2}\s*(.+?)\s*\(([^)]+)\)\s*([가-힣]{2,4}\s*목사)\s*$")
 
 
@@ -113,7 +114,7 @@ def export(vid_dir, books, preview, img_root, now):
     week, clips, meta = load(d / "week.json"), load(d / "clips.json"), load(d / "select_meta.json")
     date = week["weekId"]
     pastor = week.get("pastor") or {}
-    m = TITLE_RE.match(week.get("video_title") or "")
+    m = TITLE_RE.match(week.get("video_title") or "") or TITLE_RE2.match(week.get("video_title") or "")
     title = m.group(1) if m else (pastor.get("title") or "").strip()
     preacher = (week.get("preacher") or (m.group(3) if m else "") or "").replace(" ", " ")
     sc = scripture(pastor.get("ref") or (m.group(2) if m else ""), books)
@@ -178,7 +179,8 @@ def export(vid_dir, books, preview, img_root, now):
     return {"date": date, "videoId": vid_dir, "title": title, "preacher": preacher,
             "scripture": sc["ref"], "book": sc["book"], "scripturePhrase": sc["phrase"],
             "coreQuestion": (meta.get("core_question") or "").strip(),
-            "topics": topics[:8], "shorts": shorts, "reels": reels, "passages": []}
+            "topics": topics[:8], "shorts": shorts, "reels": reels, "passages": [],
+            "replay": bool(week.get("replay"))}   # 다시 듣는 말씀(2026-10-08): 옛 설교를 골라 쇼츠로 만든 것 — week.json 의 표시만 읽음(날짜로 추측 안 함)
 
 
 CARDS = Path.home() / "sermon-shorts" / "work" / "verse_cards" / "queue.json"

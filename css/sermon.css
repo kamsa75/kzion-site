@@ -473,6 +473,18 @@ html:has(.lp[open]){overflow:hidden}
 .wpc-ref{font-family:var(--serif);font-weight:700;font-size:14px;color:var(--ink)}
 @media(hover:hover){.wpc:hover img{transform:translateY(-4px)}}
 .wpc:focus-visible img{outline:3px solid var(--teal-d);outline-offset:3px}
+/* 다시 듣는 말씀(2026-10-08): 탭 상자 아래 독립 선반 — 카드 = 1분 영상(세로 첫 화면 + 질문). 주일 설교 목록과 섞지 않음 */
+.sm-replay{padding-top:6px}
+.rc-page{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;padding:4px 2px}
+.rc{display:grid;grid-template-columns:118px 1fr;column-gap:16px;align-items:center;text-decoration:none;color:var(--ink);-webkit-tap-highlight-color:transparent}
+.rc-media{position:relative;display:block;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:var(--night);box-shadow:0 12px 26px rgba(20,50,48,.16)}
+.rc-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.rc-play{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--night);display:grid;place-items:center}
+.rc-play svg{width:18px;height:18px;margin-left:2px}
+.rc-q{grid-column:2;font-family:var(--serif);font-weight:800;font-size:19px;line-height:1.32;letter-spacing:-.01em;text-wrap:balance}
+.rc-s{grid-column:2;font-size:13px;color:var(--soft);margin-top:8px;line-height:1.5}
+@media(hover:hover){.rc:hover .rc-media img{transform:scale(1.04)}.rc:hover .rc-q{color:var(--teal-d)}}
+.rc:focus-visible{outline:3px solid var(--teal-d);outline-offset:4px;border-radius:12px}
 .sm-cards{padding:8px 0 34px}
 .sm-cards .wrap{max-width:1040px}
 .wp-row{display:flex;gap:22px;flex-wrap:wrap;margin:6px 0 14px}
@@ -506,6 +518,13 @@ html:not(.ios) .wp-ios{display:none}
   .wp-row{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 2px;gap:12px;margin:4px 0 8px;padding:4px 2px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .wp-row::-webkit-scrollbar{display:none}
   .wp-row .wpc{flex:0 0 auto;width:min(38vw,170px);scroll-snap-align:start}
+  /* 다시 듣는 말씀 — 폰: 3장씩 넘기는 대신 카드가 한 줄로 이어져 옆으로 밀기(썸네일 위, 글 아래) */
+  .sm-replay .rc-page{display:contents}
+  .sm-replay .cz-track{gap:12px;padding:4px 2px 10px;scroll-padding:0 2px}
+  .rc{flex:0 0 min(44vw,170px);grid-template-columns:1fr;row-gap:0;scroll-snap-align:start}
+  .rc-q{grid-column:1;font-size:16px;margin-top:10px}
+  .rc-s{grid-column:1;font-size:12px;margin-top:6px}
+  .sm-replay .cz-bar{display:none}
   .wp-in{flex-direction:column;gap:12px}
   .wp-img{height:min(68vh,620px)}
   .wp-side{max-width:none;text-align:center;padding:0 6px}

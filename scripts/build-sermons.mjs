@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261008b';
+const V = '20261008c';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -392,7 +392,7 @@ function sermonPage(d, prev, next, cards = []) {
   <div class="wrap">
     <nav class="sm-crumb" aria-label="현재 위치"><a href="${up}index.html">홈</a><span>›</span><a href="../">말씀</a><span>›</span><span>${dotDate(d.date)}</span></nav>
     <p class="sm-tag">${CH.tag}</p>
-    <p class="sm-kicker">주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time></p>
+    <p class="sm-kicker">${d.replay ? `다시 듣는 말씀 · <time datetime="${d.date}">${koDate(d.date)}</time> 설교` : `주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time>`}</p>
     <h1>${esc(d.title)}</h1>
     <p class="sm-meta">${esc(sl)} 설교 · ${esc(d.preacher)}</p>
     ${d.coreQuestion ? `<p class="sm-q">${esc(d.coreQuestion)}</p>` : ''}
@@ -430,8 +430,8 @@ ${visit(up)}
 ${prev || next ? `
 <nav class="sm-pager" aria-label="다른 설교">
   <div class="wrap">
-    ${prev ? `<a href="../${prev.date}/"><span>이전 설교 · ${dotDate(prev.date)}</span>${esc(prev.title)}</a>` : '<span></span>'}
-    ${next ? `<a class="nx" href="../${next.date}/"><span>다음 설교 · ${dotDate(next.date)}</span>${esc(next.title)}</a>` : '<span></span>'}
+    ${prev ? `<a href="../${prev.date}/"><span>${d.replay ? '다시 듣는 말씀' : '이전 설교'} · ${dotDate(prev.date)}</span>${esc(prev.title)}</a>` : '<span></span>'}
+    ${next ? `<a class="nx" href="../${next.date}/"><span>${d.replay ? '다시 듣는 말씀' : '다음 설교'} · ${dotDate(next.date)}</span>${esc(next.title)}</a>` : '<span></span>'}
   </div>
 </nav>` : ''}
 </main>
@@ -441,6 +441,8 @@ ${prev || next ? `
 // ---------- 말씀 모음 페이지 ----------
 function indexPage(all, cards = []) {
   const url = `${SITE}/sermon/`, up = '../';
+  const replays = all.filter((d) => d.replay).slice().reverse();          // 다시 듣는 말씀(2026-10-08): 옛 설교 중 골라 쇼츠로 만든 것 — 주일 설교 목록과 섞지 않음
+  all = all.filter((d) => !d.replay);
   const latest = all[all.length - 1], rest = all.slice(0, -1).reverse();
   const title = `말씀 — 주일 설교와 성경공부 교재 | ${CH.suffix}`;
   const desc = `${CH.tag} 주일예배 설교 영상과 1분 말씀, 질문으로 만나는 설교, 휴대폰 말씀 배경화면, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
@@ -517,6 +519,31 @@ function indexPage(all, cards = []) {
         </div>${bar(qPages.length, '질문', true)}
       </div>` : '';
 
+  // 다시 듣는 말씀(2026-10-08 본부장님): 옛 설교 중 골라 쇼츠로 만든 것 — 주일 설교와 섞지 않고 탭 상자 아래 독립 선반.
+  // 카드는 설교가 아니라 1분 영상 하나하나(고른 이유 = 그 질문이 지금도 통해서). 3장씩 넘김, 폰은 옆으로 밀기. 공개된 1분 영상이 없으면 선반 자체가 없음
+  const rpItems = [];
+  for (const d of replays) for (const s of d.shorts) rpItems.push({ d, s });
+  const RPER = 3, rpPages = [];
+  for (let i = 0; i < rpItems.length; i += RPER) rpPages.push(rpItems.slice(i, i + RPER));
+  const rpCard = ({ d, s }) => `
+          <a class="rc" href="${d.date}/">
+            <span class="rc-media">${s.thumb ? `<img src="${d.date}/${esc(s.thumb)}" alt="" loading="lazy">` : ''}<span class="rc-play" aria-hidden="true">${PLAY}</span></span>
+            <span class="rc-q">${esc(s.title)}</span>
+            <span class="rc-s">${esc(d.title)} · ${esc(scriptureLabel(d))} · ${d.date.slice(0, 4)}년</span>
+          </a>`;
+  const replayShelf = rpItems.length ? `
+<section class="sm-stage sm-replay" aria-label="다시 듣는 말씀">
+  <div class="wrap">
+    <div class="wk-head"><h2 class="wk-k">다시 듣는 말씀</h2><p class="wk-s">지난 설교 가운데 지금도 마음에 닿는 말씀을 골라 1분 영상으로 담았습니다.</p></div>
+    <div class="cz rc-box">
+      <div class="cz-track">${rpPages.map((pg) => `
+        <div class="cz-slide rc-page">${pg.map(rpCard).join('')}
+        </div>`).join('')}
+      </div>${bar(rpPages.length, '다시 듣는 말씀')}
+    </div>
+  </div>
+</section>` : '';
+
   const bookPanel = `
       <div class="st-p ix-p" role="tabpanel" id="book">
         <div class="bk">
@@ -552,6 +579,7 @@ ${weekly}
     ${tabsBox('말씀', tabs, panels)}
   </div>
 </section>
+${replayShelf}
 ${lessonSheets(up)}${cards.length ? wpDialog() : ''}
 ${visit(up)}
 </main>
@@ -774,15 +802,16 @@ for (const f of readdirSync(outDir)) {
 const cardsF = join(dataDir, 'cards.json');
 const cards = existsSync(cardsF) ? JSON.parse(readFileSync(cardsF, 'utf8')) : [];
 WP_CHIPS = wpChipTags(cards);
-all.forEach((d, i) => {
+const groups = [all.filter((d) => !d.replay), all.filter((d) => d.replay)];   // 주일 설교 / 다시 듣는 말씀 — 이전·다음 링크는 같은 묶음 안에서만
+for (const g of groups) g.forEach((d, i) => {
   mkdirSync(join(outDir, d.date), { recursive: true });
-  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, all[i - 1], all[i + 1], cards.filter((c) => c.sermon === d.date)));
-  console.log('만듦: sermon/' + d.date + '/');
+  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, g[i - 1], g[i + 1], cards.filter((c) => c.sermon === d.date)));
+  console.log('만듦: sermon/' + d.date + '/' + (d.replay ? ' (다시 듣는 말씀)' : ''));
 });
 if (all.length) {
   writeFileSync(join(outDir, 'index.html'), indexPage(all, cards));
   console.log('만듦: sermon/ (말씀 모음)');
 }
-writeHome(all);
+writeHome(all.filter((d) => !d.replay));   // 홈은 주일 설교만(다시 듣는 말씀이 '최신 설교'가 되지 않게)
 writeFileSync(join(ROOT, 'sitemap.xml'), sitemap(all));
 console.log('만듦: sitemap.xml');
