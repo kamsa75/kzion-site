@@ -475,6 +475,8 @@ html:has(.lp[open]){overflow:hidden}
 .wpc:focus-visible img{outline:3px solid var(--teal-d);outline-offset:3px}
 /* 다시 듣는 말씀(2026-10-08): 탭 상자 아래 독립 선반 — 카드 = 1분 영상(세로 첫 화면 + 질문). 주일 설교 목록과 섞지 않음 */
 .sm-replay{padding-top:6px}
+.rc-hint{display:none}
+.rc-box{position:relative}
 .rc-page{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;padding:4px 2px}
 .rc{display:grid;grid-template-columns:118px 1fr;column-gap:16px;align-items:center;text-decoration:none;color:var(--ink);-webkit-tap-highlight-color:transparent}
 .rc-media{position:relative;display:block;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:var(--night);box-shadow:0 12px 26px rgba(20,50,48,.16)}
@@ -525,6 +527,14 @@ html:not(.ios) .wp-ios{display:none}
   .rc-q{grid-column:1;font-size:16px;margin-top:10px}
   .rc-s{grid-column:1;font-size:12px;margin-top:6px}
   .sm-replay .cz-bar{display:none}
+  /* 폰 힌트(10-08 본부장님): 셋째 장이 살짝 보이게 + 오른쪽 끝 흐림(끝까지 밀면 사라짐) + '옆으로 밀어 보세요' 한 줄(3편 이상일 때) */
+  .rc{flex-basis:calc((100% - 40px) / 2)}
+  .rc-hint{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--soft);margin:-6px 0 10px}
+  .rc-hint svg{width:15px;height:15px;animation:rcNudge 1.6s ease-in-out infinite}
+  .rc-box::after{content:"";position:absolute;top:0;right:-2px;bottom:10px;width:54px;background:linear-gradient(90deg,rgba(241,244,242,0),var(--ivory) 80%);pointer-events:none;transition:opacity .3s}
+  .rc-box.at-end::after{opacity:0}
+  @keyframes rcNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+  @media(prefers-reduced-motion:reduce){.rc-hint svg{animation:none}}
   .wp-in{flex-direction:column;gap:12px}
   .wp-img{height:min(68vh,620px)}
   .wp-side{max-width:none;text-align:center;padding:0 6px}

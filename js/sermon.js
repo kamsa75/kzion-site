@@ -64,6 +64,12 @@
   });
 
   // 한 칸 넘김 — 1분 영상, 지난 설교 목록, 질문 카드
+  // 다시 듣는 말씀(폰): 끝까지 밀면 오른쪽 흐림을 없앤다(더 없다는 뜻)
+  document.querySelectorAll('.sm-replay .cz-track').forEach(function (tr) {
+    var box = tr.closest('.rc-box'); if (!box) return;
+    function atEnd() { box.classList.toggle('at-end', tr.scrollLeft + tr.clientWidth >= tr.scrollWidth - 4); }
+    tr.addEventListener('scroll', atEnd, { passive: true }); window.addEventListener('resize', atEnd); atEnd();
+  });
   document.querySelectorAll('.cz').forEach(function (box) {
     var track = box.querySelector('.cz-track'); if (!track) return;
     var slides = track.children, dots = box.querySelectorAll('.cz-dots i');

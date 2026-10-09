@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261008c';
+const V = '20261008d';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -535,6 +535,7 @@ function indexPage(all, cards = []) {
 <section class="sm-stage sm-replay" aria-label="다시 듣는 말씀">
   <div class="wrap">
     <div class="wk-head"><h2 class="wk-k">다시 듣는 말씀</h2><p class="wk-s">지난 설교 가운데 지금도 마음에 닿는 말씀을 골라 1분 영상으로 담았습니다.</p></div>
+    ${rpItems.length > 2 ? `<p class="rc-hint">전체 ${rpItems.length}편 · 옆으로 밀어 보세요 ${CHEV('M5 12h13M13 6l6 6-6 6')}</p>` : ''}
     <div class="cz rc-box">
       <div class="cz-track">${rpPages.map((pg) => `
         <div class="cz-slide rc-page">${pg.map(rpCard).join('')}
