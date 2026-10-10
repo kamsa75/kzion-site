@@ -93,6 +93,44 @@
       ],
       "cover": "reel1-1.jpg",
       "options": []
+    },
+    {
+      "n": 2,
+      "format": "C",
+      "color": "mint",
+      "instagram": "https://www.instagram.com/reel/DeS-Vo4nwwA/",
+      "highlight": "",
+      "question": "나쁜 일이 생기면 드는 생각은?",
+      "hint": "그 답이 평소 보는 틀일 수 있어요",
+      "scenes": [
+        {
+          "big": "심리학에선 이걸 ‘확증 편향’이라고 불러요",
+          "small": "보고 싶은 것만 증거로 보이는 마음",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "무서운 쪽만 보고 다정한 쪽은 놓쳤대요",
+          "small": "같은 얘기를 들어도 해석은 완전히 달랐죠",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "다정한 쪽은 어떻게 보일까요?",
+          "small": "나머지는 설교에 있어요",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "편견",
+        "생각습관",
+        "자기이해",
+        "심리테스트",
+        "관계"
+      ],
+      "options": [
+        "역시 난 안되네",
+        "운이 좀 나빴다",
+        "다음엔 다를지도"
+      ]
     }
   ],
   "passages": [],
