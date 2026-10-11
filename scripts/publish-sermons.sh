@@ -17,6 +17,27 @@ trap 'rmdir "$LOCK"' EXIT
 cd "$BOT" || exit 1
 git checkout -q main && git fetch -q origin && git reset -q --hard origin/main || { log "최신 main 받기 실패"; exit 1; }
 
+# 배포 확인(2026-10-05): GitHub Pages 배포는 실패해도 저절로 다시 하지 않는다(10-05 GitHub 장애 때 실패·8시간 멈춤 → 홈이 최신 설교로 안 바뀜).
+# 실패했거나, 40분 넘게 '진행 중'이거나, main 최신 커밋이 20분 넘게 배포 안 됐으면 다시 배포를 한 번 요청한다(매시간 확인). gh 로그인이 없으면 조용히 건너뜀.
+check_deploy() {
+  command -v gh >/dev/null || return 0
+  local info; info=$(gh api repos/kamsa75/kzion-site/pages/builds/latest --jq '.status + " " + .created_at + " " + .commit' 2>/dev/null) || { log "배포 확인 불가(gh)"; return 0; }
+  local head_sha head_time; head_sha=$(git rev-parse origin/main); head_time=$(git log -1 --format=%cI origin/main)
+  local why; why=$(python3 - "$info" "$head_sha" "$head_time" <<'PY'
+import sys, datetime as dt
+status, created, sha = (sys.argv[1].split(" ") + ["", "", ""])[:3]; head, head_t = sys.argv[2], sys.argv[3]
+now = dt.datetime.now(dt.timezone.utc); age = lambda s: (now - dt.datetime.fromisoformat(s.replace("Z", "+00:00"))).total_seconds() / 60
+if status == "errored": print("지난 배포 실패")
+elif status in ("building", "queued") and age(created) > 40: print(f"배포가 {age(created):.0f}분째 진행 중")
+elif status == "built" and sha != head and age(head_t) > 20: print("최신 커밋이 배포 안 됨")
+PY
+)
+  if [ -n "$why" ]; then
+    if gh api -X POST repos/kamsa75/kzion-site/pages/builds >/dev/null 2>&1; then log "다시 배포 요청 — $why"; else log "다시 배포 요청 실패 — $why"; fi
+  fi
+}
+check_deploy
+
 python3 scripts/export-sermons.py || { log "내보내기 실패"; exit 1; }
 node scripts/build-sermons.mjs >/dev/null || { log "페이지 생성 실패"; exit 1; }
 

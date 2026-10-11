@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const ROOT = process.argv[2] || new URL('..', import.meta.url).pathname;
 const FOOTER = readFileSync(new URL('./footer.html', import.meta.url), 'utf8').trim();
 const SITE = 'https://kzion.net';
-const V = '20261003a';
+const V = '20261008d';
 
 const CH = {
   name: '시애틀 시온장로교회',
@@ -158,12 +158,42 @@ const bar = (n, label, num = false) => n < 2 ? '' : `
             <button class="cz-arrow next" type="button" aria-label="다음 ${label}">${CHEV('M9 5l7 7-7 7')}</button>
           </div>`;
 
+// ---------- 색 대비 검사(2026-10-08) ----------
+// 형광펜 띠(크림 75%) 위에 흰 글자가 놓이면 글자 아랫부분이 지워져 보였다(10-04 적갈색 B 퀴즈). 빌드할 때 색마다 계산해
+// 띠가 글자와 대비 3 미만이면 띠 대신 핵심 말을 노란 글자로 칠한다(그것도 약하면 밑줄). 사람이 놓쳐도 글자가 묻히지 않게.
+const lum = (hex) => { const c = hex.slice(1).match(/../g).map((x) => parseInt(x, 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const mixHex = (a, b, t) => '#' + [0, 2, 4].map((i) => Math.round(parseInt(a.slice(1 + i, 3 + i), 16) * t + parseInt(b.slice(1 + i, 3 + i), 16) * (1 - t)).toString(16).padStart(2, '0')).join('');
+const MARK_YEL = '#FFD048';
+function markMode(p) {
+  if (contrast(p.ink, mixHex('#FBF8F1', p.bg, 0.75)) >= 3) return { cls: '', css: '' };
+  if (contrast(MARK_YEL, p.bg) >= 3) return { cls: ' qz-mk-text', css: `;--q-mark:${MARK_YEL}` };
+  return { cls: ' qz-mk-line', css: '' };
+}
+for (const [k, p] of Object.entries(PALETTE)) {      // 글자·보조 글자가 바탕에 묻히는 색이 새로 들어오면 빌드 로그에 경고
+  if (contrast(p.ink, p.bg) < 4.5) console.warn(`경고: 릴스 색 ${k} 글자 대비 ${contrast(p.ink, p.bg).toFixed(1)} (4.5 미만)`);
+  if (contrast(p.mute, p.bg) < 3) console.warn(`경고: 릴스 색 ${k} 보조 글자 대비 ${contrast(p.mute, p.bg).toFixed(1)} (3 미만)`);
+}
+
+// ②장면 개념 이름(‘손실 회피’)은 릴스에서 노랑 띠로 강조된다 — 홈에서도 같게. 작은따옴표 안 말만(모양으로 확정, 추측 아님 — 2026-10-08)
+const quoted = (s) => (s.match(/‘([^’]{1,16})’/) || [])[1] || '';
+
 // ---------- 릴스 퀴즈 칸 (질문 → 이야기처럼 넘어가는 결과) ----------
 // base: 이 칸이 놓이는 페이지에서 그림·영상 파일까지의 경로, goHref: 마지막 장의 '설교 듣기' 링크
 function reelPanel(r, d, { base, goHref, id }) {
   const p = PALETTE[r.color] || PALETTE.amber;
-  // 릴스 형식 3가지 — A 체크리스트 / C 고르기 / B 한 문장(고를 것 없이 화살표로 바로 넘어감)
-  const kind = r.format === 'A' && r.items?.length ? 'A' : r.format === 'C' && r.options?.length ? 'C' : 'B';
+  // 릴스 형식 6가지(쇼츠 애니 ①장면과 같음) — A 체크리스트 / C 고르기 3장 / D 둘 중 하나(2장) / E 말풀이(단어+속뜻) / F 숫자(열 명 중 k 명) / B 한 문장
+  // 고를 것이 있는 A·C·D 만 사용자가 눌러야 넘어가고, B·E·F 는 화살표로 바로 넘어감. 모르는 형식·빈 데이터는 B 로
+  const kind = r.format === 'A' && r.items?.length ? 'A'
+    : r.format === 'C' && r.options?.length ? 'C'
+    : r.format === 'D' && r.options?.length === 2 ? 'D'
+    : r.format === 'E' && r.word && r.meanings?.length ? 'E'
+    : r.format === 'F' && r.statK > 0 ? 'F' : 'B';
+  const passive = kind === 'B' || kind === 'E' || kind === 'F';
+  const mk = markMode(p);
+  // B(한 문장)는 고를 것이 없어 오른쪽이 비었다(10-08 본부장님: 썰렁함) → 이야기 첫 장면 그림을 종이 표지로 + 글자 버튼
+  const coverImg = kind === 'B' ? (r.cover || r.scenes[0]?.image) : '';   // ①장면 그림(없는 옛 주는 ②장면 그림)
+  const cover = !!coverImg;
   const n = kind === 'A' ? r.items.length : 0;
   const nextBtn = `<div class="qz-go qz-go-c">
                 <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
@@ -179,16 +209,30 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
                 <button class="qz-next" type="button" aria-label="설교가 건네는 답 보기">${CHEV('M5 12h13M13 6l6 6-6 6')}</button>
               </div>`
-    : kind === 'C' ? `<div class="qz-cards">
-                ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join('\n                ')}
+    : kind === 'C' || kind === 'D' ? `<div class="qz-cards${kind === 'D' ? ' qz-two' : ''}">
+                ${r.options.map((t, i) => `<button class="qz-card" type="button"><span class="qc-l">${'ABCDE'[i]}</span><span class="qc-t">${esc(t)}</span></button>`).join(kind === 'D' ? '\n                <span class="qz-vs" aria-hidden="true">vs</span>\n                ' : '\n                ')}
               </div>
               ${nextBtn}`
+    : kind === 'E' ? `<div class="qz-word">
+                <strong class="qw-w">‘${esc(r.word)}’</strong>
+                <ul class="qw-m">
+                ${r.meanings.map((t) => `<li>${esc(t)}</li>`).join('\n                ')}
+                </ul>
+              </div>
+              ${nextBtn}`
+    : kind === 'F' ? `<div class="qz-ten" role="img" aria-label="열 명 중 ${r.statK}명">
+                ${Array.from({ length: 10 }, (_, i) => `<i${i < r.statK ? ' class="on"' : ''} style="--i:${i}"></i>`).join('')}
+              </div>
+              ${nextBtn}`
+    : cover ? `<button class="qz-cover" type="button" aria-label="설교가 건네는 답 보기">
+                <span class="qc-paper"><img src="${base}${esc(coverImg)}" alt="" width="540" height="452" loading="lazy"></span>
+              </button>`
     : nextBtn;
   const scenes = r.scenes.map((s) => `
               <div class="qs-s">
                 ${s.image ? `<img class="qs-art" src="${base}${esc(s.image)}" alt="" width="540" height="452" loading="lazy">` : ''}
                 <div class="qs-txt">
-                  <h3>${mark(s.big, r.highlight)}</h3>
+                  <h3>${mark(s.big, r.highlight && s.big.includes(r.highlight) ? r.highlight : quoted(s.big))}</h3>
                   ${s.small ? `<p>${esc(s.small)}</p>` : ''}
                 </div>
               </div>`).join('');
@@ -205,14 +249,15 @@ function reelPanel(r, d, { base, goHref, id }) {
                 </div>
               </div>`;
   return `
-        <div class="st-p qz${kind === 'B' ? ' ready qz-b' : ''}" role="tabpanel" id="${id}" data-format="${kind}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}">
+        <div class="st-p qz${passive ? ' ready qz-b' : ''}${cover ? ' qz-has-cover' : ''}${mk.cls}" role="tabpanel" id="${id}" data-format="${kind}" style="--q-bg:${p.bg};--q-ink:${p.ink};--q-mute:${p.mute}${mk.css}">
           <div class="qz-view qz-ask">
             <div class="qz-q">
               <p class="st-kicker">질문으로 만나는 설교</p>
-              <h2>${kind === 'B' ? mark(r.question, r.highlight) : esc(r.question)}</h2>
-              ${kind === 'A' ? `<p class="qz-sub">${r.threshold}개 이상이면, 끝까지 보세요</p>` : kind === 'C' ? '<p class="qz-sub">하나를 골라 보세요</p>' : ''}
-              ${kind === 'C' && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
-              ${kind === 'B' && r.hint ? `<p class="qz-lead">${esc(r.hint)}</p>` : ''}
+              <h2>${kind === 'B' || kind === 'E' ? mark(r.question, r.highlight) : esc(r.question)}</h2>
+              ${kind === 'A' ? `<p class="qz-sub">${r.threshold}개 이상이면, 끝까지 보세요</p>` : kind === 'C' ? '<p class="qz-sub">하나를 골라 보세요</p>' : kind === 'D' ? '<p class="qz-sub">둘 중 하나만 골라 보세요</p>' : ''}
+              ${(kind === 'C' || kind === 'D') && r.hint ? `<p class="qz-hint">${esc(r.hint)}</p>` : ''}
+              ${passive && r.hint ? `<p class="qz-lead">${esc(r.hint)}</p>` : ''}
+              ${cover ? `<button class="qz-pill" type="button">설교가 건네는 답 보기 ${CHEV('M5 12h13M13 6l6 6-6 6')}</button>` : ''}
             </div>
             <div class="qz-a">
               ${ask}
@@ -295,7 +340,7 @@ function shortsPanel(d) {
               </div>
             </div>`).join('');
   return `
-        <div class="st-p sh-p cz" role="tabpanel">
+        <div class="st-p sh-p cz" id="shorts" role="tabpanel">
           <div class="cz-track">${slides}
           </div>${bar(n, '영상')}
         </div>`;
@@ -347,7 +392,7 @@ function sermonPage(d, prev, next, cards = []) {
   <div class="wrap">
     <nav class="sm-crumb" aria-label="현재 위치"><a href="${up}index.html">홈</a><span>›</span><a href="../">말씀</a><span>›</span><span>${dotDate(d.date)}</span></nav>
     <p class="sm-tag">${CH.tag}</p>
-    <p class="sm-kicker">주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time></p>
+    <p class="sm-kicker">${d.replay ? `다시 듣는 말씀 · <time datetime="${d.date}">${koDate(d.date)}</time> 설교` : `주일 설교 · <time datetime="${d.date}">${koDate(d.date)}</time>`}</p>
     <h1>${esc(d.title)}</h1>
     <p class="sm-meta">${esc(sl)} 설교 · ${esc(d.preacher)}</p>
     ${d.coreQuestion ? `<p class="sm-q">${esc(d.coreQuestion)}</p>` : ''}
@@ -385,8 +430,8 @@ ${visit(up)}
 ${prev || next ? `
 <nav class="sm-pager" aria-label="다른 설교">
   <div class="wrap">
-    ${prev ? `<a href="../${prev.date}/"><span>이전 설교 · ${dotDate(prev.date)}</span>${esc(prev.title)}</a>` : '<span></span>'}
-    ${next ? `<a class="nx" href="../${next.date}/"><span>다음 설교 · ${dotDate(next.date)}</span>${esc(next.title)}</a>` : '<span></span>'}
+    ${prev ? `<a href="../${prev.date}/"><span>${d.replay ? '다시 듣는 말씀' : '이전 설교'} · ${dotDate(prev.date)}</span>${esc(prev.title)}</a>` : '<span></span>'}
+    ${next ? `<a class="nx" href="../${next.date}/"><span>${d.replay ? '다시 듣는 말씀' : '다음 설교'} · ${dotDate(next.date)}</span>${esc(next.title)}</a>` : '<span></span>'}
   </div>
 </nav>` : ''}
 </main>
@@ -396,6 +441,8 @@ ${prev || next ? `
 // ---------- 말씀 모음 페이지 ----------
 function indexPage(all, cards = []) {
   const url = `${SITE}/sermon/`, up = '../';
+  const replays = all.filter((d) => d.replay).slice().reverse();          // 다시 듣는 말씀(2026-10-08): 옛 설교 중 골라 쇼츠로 만든 것 — 주일 설교 목록과 섞지 않음
+  all = all.filter((d) => !d.replay);
   const latest = all[all.length - 1], rest = all.slice(0, -1).reverse();
   const title = `말씀 — 주일 설교와 성경공부 교재 | ${CH.suffix}`;
   const desc = `${CH.tag} 주일예배 설교 영상과 1분 말씀, 질문으로 만나는 설교, 휴대폰 말씀 배경화면, 소그룹 성경공부 교재 「부르심」. 담임 ${CH.pastor}.`;
@@ -472,6 +519,32 @@ function indexPage(all, cards = []) {
         </div>${bar(qPages.length, '질문', true)}
       </div>` : '';
 
+  // 다시 듣는 말씀(2026-10-08 본부장님): 옛 설교 중 골라 쇼츠로 만든 것 — 주일 설교와 섞지 않고 탭 상자 아래 독립 선반.
+  // 카드는 설교가 아니라 1분 영상 하나하나(고른 이유 = 그 질문이 지금도 통해서). 3장씩 넘김, 폰은 옆으로 밀기. 공개된 1분 영상이 없으면 선반 자체가 없음
+  const rpItems = [];
+  for (const d of replays) for (const s of d.shorts) rpItems.push({ d, s });
+  const RPER = 3, rpPages = [];
+  for (let i = 0; i < rpItems.length; i += RPER) rpPages.push(rpItems.slice(i, i + RPER));
+  const rpCard = ({ d, s }) => `
+          <a class="rc" href="${d.date}/#shorts">
+            <span class="rc-media">${s.thumb ? `<img src="${d.date}/${esc(s.thumb)}" alt="" loading="lazy">` : ''}<span class="rc-play" aria-hidden="true">${PLAY}</span></span>
+            <span class="rc-q">${esc(s.title)}</span>
+            <span class="rc-s">${esc(d.title)} · ${esc(scriptureLabel(d))}</span>
+          </a>`;
+  const replayShelf = rpItems.length ? `
+<section class="sm-stage sm-replay" aria-label="다시 듣는 말씀">
+  <div class="wrap">
+    <div class="wk-head"><h2 class="wk-k">다시 듣는 말씀</h2><p class="wk-s">지난 설교 가운데 지금도 마음에 닿는 말씀을 골라 1분 영상으로 담았습니다.</p></div>
+    ${rpItems.length > 2 ? `<p class="rc-hint">전체 ${rpItems.length}편 · 옆으로 밀어 보세요 ${CHEV('M5 12h13M13 6l6 6-6 6')}</p>` : ''}
+    <div class="cz rc-box">
+      <div class="cz-track">${rpPages.map((pg) => `
+        <div class="cz-slide rc-page">${pg.map(rpCard).join('')}
+        </div>`).join('')}
+      </div>${bar(rpPages.length, '다시 듣는 말씀')}
+    </div>
+  </div>
+</section>` : '';
+
   const bookPanel = `
       <div class="st-p ix-p" role="tabpanel" id="book">
         <div class="bk">
@@ -507,6 +580,7 @@ ${weekly}
     ${tabsBox('말씀', tabs, panels)}
   </div>
 </section>
+${replayShelf}
 ${lessonSheets(up)}${cards.length ? wpDialog() : ''}
 ${visit(up)}
 </main>
@@ -568,15 +642,22 @@ function lessonSheets(up) {
 // 가장 최근 퀴즈가 있는 설교의 질문을 그대로 무대에 올리고, 퀴즈가 아직 없으면 최신 설교 영상을 그 자리 재생 카드로.
 const HOME_A = '<!-- 말씀:시작 — scripts/build-sermons.mjs가 채운다. 직접 고치지 말 것 -->';
 const HOME_B = '<!-- 말씀:끝 -->';
+// 홈 상태 3가지(2026-10-08, 견본 QUIZ_PREVIEW 로 셋 다 확인): (a) 퀴즈가 아직 없음 → 영상 카드만 / (b) 최신 설교에 퀴즈 → 질문 탭 먼저, 영상 탭 마지막
+// (c) 새 설교는 나왔는데 퀴즈는 지난 설교 것뿐(주일 오후~첫 릴스 게시 4시간 뒤, 매주 2~3일) → 영상 탭 먼저(열림), 지난 질문 탭은 '지난주' 표시로 뒤에.
+//     전에는 (c)에서 제목 줄이 지난 설교 날짜, 영상·최근 설교는 새 설교라 한 칸에 두 주가 섞여 보였다
+const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
 function homeWord(all) {
   const latest = all[all.length - 1];
   const q = all.slice().reverse().find((d) => d.reels.length);
   const recent = all.slice().reverse().slice(0, 3);
+  const stale = !!q && q.date !== latest.date;
+  const ago = stale ? (daysBetween(q.date, latest.date) === 7 ? '지난주' : mdDate(q.date)) : '';
+  const fresh = !!q && !stale;                                  // 이번 주 퀴즈가 무대 주인
   const head = (d, lead) => `
     <div class="hw-head">
       <div>
         <p class="hw-k">말씀 · ${mdDate(d.date)} 주일 설교</p>
-        <h2 class="hw-h">${q ? '질문으로 만나는 설교' : '최근 주일 설교'}</h2>
+        <h2 class="hw-h">${fresh ? '질문으로 만나는 설교' : '최근 주일 설교'}</h2>
         <p class="hw-s">${lead}</p>
       </div>
       <a class="hw-all" href="sermon/">말씀 전체 보기 ${ARROW}</a>
@@ -593,22 +674,24 @@ function homeWord(all) {
           </a>
         </div>`;
   // 퀴즈가 있으면: 질문 탭들 + 마지막에 '▶ 이번 설교 영상' 탭(처음엔 퀴즈가 열려 있음)
+  const qTabs = q ? q.reels.map((r, k) => `<button role="tab" type="button" aria-selected="${fresh && !k ? 'true' : 'false'}">${stale ? `<span class="t-ago">${ago}</span> ` : ''}${esc(r.question)}</button>`) : [];
+  const vTab = `<button role="tab" type="button" aria-selected="${stale ? 'true' : 'false'}" class="st-tab-vid"><span aria-hidden="true">▶</span> 이번 설교 영상</button>`;
+  const qPanels = q ? q.reels.map((r) => reelPanel(r, q, { base: `sermon/${q.date}/`, goHref: `sermon/${q.date}/#watch`, id: `h-${q.date}-${r.n}` })).join('') : '';
   const stage = q ? `
-    <div class="pr on" id="h-${q.date}" data-tabs>
+    <div class="pr on" id="h-${latest.date}" data-tabs>
       <div class="pr-top">
-        <div class="st-tabs" role="tablist" aria-label="${esc(q.title)} 질문과 설교 영상">
-          ${q.reels.map((r, k) => `<button role="tab" type="button" aria-selected="${k ? 'false' : 'true'}">${esc(r.question)}</button>`).join('\n          ')}
-          <button role="tab" type="button" aria-selected="false" class="st-tab-vid"><span aria-hidden="true">▶</span> 이번 설교 영상</button>
+        <div class="st-tabs" role="tablist" aria-label="${stale ? `${esc(latest.title)} 설교 영상과 ${ago} 질문` : `${esc(q.title)} 질문과 설교 영상`}">
+          ${(stale ? [vTab, ...qTabs] : [...qTabs, vTab]).join('\n          ')}
         </div>
       </div>
-      <div class="st-frame">${q.reels.map((r) => reelPanel(r, q, { base: `sermon/${q.date}/`, goHref: `sermon/${q.date}/#watch`, id: `h-${q.date}-${r.n}` })).join('')}${vid('st-p hw-latest')}
+      <div class="st-frame">${stale ? vid('st-p hw-latest') + qPanels : qPanels + vid('st-p hw-latest')}
       </div>
     </div>` : vid('hw-latest');
-  const lead = q ? `${esc(q.title)} · ${esc(scriptureLabel(q))} — 질문에 답해 보면, 그 답이 담긴 설교가 이어집니다.`
-    : `${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}`;
+  const lead = fresh ? `${esc(q.title)} · ${esc(scriptureLabel(q))} — 질문에 답해 보면, 그 답이 담긴 설교가 이어집니다.`
+    : `${esc(scriptureLabel(latest))} 설교 · ${esc(latest.preacher)}${stale ? ` — ${ago} 질문도 아래 탭에서 이어 보실 수 있어요.` : ''}`;
   return `${HOME_A}
 <section class="hw" id="word" aria-label="말씀">
-  <div class="wrap">${head(q || latest, lead)}
+  <div class="wrap">${head(latest, lead)}
     <div class="pr-stack">${stage}
     </div>
     <div class="hw-foot">
@@ -644,6 +727,67 @@ function sitemap(all) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${rows.join('\n')}\n</urlset>\n`;
 }
 
+// ---------- 퀴즈 견본(2026-10-08) ----------
+// 형식(A~F)·색(6)을 새로 넣거나 퀴즈 모양을 바꾸면 배포 전에 모든 조합을 한 화면에서 본다(10-04 B 퀴즈가 실제 주에서 처음 드러난 사고).
+// QUIZ_PREVIEW=/tmp/quiz.html node scripts/build-sermons.mjs → 사이트 루트 기준 상대 경로라 사이트 폴더 안(또는 같은 구조의 사본)에 써야 그림·스타일이 보임
+if (process.env.QUIZ_PREVIEW) {
+  const dd = join(ROOT, 'data', 'sermons');
+  const weeks = readdirSync(dd).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort().map((f) => JSON.parse(readFileSync(join(dd, f), 'utf8')));
+  const real = {}; let host = weeks[weeks.length - 1];
+  for (const w of weeks) for (const r of w.reels || []) { real[r.format] = { r, w }; }
+  const imgW = Object.values(real).find((x) => x.r.scenes?.[0]?.image) || { w: host, r: { scenes: [] } };
+  const sc = imgW.r.scenes.length ? imgW.r.scenes : [{ big: '견본 장면', small: '' }];
+  const S = {                                                     // 실제 데이터가 없는 형식만 견본 글(화면 확인용)
+    A: { format: 'A', question: '요즘 이런 적 있나요?', highlight: '', items: ['나는 원래 안 되는 사람', '시도하기 전에 포기함', '환경 탓하며 멈춤', '주변 응원도 안 믿김'], threshold: 2, hint: '' },
+    B: { format: 'B', question: '확실히 이기는데 왜 불안할까요?', highlight: '왜 불안할까요', hint: '이미 이긴 싸움인데도 마음은 떨리죠' },
+    C: { format: 'C', question: '스트레스 받을 때 나는?', highlight: '', options: ['혼자 참기', '짜증 내기', '누군가 찾기'], hint: '고른 답이 어릴 적 관계 습관과 이어질 수 있어요' },
+    D: { format: 'D', question: '둘 중 하나만 고른다면?', highlight: '', options: ['조건이 맞으면 헌신', '조건 없이 먼저 헌신'], hint: '고른 쪽에 지금 내 마음이 보여요' },
+    E: { format: 'E', question: '‘헌신’은 무슨 뜻일까요?', highlight: '헌신', word: '헌신', meanings: ['몸과 마음을 바쳐 힘을 다함', '설교에서는: 거래가 아니라 사랑으로 드림'], hint: '' },
+    F: { format: 'F', question: '열 명 중 몇 명이 불안을 느낄까요?', highlight: '불안', statK: 7, hint: '(견본 숫자)' },
+  };
+  const panels = [];
+  for (const f of 'ABCDEF') for (const color of Object.keys(PALETTE)) {
+    const base = real[f] ? { ...real[f].r } : { ...S[f] };
+    const w = real[f] ? real[f].w : imgW.w;
+    const r = { ...base, n: 1, color, scenes: base.scenes?.length ? base.scenes : sc };
+    panels.push({ f, color, html: reelPanel(r, w, { base: `sermon/${w.date}/`, goHref: '#', id: `pv-${f}-${color}` }).replace('class="st-p qz', 'class="st-p on qz'), real: !!real[f] });
+  }
+  const strip = (h) => h.replace(HOME_A, '').replace(HOME_B, '');
+  const noReels = (d) => ({ ...d, reels: [] });
+  const withReels = weeks.filter((d) => d.reels?.length);
+  const lastW = withReels[withReels.length - 1] || weeks[weeks.length - 1];
+  const nextDate = new Date(Date.parse(lastW.date) + 7 * 86400000).toISOString().slice(0, 10);
+  const nextW = { ...noReels(lastW), date: nextDate, title: '(다음 주 설교 제목)', coreQuestion: '(다음 주 핵심 질문)' };
+  const homes = [
+    ['(a) 퀴즈가 아직 하나도 없을 때', strip(homeWord([noReels(lastW)]))],
+    ['(b) 이번 주 설교에 퀴즈가 있을 때 — 평소', strip(homeWord(withReels.length ? withReels : weeks))],
+    ['(c) 새 설교는 나왔는데 퀴즈는 지난주 것뿐일 때 — 주일 오후부터 첫 릴스 게시 4시간 뒤까지', strip(homeWord([...withReels, nextW]))],
+  ];
+  const page = `<!doctype html><html lang="ko" class="js"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>퀴즈 견본</title><link rel="stylesheet" href="css/style.css?v=${V}"><link rel="stylesheet" href="css/home.css?v=${V}"><link rel="stylesheet" href="css/sermon.css?v=${V}">
+<style>body{background:#18505A;margin:0}.pv{max-width:1100px;margin:0 auto;padding:28px 20px 40px;color:#fff;font-family:Pretendard,system-ui,sans-serif}
+.pv h1{font-size:22px;margin:0 0 4px}.pv p.d{opacity:.75;margin:0 0 18px;font-size:14px}.pv .row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.pv .row button{-webkit-appearance:none;appearance:none;border:1.5px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+.pv .row button[aria-pressed=true]{background:#fff;color:#18505A;border-color:#fff}.pv .sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.pv .stage{margin-top:16px}.pv .stage .st-p{display:none}.pv .stage .st-p.cur{display:grid}.pv .note{font-size:13px;opacity:.7;margin-top:10px}</style></head><body><div class="pv">
+<h1>홈페이지 퀴즈 견본 — 형식 ${'ABCDEF'.length}가지 × 색 ${Object.keys(PALETTE).length}가지</h1><p class="d">형식과 색을 눌러 첫 화면을 보고, 버튼·그림을 누르면 이어지는 장면까지 볼 수 있어요. 실제 데이터가 없는 형식(${'ABCDEF'.split('').filter((f) => !real[f]).join('·') || '없음'})은 견본 글.</p>
+<div class="row" id="pf">${'ABCDEF'.split('').map((f, i) => `<button type="button" data-f="${f}" aria-pressed="${f === 'B'}">${f} · ${({ A: '체크리스트', B: '한 문장', C: '셋 중 고르기', D: '둘 중 하나', E: '말풀이', F: '열 명 중' })[f]}</button>`).join('')}</div>
+<div class="row" id="pc">${Object.entries(PALETTE).map(([k, p]) => `<button type="button" data-c="${k}" aria-pressed="${k === 'sienna'}"><span class="sw" style="background:${p.bg}"></span>${k}</button>`).join('')}</div>
+<div class="stage st-frame">${panels.map((x) => x.html.replace('class="st-p ', `data-pf="${x.f}" data-pc="${x.color}" class="st-p `)).join('')}</div>
+<p class="note">견본 페이지는 저장소에 올리지 않는 확인용입니다.</p>
+<h1 style="margin-top:36px">홈 '말씀' 영역 — 상태 3가지</h1><p class="d">(a)는 첫 주에만, (b)는 수요일 밤~주일 낮, (c)는 주일 오후~수요일 밤. 날짜·탭 순서·열리는 탭이 맞는지 봅니다.</p>
+<div class="row" id="ph">${homes.map((h, i) => `<button type="button" data-h="${i}" aria-pressed="${i === 2}">${h[0].slice(0, 3)}</button>`).join('')}</div>
+${homes.map((h, i) => `<div class="hstate" data-h="${i}" ${i === 2 ? '' : 'hidden'}><p class="d" style="margin:10px 0 6px">${h[0]}</p>${h[1]}</div>`).join('')}
+</div>
+<style>.hstate .hw{border-radius:24px;overflow:hidden}.hstate .hw .wrap{max-width:none}</style>
+<script>(function(){var f='B',c='sienna';function sh(){document.querySelectorAll('.stage .st-p').forEach(function(p){p.classList.toggle('cur',p.dataset.pf===f&&p.dataset.pc===c);p.classList.remove('open');});
+document.querySelectorAll('#pf button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f)});document.querySelectorAll('#pc button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.c===c)});}
+document.getElementById('pf').addEventListener('click',function(e){var b=e.target.closest('button');if(b){f=b.dataset.f;sh();}});
+document.getElementById('ph').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;document.querySelectorAll('#ph button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});document.querySelectorAll('.hstate').forEach(function(x){x.hidden=x.dataset.h!==b.dataset.h;});});document.getElementById('pc').addEventListener('click',function(e){var b=e.target.closest('button');if(b){c=b.dataset.c;sh();}});sh();})();</script>
+<script src="js/sermon.js?v=${V}" defer></script></body></html>`;
+  writeFileSync(process.env.QUIZ_PREVIEW, page); console.log('견본: ' + process.env.QUIZ_PREVIEW); process.exit(0);
+}
+
 // ---------- 실행 ----------
 const dataDir = join(ROOT, 'data', 'sermons');
 const all = existsSync(dataDir) ? readdirSync(dataDir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort()
@@ -659,15 +803,16 @@ for (const f of readdirSync(outDir)) {
 const cardsF = join(dataDir, 'cards.json');
 const cards = existsSync(cardsF) ? JSON.parse(readFileSync(cardsF, 'utf8')) : [];
 WP_CHIPS = wpChipTags(cards);
-all.forEach((d, i) => {
+const groups = [all.filter((d) => !d.replay), all.filter((d) => d.replay)];   // 주일 설교 / 다시 듣는 말씀 — 이전·다음 링크는 같은 묶음 안에서만
+for (const g of groups) g.forEach((d, i) => {
   mkdirSync(join(outDir, d.date), { recursive: true });
-  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, all[i - 1], all[i + 1], cards.filter((c) => c.sermon === d.date)));
-  console.log('만듦: sermon/' + d.date + '/');
+  writeFileSync(join(outDir, d.date, 'index.html'), sermonPage(d, g[i - 1], g[i + 1], cards.filter((c) => c.sermon === d.date)));
+  console.log('만듦: sermon/' + d.date + '/' + (d.replay ? ' (다시 듣는 말씀)' : ''));
 });
 if (all.length) {
   writeFileSync(join(outDir, 'index.html'), indexPage(all, cards));
   console.log('만듦: sermon/ (말씀 모음)');
 }
-writeHome(all);
+writeHome(all.filter((d) => !d.replay));   // 홈은 주일 설교만(다시 듣는 말씀이 '최신 설교'가 되지 않게)
 writeFileSync(join(ROOT, 'sitemap.xml'), sitemap(all));
 console.log('만듦: sitemap.xml');

@@ -60,7 +60,24 @@ def scripture(ref, books):
             "phrase": f"{book} {ch}{unit} {verses}"}
 
 
+TITLE_RE2 = re.compile(r"^\s*(.+?)\s*\(([^)]+)\)\s*([가-힣]{2,4}\s*목사)\s*$")   # 날짜 없는 옛 영상 제목(다시 듣는 말씀, 2026-10-08)
 TITLE_RE = re.compile(r"^\s*\d{4}[.\-]\d{1,2}[.\-]\d{1,2}\s*(.+?)\s*\(([^)]+)\)\s*([가-힣]{2,4}\s*목사)\s*$")
+
+
+def crop_cover(src, out_dir, prefix):
+    """B(한 문장) 형식의 ①장면 그림(2026-10-08) — 홈페이지 퀴즈 첫 화면 표지. B 는 ①에 카드 빈자리가 없어 그림 전체가 온전함
+    (A·C·D·E·F 의 ①은 메모지·카드 자리가 비어 있어 쓰지 않음). 이미 있으면 건너뜀"""
+    name = f"{prefix}-1.jpg"
+    if (out_dir / name).exists():
+        return name
+    wh = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "stream=width,height", "-of", "csv=p=0", str(src)],
+                        capture_output=True, text=True, check=True).stdout.strip().split(",")
+    W, H = int(wh[0]), int(wh[1])
+    cw, y, ch = round(W * 0.2466), round(H * 0.1167), round(H * 0.4708)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-vf", f"crop={cw}:{ch}:{round(W * 0.0018)}:{y}", "-q:v", "4",
+                    str(out_dir / name)], check=True)
+    return name
 
 
 def crop_panels(src, out_dir, prefix, count=3):
@@ -97,7 +114,7 @@ def export(vid_dir, books, preview, img_root, now):
     week, clips, meta = load(d / "week.json"), load(d / "clips.json"), load(d / "select_meta.json")
     date = week["weekId"]
     pastor = week.get("pastor") or {}
-    m = TITLE_RE.match(week.get("video_title") or "")
+    m = TITLE_RE.match(week.get("video_title") or "") or TITLE_RE2.match(week.get("video_title") or "")
     title = m.group(1) if m else (pastor.get("title") or "").strip()
     preacher = (week.get("preacher") or (m.group(3) if m else "") or "").replace(" ", " ")
     sc = scripture(pastor.get("ref") or (m.group(2) if m else ""), books)
@@ -137,9 +154,17 @@ def export(vid_dir, books, preview, img_root, now):
                     "highlight": (r.get("highlight") or "").strip(),
                     "question": sc0.get("big", "").strip(), "hint": sc0.get("small", "").strip(), "scenes": scenes,
                     "topics": [h.lstrip("#") for h in r.get("hashtags", [])]}
-            if r.get("format") == "A":
+            fmt = r.get("format")
+            if fmt == "B" and kf.exists():
+                item["cover"] = crop_cover(kf, out_img, f"reel{r['n']}")
+            if fmt == "A":
                 item["items"] = r.get("items", []); item["threshold"] = r.get("threshold", 0)
-            else:
+            elif fmt == "E":                                   # 말풀이(2026-10-05): 단어 + 속뜻 2~3줄, 질문 속 단어를 강조
+                item["word"] = (r.get("word") or "").strip(); item["meanings"] = [m.strip() for m in r.get("meanings", []) if m.strip()]
+                item["highlight"] = item["word"]
+            elif fmt == "F":                                   # 숫자 훅(2026-10-05): 열 명 중 k 명(문장은 쇼츠가 목록에서 채운 scenes[0].big)
+                item["statK"] = int(r.get("stat_k") or 0)
+            else:                                              # C 고르기 3장 · D 둘 중 하나(2장) · B 는 빈 목록
                 item["options"] = [o.replace("\n", " ") for o in r.get("options", [])]
             if preview and not posted_ok:
                 item["previewOnly"] = True
@@ -154,7 +179,8 @@ def export(vid_dir, books, preview, img_root, now):
     return {"date": date, "videoId": vid_dir, "title": title, "preacher": preacher,
             "scripture": sc["ref"], "book": sc["book"], "scripturePhrase": sc["phrase"],
             "coreQuestion": (meta.get("core_question") or "").strip(),
-            "topics": topics[:8], "shorts": shorts, "reels": reels, "passages": []}
+            "topics": topics[:8], "shorts": shorts, "reels": reels, "passages": [],
+            "replay": bool(week.get("replay"))}   # 다시 듣는 말씀(2026-10-08): 옛 설교를 골라 쇼츠로 만든 것 — week.json 의 표시만 읽음(날짜로 추측 안 함)
 
 
 CARDS = Path.home() / "sermon-shorts" / "work" / "verse_cards" / "queue.json"
