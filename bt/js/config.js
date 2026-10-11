@@ -298,10 +298,30 @@ function buildOrderRows(S, opts) {
 // 대표기도 불일치 — PPT에 적힌 사람이 명단 순서(로테이션)가 정한 사람과 다를 때.
 //   대표기도는 PPT 값이 항상 이기므로(SHARED), 다르면 조용히 인쇄되지 않도록 알리기 위한 판정.
 //   편집 화면·인쇄 확인 화면이 같은 함수를 쓴다(판정이 갈리지 않게).
+// 같은 사람인지 보기 위한 비교용 키 — 뒤에 붙은 직분·'님'·괄호와 띄어쓰기를 떼고 맞춘다.
+//   PPT는 '박정희 권사', 명단은 '박정희'처럼 적히는 게 정상이라 글자 그대로 비교하면
+//   같은 사람인데도 경고가 떴다(2026-10-10 실사용). 직분은 이름 '끝'에서만 뗀다 —
+//   이름 중간 글자는 건드리지 않는다. ※ 비교에만 쓴다(주보에 인쇄되는 이름은 이 함수를 안 거침).
+const PRAYER_TITLE_TAIL = new RegExp(
+  '\\s*(원로목사|담임목사|부목사|협동목사|선교사|전도사|간사|안수집사|서리집사'
+  + '|시무장로|명예장로|명예권사|목사|장로|권사|집사|사모)\\s*$');
+function prayerPersonKey(s) {
+  let t = String(s == null ? '' : s).replace(/\([^()]*\)/g, ' ').trim();
+  for (let i = 0; i < 3; i++) {            // '박정희 권사님'처럼 겹쳐 붙은 꼬리도 뗀다
+    const next = t.replace(PRAYER_TITLE_TAIL, '').replace(/\s*님\s*$/, '').trim();
+    if (next === t) break;
+    t = next;
+  }
+  return t.replace(/\s+/g, '');
+}
 function prayerMismatch(S) {
   const ppt = String(((S && S.pastor) || {}).prayer || '').trim();
   const rot = String((((S && S.serveWindow) || [])[0] || {}).prayer || '').trim();
-  if (!ppt || !rot || ppt === rot) return null;
+  if (!ppt || !rot) return null;
+  const a = prayerPersonKey(ppt), b = prayerPersonKey(rot);
+  // 이름이 하나도 안 남는 이상한 입력이면 원문 그대로 비교(잘못 같다고 뭉개지 않게)
+  const same = (a && b) ? (a === b) : (ppt === rot);
+  if (same) return null;
   return { ppt, rotation: rot };
 }
 
