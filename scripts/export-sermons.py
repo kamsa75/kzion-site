@@ -170,8 +170,8 @@ def export(vid_dir, books, preview, img_root, now):
                 item["previewOnly"] = True
             reels.append(item)
 
-    if not shorts and not reels:
-        return None
+    if not shorts and not reels and (week.get("replay") or not is_public(vid_dir)):   # 다시 듣는 말씀은 1분 영상이 핵심이라 공개 뒤에만. 2026-10-11: 설계(검색노출 설계 '주일 — 설교 영상이 올라오면 설교 페이지 생성')대로,
+        return None                                             # 설교 영상이 공개면 쇼츠·릴스 전이라도 페이지를 만든다(쇼츠가 주일에 바로 공개 안 된 주에 홈이 지난주로 남았음)
     topics = []
     for t in [t for s in shorts for t in s["topics"]] + [t for r in reels for t in r["topics"]]:
         if t and t not in topics:
