@@ -7,8 +7,26 @@
   "book": "",
   "scripturePhrase": "",
   "coreQuestion": "왜 더 많이 가져도 마음은 채워지지 않고, 오히려 가장 가난하고 절박한 순간이 삶을 채우는 통로가 될 수 있는가",
-  "topics": [],
-  "shorts": [],
+  "topics": [
+    "자존감",
+    "공허함",
+    "소비심리"
+  ],
+  "shorts": [
+    {
+      "id": "WDcq9ZkUMcU",
+      "title": "더 가지면 행복해질까요?",
+      "description": "더 많이 가지면 행복해질 거라 믿고 달려왔는데, 막상 손에 쥐고 나면 왜 똑같이 허전한 걸까요? 이 영상은 그 허전함의 진짜 이유와, 채워지지 않는 마음을 채우는 다른 길을 짚어줍니다.",
+      "start": 2579,
+      "end": 2636,
+      "topics": [
+        "자존감",
+        "공허함",
+        "소비심리"
+      ],
+      "thumb": "short-WDcq9ZkUMcU.jpg"
+    }
+  ],
   "reels": [],
   "passages": [],
   "replay": false
