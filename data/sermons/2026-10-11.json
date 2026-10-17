@@ -83,6 +83,40 @@
         "사실은 하나도 안 괜찮다는 뜻",
         "힘들다고 말 못 한다는 뜻"
       ]
+    },
+    {
+      "n": 2,
+      "format": "F",
+      "color": "amber",
+      "instagram": "https://www.instagram.com/reel/Dek_wwtFGRz/",
+      "highlight": "",
+      "question": "열 명 중 다섯은 힘든 일을 혼자 이겨내려 해요",
+      "hint": "혼자 이겨내려 애쓰는 마음, 저도 알아요",
+      "scenes": [
+        {
+          "big": "이런 걸 흔히 ‘돈이면 다 된다는 착각’이라 해요",
+          "small": "필요한 게 없어지면 찾을 일도 줄어들죠",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "마음이 바늘귀보다 좁아진다고 해요",
+          "small": "가진 게 많아질수록 여유가 사라지니까요",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "왜 다 가져도 뭔가 허전해질까요",
+          "small": "나머지는 설교에서",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "성공",
+        "재테크",
+        "허전함",
+        "자기계발",
+        "인생고민"
+      ],
+      "statK": 5
     }
   ],
   "passages": [],
