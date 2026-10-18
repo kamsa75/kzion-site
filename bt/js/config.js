@@ -325,6 +325,36 @@ function prayerMismatch(S) {
   return { ppt, rotation: rot };
 }
 
+// 지난 주 헌금 이름 확인 — 인쇄 직전 경고용(고치지는 않는다, 추측 금지).
+//   2026-10-18 실사고: 같은 명단을 두 번 붙여 넣고 줄바꿈이 사라져 '이재원정승진'이 한 이름으로 인쇄됨.
+//   분류(감사·십일조·주정·선교·기타)마다 ① 같은 이름 두 번 ② 교인 명단에 없는 이름을 모은다.
+//   분류가 다르면 같은 분이 여러 번 나오는 게 정상이므로 중복은 한 분류 안에서만 본다.
+//   이름 나누기는 인쇄와 똑같이 mergeSplitNames를 거친다. 명단을 못 불러왔으면 ②는 건너뛴다.
+function offeringNameIssues(S) {
+  const o = (S && S.bulletin && S.bulletin.offering) || {};
+  const members = (S && S.members) || [];
+  const roster = {};
+  members.forEach((m) => { if (m && m.name) roster[m.name] = 1; });
+  const hasRoster = Object.keys(roster).length > 0;
+  const asStr = (v) => (Array.isArray(v) ? v.join(' ') : (v || ''));
+  const rows = [['감사', o.thanks], ['십일조', o.tithe], ['주정', o.weekly], ['선교', o.mission]];
+  (Array.isArray(o.extras) ? o.extras : []).forEach((ex) => {
+    rows.push([String((ex && ex.label) || '').trim() || '기타헌금', ex && ex.names]);
+  });
+  const out = [];
+  rows.forEach(([label, v]) => {
+    const names = mergeSplitNames(String(asStr(v)).trim(), members).text.split(/\s+/).filter(Boolean);
+    const seen = {}, dup = [], unknown = [];
+    names.forEach((n) => {
+      seen[n] = (seen[n] || 0) + 1;
+      if (seen[n] === 2) dup.push(n);
+      if (hasRoster && !roster[n] && unknown.indexOf(n) < 0) unknown.push(n);
+    });
+    if (dup.length || unknown.length) out.push({ label, dup, unknown });
+  });
+  return out;
+}
+
 // 성찬 위원 안내 — 성찬식(연 3회) 전 주에만 교회소식 카드에 '넣기' 버튼으로 제안.
 //   자동 삽입 아님(버튼을 눌러야 들어감), 넣은 뒤에는 일반 소식처럼 자유 수정·삭제 가능.
 const COMMUNION_NOTICE_TITLE = '성찬 위원 안내';
