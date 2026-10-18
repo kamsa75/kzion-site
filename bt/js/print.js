@@ -135,6 +135,18 @@ function buildGate(S) {
     gate.appendChild(w);
   }
 
+  // 지난 주 헌금 이름 — 중복·명단에 없는 이름 경고(2026-10-18 실사고 — 이름 두 개가 붙어 겹쳐 인쇄됨)
+  offeringNameIssues(S).forEach((it) => {
+    const parts = [];
+    if (it.unknown.length) {
+      parts.push(`교인 명단에 없는 이름: ${it.unknown.join(', ')} (이름 두 개가 붙어 있거나 오타가 아닌지 확인)`);
+    }
+    if (it.dup.length) parts.push(`두 번 적힌 이름: ${it.dup.join(', ')}`);
+    const w = PE('div', 'gate-order is-warn');
+    w.textContent = `⚠️ 지난 주 헌금 · ${it.label} — ${parts.join(' / ')}. 맞으면 그대로 인쇄해도 됩니다.`;
+    gate.appendChild(w);
+  });
+
   // 이번 주 순서가 기본과 다르면 인쇄 직전 마지막 확인 줄(3단계 — 몰랐던 변화 방지)
   const chg = orderChangeSummary(S);
   if (chg) {

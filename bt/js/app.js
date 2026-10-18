@@ -910,6 +910,25 @@ function renderOfferingCard(S) {
   // 이름 입력칸 공용 배선 — 칸을 벗어나면 '김 정'처럼 갈라진 이름을 합치고 무엇을 합쳤는지 알린다
   const wireNames = (inp, get, set) => {
     inp.addEventListener('input', () => { set(inp.value); queueSave(); });
+    // 여러 이름을 붙여 넣을 때 — 한 줄 칸은 줄바꿈을 빈칸 없이 지워 '이재원정승진'처럼 이름이 붙는다
+    //   (2026-10-18 실사고). 줄바꿈·탭을 빈칸으로 바꾸고, 앞뒤 글자와도 빈칸으로 띄운다.
+    //   이름 하나만 붙여 넣을 때는 브라우저 기본 동작 그대로 둔다.
+    inp.addEventListener('paste', (e) => {
+      const cd = e.clipboardData || window.clipboardData;
+      const raw = cd ? String(cd.getData('text') || '') : '';
+      if (!/\s/.test(raw.trim())) return;
+      e.preventDefault();
+      const txt = raw.replace(/\s+/g, ' ').trim();
+      const v = inp.value;
+      const s = inp.selectionStart == null ? v.length : inp.selectionStart;
+      const en = inp.selectionEnd == null ? v.length : inp.selectionEnd;
+      const before = v.slice(0, s), after = v.slice(en);
+      const ins = (before && !/\s$/.test(before) ? ' ' : '') + txt + (after && !/^\s/.test(after) ? ' ' : '');
+      inp.value = before + ins + after;
+      const pos = (before + ins).length;
+      try { inp.setSelectionRange(pos, pos); } catch (err) { /* 일부 브라우저 미지원 */ }
+      set(inp.value); queueSave();
+    });
     inp.addEventListener('blur', () => {
       const r = mergeSplitNames(inp.value, STATE.members);
       if (!r.fixed.length) return;
