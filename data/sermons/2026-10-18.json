@@ -7,8 +7,26 @@
   "book": "누가복음",
   "scripturePhrase": "누가복음 10장 25-37절",
   "coreQuestion": "나와 입장이 다른 사람을 자동으로 적으로 느끼는 마음, 그걸 넘어설 수 있을까?",
-  "topics": [],
-  "shorts": [],
+  "topics": [
+    "관계고민",
+    "편견",
+    "공감"
+  ],
+  "shorts": [
+    {
+      "id": "fOfH-wBjfp0",
+      "title": "누가 내 이웃일까요?",
+      "description": "어디까지 마음을 쓰고 어디서부터 선을 그어야 할지, 늘 헷갈리고 지치실 때가 있으실 거예요. 이 짧은 이야기는 그 경계 대신, 지금 내 눈앞에 있는 사람을 보라는 뜻밖의 답을 건넵니다.",
+      "start": 3249,
+      "end": 3306,
+      "topics": [
+        "관계고민",
+        "편견",
+        "공감"
+      ],
+      "thumb": "short-fOfH-wBjfp0.jpg"
+    }
+  ],
   "reels": [],
   "passages": [],
   "replay": false
