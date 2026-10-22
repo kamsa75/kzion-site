@@ -13,7 +13,9 @@
     "공감",
     "자존감",
     "인정욕구",
-    "자기가치"
+    "자기가치",
+    "편가르기",
+    "갈등"
   ],
   "shorts": [
     {
@@ -43,7 +45,48 @@
       "thumb": "short-VCdJzpyoGl0.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "A",
+      "color": "cobalt",
+      "instagram": "https://www.instagram.com/reel/Dex3p81oJmW/",
+      "highlight": "",
+      "question": "요즘 이런 적 있나요?",
+      "hint": "",
+      "scenes": [
+        {
+          "big": "우리는 이걸 ‘내 편 편향’이라 불러요",
+          "small": "나와 가까운 사람에게만 마음이 더 가는 거죠",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "그런데 측은지심은 쉽게 눌려요",
+          "small": "이기심이 그 마음을 슬쩍 덮어버리거든요",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "내 편 아니어도 이웃이 될 수 있을까",
+          "small": "답의 나머지는 이 설교에",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "편가르기",
+        "갈등",
+        "관계",
+        "정치피로",
+        "공감"
+      ],
+      "items": [
+        "내 편 말만 믿게 됨",
+        "다른 의견에 화부터 남",
+        "가족과 정치 얘기 피함",
+        "뉴스 보면 분노만 남음"
+      ],
+      "threshold": 2
+    }
+  ],
   "passages": [],
   "replay": false
 }
