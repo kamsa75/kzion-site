@@ -85,6 +85,43 @@
         "뉴스 보면 분노만 남음"
       ],
       "threshold": 2
+    },
+    {
+      "n": 2,
+      "format": "D",
+      "color": "sky",
+      "instagram": "https://www.instagram.com/reel/De3A237ESks/",
+      "highlight": "",
+      "question": "둘 다 내키지 않지만 고른다면?",
+      "hint": "",
+      "scenes": [
+        {
+          "big": "우리는 이걸 ‘감정 마비’라고 불러요",
+          "small": "무서우면 마음이 저절로 닫히거든요",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "두려움이 마음을 닫아버려요",
+          "small": "근데 그게 당연한 반응만은 아니에요",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "그 마음, 다시 열 수 있을까",
+          "small": "답은 이 설교 뒤에",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "무기력",
+        "공감피로",
+        "뉴스스트레스",
+        "감정마비",
+        "번아웃"
+      ],
+      "options": [
+        "모른척 넘기기",
+        "같이 아파하기"
+      ]
     }
   ],
   "passages": [],
