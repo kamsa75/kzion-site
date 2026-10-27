@@ -7,8 +7,26 @@
   "book": "누가복음",
   "scripturePhrase": "누가복음 10장 25-37절",
   "coreQuestion": "불쌍한 마음만으로 사람을 돕는 게 항상 옳을까, 언제 분별력이 필요할까",
-  "topics": [],
-  "shorts": [],
+  "topics": [
+    "편견",
+    "인간관계",
+    "공감능력"
+  ],
+  "shorts": [
+    {
+      "id": "OD4abaU_gcE",
+      "title": "편이 달라도 도와야 할까?",
+      "description": "편이 다르면 선뜻 손 내밀기가 어렵죠. 이 영상은 진영이나 입장을 떠나 사람 자체를 보는 마음이 왜 중요한지 이야기해줍니다.",
+      "start": 2693,
+      "end": 2736,
+      "topics": [
+        "편견",
+        "인간관계",
+        "공감능력"
+      ],
+      "thumb": "short-OD4abaU_gcE.jpg"
+    }
+  ],
   "reels": [],
   "passages": [],
   "replay": false
