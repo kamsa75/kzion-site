@@ -13,7 +13,9 @@
     "공감능력",
     "상처",
     "치유",
-    "자존감"
+    "자존감",
+    "용서",
+    "관계"
   ],
   "shorts": [
     {
@@ -43,7 +45,43 @@
       "thumb": "short-GgVgcXxq2-g.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "B",
+      "color": "sienna",
+      "instagram": "https://www.instagram.com/reel/DfD6XJ-ieAX/",
+      "highlight": "금방 잊을까",
+      "question": "왜 내가 받은 건 금방 잊을까?",
+      "hint": "힘들었던 건 생생해도 도움받은 건 금방 흐려져요.",
+      "scenes": [
+        {
+          "big": "우리는 이걸 ‘선택적 기억’이라고 불러요",
+          "small": "힘들었던 기억만 남고, 받은 도움은 희미해지곤 하죠.",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "내가 받은 큰 용서를 기억하면",
+          "small": "작은 잘못엔 너그러워질 틈이 생겨요.",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "근데 왜 자꾸 잊고 다시 매정해질까요",
+          "small": "답의 나머지는 설교에서",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "용서",
+        "관계",
+        "감정소모",
+        "가족갈등",
+        "마음"
+      ],
+      "cover": "reel1-1.jpg",
+      "options": []
+    }
+  ],
   "passages": [],
   "replay": false
 }
