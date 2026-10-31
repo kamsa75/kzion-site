@@ -80,6 +80,44 @@
       ],
       "cover": "reel1-1.jpg",
       "options": []
+    },
+    {
+      "n": 2,
+      "format": "C",
+      "color": "mint",
+      "instagram": "https://www.instagram.com/reel/DfJDghljGlu/",
+      "highlight": "",
+      "question": "안쓰러운 사람을 보면 나는?",
+      "hint": "어느 쪽이든, 마음과 머리 둘 다 필요해요.",
+      "scenes": [
+        {
+          "big": "심리학에선 이걸 ‘후광 효과’라고 불러요",
+          "small": "약해 보이면 다 착해 보이는 마음이에요.",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "착해도, 속아줄 필요는 없어요",
+          "small": "따뜻한 마음과 냉정한 판단, 둘 다 필요해요.",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "그럼 어디까지가 적당한 도움일까요",
+          "small": "나머지 답은 설교 안에 있어요",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "호구",
+        "관계",
+        "분별력",
+        "인간관계",
+        "공감피로"
+      ],
+      "options": [
+        "일단 다 줌",
+        "일단 지나침",
+        "일단 따져봄"
+      ]
     }
   ],
   "passages": [],
