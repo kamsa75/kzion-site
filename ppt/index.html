@@ -7,7 +7,7 @@
 <title>주일예배 준비실</title>
 <link rel="icon" href="../images/cropped-favicon-270x270.png">
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-<link rel="stylesheet" href="css/ppt.css?v=72">
+<link rel="stylesheet" href="css/ppt.css?v=73">
 </head>
 <body>
 
@@ -59,19 +59,22 @@
       </div>
     </header>
     <main class="main">
+      <div id="pastor-check" class="chk-sum" hidden></div>
 
       <div class="field">
         <label for="pf-title">설교 제목</label>
         <input id="pf-title" type="text" placeholder="예: 집착과 갈망">
+        <div class="chk-msg" data-chk="title"></div>
       </div>
       <div class="field">
         <label for="pf-ref">본문 구절 표기</label>
         <input id="pf-ref" type="text" placeholder="예: 창세기 30:1–24">
+        <div class="chk-msg" data-chk="ref"></div>
       </div>
       <div id="pv-sermon" class="field-preview"></div>
 
       <div class="field">
-        <label>성경 본문 붙여넣기 <span class="label-hint">— 흰 카드로 나옵니다. 맨 앞에 [삼상 1:1-3]처럼 넣으면 대괄호는 빠지고 구절 칩으로 표시</span></label>
+        <label>성경 본문 붙여넣기 <span class="label-hint">— 흰 카드로 나옵니다. "어느 말씀?" 칸에 적은 구절이 카드 위 칩으로 표시</span></label>
         <div id="passage-list"></div>
         <button id="btn-add-passage" class="btn btn-outline btn-add">＋ 성경 본문 페이지 추가</button>
       </div>
@@ -90,15 +93,18 @@
       <div class="field">
         <label for="pf-prayer">기도 담당자 이름</label>
         <input id="pf-prayer" type="text" placeholder="예: 홍길동 집사">
+        <div class="chk-msg" data-chk="prayer"></div>
       </div>
       <div id="pv-prayer" class="field-preview"></div>
 
       <div class="field">
         <label for="hymn-name">예배 중 찬송가 <span class="label-hint">— 몇 장·제목과 가사를 넣으면 밴드 슬라이드로 나옵니다</span></label>
         <input id="hymn-name" type="text" placeholder="예: 438장 내 영혼이 은총 입어">
+        <div class="chk-msg" data-chk="hymnTitle"></div>
         <div id="pv-hymn-title" class="field-preview"></div>
-        <textarea id="hymn-input" rows="6" placeholder="찬송가 가사를 붙여넣으세요. 절·후렴은 자동으로 나뉘고, 절 순서대로 슬라이드가 만들어집니다." style="margin-top:8px"></textarea>
+        <textarea id="hymn-input" rows="6" placeholder="찬송가 가사를 붙여넣으세요. 긴 줄은 자막 폭에 맞게 자동으로 나뉘고, 절 순서대로 슬라이드가 만들어집니다." style="margin-top:8px"></textarea>
         <button id="btn-hymn-parse" class="btn btn-primary btn-wide">슬라이드 생성하기</button>
+        <div class="chk-msg" data-chk="hymn"></div>
         <div id="hymn-preview"></div>
         <button id="btn-pastor-upload" class="btn btn-outline btn-wide" style="margin-top:8px">📷 악보 이미지로 올리기 (jpg·png)</button>
         <p class="label-hint" style="display:block; margin-top:6px">올린 이미지가 그대로 PPT에 들어갑니다.</p>
@@ -360,7 +366,8 @@
 <script src="js/dragsort.js?v=2"></script>
 <script src="js/songs.js?v=42"></script>
 <script src="js/review.js?v=13"></script>
-<script src="js/pastor.js?v=25"></script>
+<script src="js/inputcheck.js?v=1"></script>
+<script src="js/pastor.js?v=26"></script>
 <script src="js/admin.js?v=9"></script>
 <script src="js/generate.js?v=54"></script>
 <script src="js/setorder.js?v=31"></script>

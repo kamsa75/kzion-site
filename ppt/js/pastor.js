@@ -20,6 +20,10 @@ const Pastor = (function () {
   let readingUrls = {};   // 이미지 칸 표시용: 저장 경로 → 서명 URL(서버) / dataURL(목·방금 올린 것)
   let noteTimer = null;
   let pushTimer = null;
+  // 자동 정리 알림(D46): 키 → { text, undo? } — 화면에서만 쓰고 저장하지 않는다(data에 새 키 금지, 시스템 지도 5장)
+  //   키: 'p<쪽 번호>'(성경 본문) · 'r<칸 uid>'(함께 읽는 구절) · 'hymn'(찬송가)
+  const notes = {};
+  let checkRaf = 0;
 
   // 옛 단일 문자열 스키마 → 배열로 변환 (하위 호환). ⚠ 여기 없는 키는 저장 시 조용히 사라진다(savePastor가 data 통째 교체)
   function normalize(d) {
@@ -44,6 +48,7 @@ const Pastor = (function () {
   }
 
   function save() {
+    scheduleChecks();
     if (CONFIG.USE_SERVER) {
       clearTimeout(pushTimer);
       pushTimer = setTimeout(async () => {
@@ -97,29 +102,96 @@ const Pastor = (function () {
       const block = document.createElement('div');
       block.className = 'page-block';
 
-      const ta = document.createElement('textarea');
-      ta.rows = 6;
-      ta.value = text;
-      ta.placeholder = i === 0
-        ? '예: [삼상 1:1-3] 1 에브라임 산지 라마다임소빔에… — 맨 앞 [ ] 안은 구절 칩, 나머지는 카드 본문으로 들어갑니다.'
-        : '이어지는 본문…';
-      ta.addEventListener('input', () => {
-        data.passages[i] = ta.value;
-        drawPassagePreview(prev, ta.value);
-        save();
+      buildTextItem(block, {
+        key: 'p' + i,
+        get: () => data.passages[i],
+        set: (v) => { data.passages[i] = v; },
+        rows: 6,
+        refPlaceholder: i === 0 ? '예: 마 5:1-12' : '비우면 앞 페이지와 같은 말씀',
+        placeholder: i === 0 ? '성경 본문을 절 번호까지 함께 붙여넣으세요' : '이어지는 본문…',
+        fallbackRef: i === 0 ? null : () => InputCheck.parseRef(InputCheck.splitHead(data.passages[0] || '').ref),
+        draw: (el) => drawPassagePreview(el, data.passages[i]),
+        rerender: renderPassages
       });
-      block.appendChild(ta);
-
-      const prev = document.createElement('div');
-      prev.className = 'field-preview';
-      drawPassagePreview(prev, text);
-      block.appendChild(prev);
 
       if (data.passages.length > 1) block.appendChild(removeBtn(() => {
-        data.passages.splice(i, 1); renderPassages(); save();
+        data.passages.splice(i, 1); clearPassageNotes(); renderPassages(); save();
       }, i + 1 + '페이지 삭제'));
 
       list.appendChild(block);
+    });
+  }
+
+  function clearPassageNotes() { Object.keys(notes).forEach(k => { if (/^p\d+$/.test(k)) delete notes[k]; }); }
+
+  // 글 칸(성경 본문 한 쪽 / 함께 읽는 구절 한 칸) = "어느 말씀?" 칸 + 본문 칸 + 경고 줄 + 미리보기 (D46)
+  //   저장은 지금과 같은 한 글자열: 본문 맨 앞 "(마 5:1-12) " + 본문 — 데이터 모양 그대로(주보·쇼츠 무영향)
+  //   · 본문만 고치면 원래 머리 표기를 한 글자도 안 바꾸고 되붙인다(옛 "[삼상 1:1-3]"도 그대로)
+  //   · "어느 말씀?" 칸을 고칠 때만 "(…)" 모양으로 다시 쓴다(쇼츠 설교 구간 찾기가 둥근 괄호만 걷어냄)
+  function buildTextItem(block, o) {
+    const C = InputCheck;
+    const row = document.createElement('div'); row.className = 'ref-row';
+    const lab = document.createElement('span'); lab.className = 'ref-lab'; lab.textContent = '어느 말씀?';
+    const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'ref-in';
+    inp.placeholder = o.refPlaceholder || '예: 마 5:1-12';
+    inp.value = C.splitHead(o.get()).ref;
+    inp.dataset.chkIn = o.key + ':ref';
+    const same = document.createElement('button'); same.type = 'button'; same.className = 'btn btn-ghost ref-same';
+    same.textContent = '설교 본문과 같음'; same.hidden = true;
+    row.append(lab, inp, same);
+
+    const ta = document.createElement('textarea');
+    ta.rows = o.rows; ta.placeholder = o.placeholder || '';
+    ta.value = C.splitHead(o.get()).body;
+    ta.dataset.chkIn = o.key + ':body';
+
+    const msg = document.createElement('div'); msg.className = 'chk-msg'; msg.dataset.chk = o.key;
+    const prev = document.createElement('div'); prev.className = 'field-preview';
+    block.append(row, ta, msg, prev);
+    o.draw(prev);
+
+    const range = () => {
+      const own = C.parseRef(inp.value);
+      return own.ok ? own : (o.fallbackRef ? o.fallbackRef() : null);
+    };
+    const commitRef = () => {
+      const p = C.parseRef(inp.value);
+      o.set(C.joinHead(p.ok ? p.text : C.tidyRef(inp.value), C.splitHead(o.get()).body));
+      o.draw(prev); save();
+    };
+    inp.addEventListener('input', commitRef);
+    same.addEventListener('click', () => {
+      const p = C.parseRef(data.ref);
+      if (!p.ok) return;
+      inp.value = p.text; commitRef();
+    });
+
+    ta.addEventListener('input', (e) => {
+      let head = C.splitHead(o.get()).head;
+      let body = ta.value;
+      if (e && e.inputType === 'insertFromPaste') {
+        // 예전처럼 본문 맨 앞에 [마 5:1-12]까지 붙여 넣었으면 "어느 말씀?" 칸으로 옮긴다
+        if (!head) {
+          const sp = C.splitHead(body);
+          if (sp.head) {
+            const p = C.parseRef(sp.ref), r = p.ok ? p.text : C.tidyRef(sp.ref);
+            inp.value = r; head = C.joinHead(r, ''); body = sp.body;
+          }
+        }
+        // 줄 중간 절 번호 → [25] 모양(차례로 이어질 때만). 했으면 알림 + 되돌리기
+        const fx = C.fixInlineVerseNums(body, range());
+        if (fx) {
+          const before = body;
+          body = fx.text;
+          notes[o.key] = {
+            text: '🔔 절 번호 ' + fx.count + '개(' + fx.from + '~' + fx.to + '절)를 자동으로 정리했어요. 아래 미리보기에서 절이 제대로 나뉘었는지 확인해 주세요.',
+            undo: () => { o.set(C.splitHead(o.get()).head + before); o.rerender(); save(); }
+          };
+        }
+        if (body !== ta.value) ta.value = body;
+      }
+      o.set(head + body);
+      o.draw(prev); save();
     });
   }
 
@@ -209,22 +281,17 @@ const Pastor = (function () {
   }
 
   function renderTextItem(block, it) {
-    const ta = document.createElement('textarea');
-    ta.rows = it.t === 'long' ? 6 : 4;
-    ta.value = it.text;
-    ta.placeholder = it.t === 'long'
-      ? '긴 구절 — 성경 본문과 같은 큰 카드. 맨 앞 [삼상 1:1-3]은 구절 칩, 길면 자동으로 여러 장'
-      : '함께 읽을 구절 — 하단 카드, 길면 자동으로 2줄씩 나뉩니다';
-    ta.addEventListener('input', () => {
-      it.text = ta.value;
-      drawReadingPreview(prev, it);
-      save();
+    buildTextItem(block, {
+      key: 'r' + uid(it),
+      get: () => it.text,
+      set: (v) => { it.text = v; },
+      rows: it.t === 'long' ? 6 : 4,
+      placeholder: it.t === 'long'
+        ? '긴 구절 — 성경 본문과 같은 큰 카드, 길면 자동으로 여러 장'
+        : '함께 읽을 구절 — 하단 카드, 길면 자동으로 2줄씩 나뉩니다',
+      draw: (el) => drawReadingPreview(el, it),
+      rerender: renderReadings
     });
-    block.appendChild(ta);
-    const prev = document.createElement('div');
-    prev.className = 'field-preview';
-    drawReadingPreview(prev, it);
-    block.appendChild(prev);
   }
 
   // 이미지 칸: 실제 슬라이드(다크·비율 유지)로 작은 미리보기 = 드래그 셀. 장별 삭제 + 사진 추가 + 상태줄
@@ -524,15 +591,36 @@ const Pastor = (function () {
     }).join('\n');
   }
 
+  // 찬송가 긴 줄 나눔용 넓이 재기(D46) — 자막 한 줄 = 밴드 34pt(6.3cqh) · 폭 92cqw → 약 25.9em.
+  //   PPT 글상자 안쪽 여백까지 감안해 0.91배(23.6em)를 넘는 줄만 나눈다. 찬양팀 자막 한 줄(약 19em)은 안 걸림.
+  //   글꼴(Pretendard 800)을 못 불러오면 글자 종류별 어림값으로(한글 0.92em·띄어쓰기 0.26em)
+  const HYMN_MAX_EM = 23.6;
+  async function hymnMeasure() {
+    try { if (document.fonts && document.fonts.load) await document.fonts.load('800 100px Pretendard', '가나다'); } catch (e) {}
+    const ctx = document.createElement('canvas').getContext('2d');
+    const fontOk = !!(document.fonts && document.fonts.check && document.fonts.check('800 100px Pretendard', '가'));
+    if (ctx && fontOk) {
+      ctx.font = '800 100px Pretendard, sans-serif';
+      return { measure: (s) => ctx.measureText(s).width / 100, maxW: HYMN_MAX_EM };
+    }
+    return { measure: (s) => [...s].reduce((w, c) => w + (c === ' ' ? 0.26 : /[가-힣]/.test(c) ? 0.92 : 0.58), 0), maxW: HYMN_MAX_EM };
+  }
+
   async function parseHymn() {
     const text = $('#hymn-input').value.trim();
     data.hymn.raw = text;
+    delete notes.hymn;
     if (!text) { data.hymn.blocks = []; renderHymnPreview(); save(); return; }
     const btn = $('#btn-hymn-parse');
     btn.disabled = true; btn.textContent = '생성 중…';
     try {
       // 붙여넣기는 로컬 규칙 분할(AI 미사용) → 저작권 거부 없음. 빈 줄=블록, 첫 줄 라벨(후렴 등) 인식.
-      applyHymnExtract(Songs.pasteToBlocks(stripHymnVerseNums(text)));
+      // 자막 폭을 넘는 긴 줄은 띄어쓰기 자리에서 나눈다(D46 — 웹에서 긁어 온 한 줄 통째 → 작은 글씨 3줄 사고, 2026-11-01).
+      //   글자는 그대로, 목사님 칸에만(찬양팀·성가대 붙여넣기는 그대로). raw(붙여넣은 원문)는 바꾸지 않는다.
+      const m = await hymnMeasure();
+      const sp = InputCheck.splitHymnText(stripHymnVerseNums(text), m.measure, m.maxW, Songs.isLabel);
+      applyHymnExtract(Songs.pasteToBlocks(sp.text));
+      if (sp.count) notes.hymn = { text: '🔔 긴 줄 ' + sp.count + '개를 자막 폭에 맞게 나눴어요(글자는 그대로). 아래 미리보기를 확인해 주세요.' };
       if (!(data.hymn.blocks || []).length) {
         alert('가사를 나누지 못했어요. 절 사이를 빈 줄로 띄우고 다시 눌러 주세요.');
         return;
@@ -544,6 +632,154 @@ const Pastor = (function () {
     } finally {
       btn.disabled = false; btn.textContent = '슬라이드 생성하기';
     }
+  }
+
+  /* ---------- 빠짐·틀림 경고 (D46) ----------
+     팝업 없이: 칸 아래 빨간 줄 + 화면 맨 위 "확인할 곳 N군데"(누르면 그 칸으로). 고치면 저절로 사라짐.
+     매번 data에서 새로 계산 — '확인함' 같은 상태를 저장하지 않는다(데이터에 새 키 금지). */
+
+  function collectIssues() {
+    const C = InputCheck, out = [];
+    const add = (at, label, msg, input, fix) => out.push({ at, label, msg, input, fix });
+    if (!(data.title || '').trim()) add('title', '설교 제목', '설교 제목이 비어 있어요', '#pf-title');
+    const sref = (data.ref || '').trim();
+    if (!sref) add('ref', '설교 본문 표기', '설교 본문 표기가 비어 있어요 (예: 마 5:1-12)', '#pf-ref');
+    else {
+      const p = C.parseRef(sref);
+      if (!p.ok) add('ref', '설교 본문 표기', p.err, '#pf-ref', p.suggest && {
+        label: '「' + p.suggest + '」(으)로 고치기',
+        run: () => { data.ref = C.replaceBook(data.ref, p.badBook, p.suggest); $('#pf-ref').value = data.ref; renderFixedPreviews(); save(); }
+      });
+    }
+
+    // 글 칸 하나 검사: 어느 말씀(빈칸·책 이름·모양) + 절 번호
+    const item = (key, label, acc, required, fallback) => {
+      const sp = C.splitHead(acc.get());
+      if (!sp.body.trim()) return;
+      const pr = sp.ref ? C.parseRef(sp.ref) : null;
+      if (!sp.ref) {
+        if (required) add(key, label + ': 어느 말씀', '어느 말씀인지 위 칸에 적어 주세요 (예: 마 5:1-12)', key + ':ref');
+      } else if (!pr.ok) {
+        add(key, label + ': 구절 표기', pr.err, key + ':ref', pr.suggest && {
+          label: '「' + pr.suggest + '」(으)로 고치기',
+          run: () => {
+            const nr = C.replaceBook(sp.ref, pr.badBook, pr.suggest), np = C.parseRef(nr);
+            acc.set(C.joinHead(np.ok ? np.text : nr, sp.body)); acc.rerender(); save();
+          }
+        });
+      }
+      const rng = pr && pr.ok ? pr : (fallback || null);
+      const vs = C.verseState(sp.body, pr && pr.ok ? pr.multi : undefined);
+      if (vs === 'none') add(key, label + ': 절 번호', '절 번호가 없어요 — 성경 사이트에서 절 번호까지 함께 복사해 주세요', key + ':body');
+      if (vs === 'inline') {
+        const fx = C.fixInlineVerseNums(sp.body, rng);
+        add(key, label + ': 절 번호', fx ? '절 번호가 줄 중간에 있어요 — 아래 버튼을 누르면 정리됩니다' : '절 번호가 줄 중간에 있어요 — 절마다 줄을 바꿔 주세요', key + ':body', fx && {
+          label: '절 번호 정리',
+          run: () => {
+            const before = sp.body;
+            acc.set(sp.head + fx.text);
+            notes[key] = {
+              text: '🔔 절 번호 ' + fx.count + '개(' + fx.from + '~' + fx.to + '절)를 정리했어요. 아래 미리보기에서 절이 제대로 나뉘었는지 확인해 주세요.',
+              undo: () => { acc.set(C.splitHead(acc.get()).head + before); acc.rerender(); save(); }
+            };
+            acc.rerender(); save();
+          }
+        });
+      }
+    };
+
+    const anyBody = data.passages.some(t => C.splitHead(t).body.trim());
+    if (!anyBody) add('p0', '성경 본문', '성경 본문이 비어 있어요 — 절 번호까지 함께 붙여넣어 주세요', 'p0:body');
+    const firstRef = C.parseRef(C.splitHead(data.passages[0] || '').ref);
+    data.passages.forEach((t, i) => item('p' + i, '성경 본문' + (data.passages.length > 1 ? ' ' + (i + 1) + '쪽' : ''),
+      { get: () => data.passages[i], set: (v) => { data.passages[i] = v; }, rerender: renderPassages },
+      i === 0, i === 0 ? null : (firstRef.ok ? firstRef : null)));
+    let rn = 0;
+    data.readings.forEach(it => {
+      if (it.t === 'img') return;
+      rn++;
+      item('r' + uid(it), '함께 읽는 구절 ' + rn,
+        { get: () => it.text, set: (v) => { it.text = v; }, rerender: renderReadings }, true, null);
+    });
+
+    if (!(data.prayer || '').trim()) add('prayer', '기도 담당자', '기도 담당자 이름이 비어 있어요', '#pf-prayer');
+    if (!(data.hymn.title || '').trim()) add('hymnTitle', '찬송가 제목', '찬송가 제목(몇 장·제목)이 비어 있어요', '#hymn-name');
+    const raw = (data.hymn.raw || '').trim(), blocks = data.hymn.blocks || [];
+    if (!raw && !blocks.length) add('hymn', '찬송가 가사', '찬송가 가사가 비어 있어요', '#hymn-input');
+    else if (!blocks.length) add('hymn', '찬송가 가사', '가사를 넣었는데 아직 슬라이드로 만들지 않았어요', '#hymn-input', { label: '슬라이드 생성하기', run: parseHymn });
+    const junk = [];
+    blocks.forEach(b => (b.lines || []).forEach(l => { if (C.isJunkLine(l.text)) junk.push(l.text); }));
+    if (junk.length) add('hymn', '찬송가 가사: 잡글', '자막에 나가면 안 되는 줄이 있어요: “' + junk[0] + '”' + (junk.length > 1 ? ' 외 ' + (junk.length - 1) + '줄' : '') + ' — 가사 칸에서 지우고 다시 생성해 주세요', '#hymn-input');
+    return out;
+  }
+
+  function scheduleChecks() {
+    cancelAnimationFrame(checkRaf);
+    checkRaf = requestAnimationFrame(renderChecks);
+  }
+
+  function chkInput(sel) {
+    return sel.charAt(0) === '#' ? $(sel) : $('#screen-pastor [data-chk-in="' + sel + '"]');
+  }
+
+  function renderChecks() {
+    const scr = $('#screen-pastor');
+    if (!scr) return;
+    const issues = collectIssues();
+    scr.querySelectorAll('[data-chk]').forEach(el => { el.innerHTML = ''; });
+    scr.querySelectorAll('.is-bad').forEach(el => el.classList.remove('is-bad'));
+    const sref = InputCheck.parseRef(data.ref);
+    scr.querySelectorAll('.ref-same').forEach(b => { b.hidden = !sref.ok; b.title = sref.ok ? sref.text + ' 넣기' : ''; });
+
+    const shown = [];   // 요약 줄에 올릴 것(칸이 화면에 있는 것만)
+    issues.forEach(is => {
+      const box = scr.querySelector('[data-chk="' + is.at + '"]');
+      if (!box) return;
+      const line = document.createElement('div'); line.className = 'chk-line bad';
+      const t = document.createElement('span'); t.textContent = '⚠ ' + is.msg; line.appendChild(t);
+      if (is.fix) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'chk-btn'; b.textContent = is.fix.label;
+        b.addEventListener('click', is.fix.run); line.appendChild(b);
+      }
+      box.appendChild(line);
+      const inp = chkInput(is.input);
+      if (inp) inp.classList.add('is-bad');
+      shown.push({ label: is.label, box, inp });
+    });
+    Object.keys(notes).forEach(k => {
+      const box = scr.querySelector('[data-chk="' + k + '"]');
+      if (!box) return;
+      const n = notes[k];
+      const line = document.createElement('div'); line.className = 'chk-line info';
+      const t = document.createElement('span'); t.textContent = n.text; line.appendChild(t);
+      const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'chk-btn'; ok.textContent = '확인했어요';
+      ok.addEventListener('click', () => { delete notes[k]; renderChecks(); });
+      line.appendChild(ok);
+      if (n.undo) {
+        const u = document.createElement('button'); u.type = 'button'; u.className = 'chk-btn chk-btn-sub'; u.textContent = '되돌리기';
+        u.addEventListener('click', () => { const f = n.undo; delete notes[k]; f(); });
+        line.appendChild(u);
+      }
+      box.appendChild(line);
+      shown.push({ label: '확인: ' + (k === 'hymn' ? '찬송가 줄 나눔' : '절 번호 정리'), box, inp: null });
+    });
+
+    const sum = $('#pastor-check');
+    sum.innerHTML = '';
+    sum.hidden = !shown.length;
+    if (!shown.length) return;
+    const h = document.createElement('div'); h.className = 'chk-sum-h'; h.textContent = '⚠️ 확인할 곳 ' + shown.length + '군데';
+    sum.appendChild(h);
+    const list = document.createElement('div'); list.className = 'chk-sum-list';
+    shown.forEach(s => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chk-sum-item'; b.textContent = s.label;
+      b.addEventListener('click', () => {
+        (s.box.closest('.page-block, .field') || s.box).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (s.inp) setTimeout(() => s.inp.focus({ preventScroll: true }), 350);
+      });
+      list.appendChild(b);
+    });
+    sum.appendChild(list);
   }
 
   function removeBtn(fn, label) {
@@ -607,6 +843,7 @@ const Pastor = (function () {
     renderHymnPreview();
     renderThumbs();
     renderDone();
+    renderChecks();
   }
 
   function renderDone() {
@@ -661,7 +898,14 @@ const Pastor = (function () {
     bindSimple('#pf-prayer', 'prayer');
     // ref는 성경 본문 캡션에도 쓰이므로 본문 미리보기도 갱신
     $('#pf-ref').addEventListener('input', () => renderPassages());
-    $('#btn-pastor-done').addEventListener('click', () => { data.done = !data.done; renderDone(); save(); });
+    $('#btn-pastor-done').addEventListener('click', () => {
+      // 완료로 표시하는 순간 = 한 번 더 확인할 자리(D46). 막지는 않는다(찬송가 없는 주 등)
+      if (!data.done) {
+        const n = collectIssues().length;
+        if (n && !confirm('아직 확인할 곳이 ' + n + '군데 있어요 (화면 맨 위 목록).\n그래도 완료로 표시할까요?')) return;
+      }
+      data.done = !data.done; renderDone(); save();
+    });
     $('#btn-add-passage').addEventListener('click', () => { data.passages.push(''); renderPassages(); save(); });
     // 함께 읽는 구절 칸 추가 3종 (D44). 사진 칸은 만들자마자 파일 선택창(같은 탭 제스처 안에서 열어야 iOS가 허용)
     $('#btn-add-reading-short').addEventListener('click', () => { data.readings.push({ t: 'short', text: '' }); renderReadings(); save(); });
@@ -676,6 +920,8 @@ const Pastor = (function () {
     $('#hymn-name').addEventListener('input', () => { data.hymn.title = $('#hymn-name').value; renderFixedPreviews(); renderHymnPreview(); save(); });
     // 찬송가: 입력은 자동 저장(raw만), 블록은 "정리하기"를 눌러야 갱신 (API 호출 아끼기)
     $('#hymn-input').addEventListener('input', () => { data.hymn.raw = $('#hymn-input').value; save(); });
+    // 붙여넣고 버튼을 안 누르고 나가도 슬라이드가 만들어지게 — 칸을 벗어날 때(내용이 바뀐 경우만) 자동 생성(D46)
+    $('#hymn-input').addEventListener('change', parseHymn);
     $('#btn-hymn-parse').addEventListener('click', parseHymn);
     $('#btn-pastor-back').addEventListener('click', () => KZ.show('home'));
     $('#btn-pastor-upload').addEventListener('click', () => { $('#pastor-file').value = ''; $('#pastor-file').click(); });
