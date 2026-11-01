@@ -986,3 +986,33 @@ body.ds-nosel, body.ds-nosel *{user-select:none !important; -webkit-user-select:
   .pin-title{font-size:32px;}
   .main{padding-top:26px;}
 }
+
+/* ---------- 목사님 입력 빠짐·틀림 경고 + 구절 표기 칸 (D46) ----------
+   팝업 없이: 칸 테두리 빨강 + 칸 아래 한 줄 + 맨 위 요약 줄. 박스+왼쪽 색줄 패턴은 쓰지 않는다 */
+.ref-row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.ref-lab{flex:0 0 auto; font-size:13px; font-weight:800; color:var(--ui-ink);}
+.page-block .ref-in{flex:1 1 auto; min-width:0; font-size:16px; font-weight:700; color:var(--ui-ink);
+  padding:9px 12px; border:1.5px solid var(--ui-line); border-radius:10px; background:#fff; outline:none; font-family:inherit;}
+.page-block .ref-in:focus{border-color:var(--ui-gold);}
+.ref-same{flex:0 0 auto; font-size:12.5px; font-weight:700; padding:8px 6px; color:var(--ui-gold); white-space:nowrap;}
+.ref-same[hidden]{display:none;}
+@media(max-width:480px){ .ref-row{flex-wrap:wrap;} .ref-lab{width:100%;} .ref-same{padding:6px 2px;} }
+
+.field input.is-bad, .field textarea.is-bad, .page-block .is-bad{border-color:var(--ui-danger);}
+.chk-msg:empty{display:none;}
+.chk-msg{margin:6px 0 2px;}
+.chk-line{display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; font-size:13px; font-weight:700; line-height:1.5; padding:3px 0;}
+.chk-line.bad{color:var(--ui-danger);}
+.chk-line.info{color:#6b5326;}
+.chk-btn{font-family:inherit; font-size:13px; font-weight:800; color:var(--ui-ink); background:var(--ui-card);
+  border:1.5px solid var(--ui-line); border-radius:8px; padding:5px 10px; cursor:pointer; -webkit-appearance:none;}
+.chk-btn-sub{color:var(--ui-sub); font-weight:700;}
+@media(hover:hover){ .chk-btn:hover{border-color:var(--ui-gold);} }
+
+.chk-sum{background:var(--ui-warn-bg); border-radius:12px; padding:12px 14px; margin-bottom:16px;}
+.chk-sum[hidden]{display:none;}
+.chk-sum-h{font-size:14px; font-weight:800; color:var(--ui-ink); margin-bottom:8px;}
+.chk-sum-list{display:flex; flex-wrap:wrap; gap:6px;}
+.chk-sum-item{font-family:inherit; font-size:13px; font-weight:700; color:var(--ui-ink); background:#fff;
+  border:1px solid var(--ui-line); border-radius:999px; padding:6px 11px; cursor:pointer; -webkit-appearance:none;}
+@media(hover:hover){ .chk-sum-item:hover{border-color:var(--ui-gold);} }
