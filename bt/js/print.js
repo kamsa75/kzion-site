@@ -187,7 +187,50 @@ function buildSheets(S) {
     if (www && badge && www.offsetWidth > 0) badge.style.minWidth = www.offsetWidth + 'px';
   });
 
+  fitCoverOrder();
+  // 글꼴(나눔스퀘어네오)이 늦게 도착하면 줄 높이가 바뀌므로 한 번 더 맞춘다
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitCoverOrder);
+
   fitSheets(true);   // 새로 그렸으니 강제로 다시 맞춘다
+}
+
+// 표지 예배순서가 칸을 넘치면 줄 사이 여백부터 → 그래도 넘치면 글자를 조금씩 줄인다
+//   (2026-11-01 성찬식 주 실사고 — 15줄이 칸을 30px 넘어 축도가 아래 ※안내와 겹쳐 인쇄됨.
+//    8/12 특송 줄 상시 표시 뒤로 평소 14줄이 이미 여유 0이었다).
+//   칸 아래 여백(3px)까지는 겹치지 않으므로 2px 넘게 넘칠 때만 손댄다 → 들어가는 주는 지금 그대로.
+//   줄 사이는 space-between이라 최소 간격을 줄여도 남는 높이는 다시 고르게 벌어진다.
+//   scrollHeight/clientHeight는 레이아웃 값이라 모바일 transform 축소와 무관.
+const CO_FIT_STEPS = [   // [줄 위아래 여백 px, 줄 사이 px, 글자 pt]
+  [1.6, 3, 10.3], [0.8, 2, 10.3], [0, 1, 10.3], [0, 0, 10.3],
+  [0, 0, 10.0], [0, 0, 9.7], [0, 0, 9.4], [0, 0, 9.1],
+];
+function fitCoverOrder() {
+  const root = document.getElementById('print-root');
+  if (!root) return;
+  let stillOver = false;
+  root.querySelectorAll('.cover-order').forEach((ol) => {
+    ['--co-pad', '--co-gap', '--co-fs'].forEach((k) => ol.style.removeProperty(k));
+    if (!ol.clientHeight) return;   // 화면이 숨겨져 있으면 잴 수 없음
+    const over = () => ol.scrollHeight - ol.clientHeight > 2;
+    for (let i = 0; i < CO_FIT_STEPS.length && over(); i++) {
+      const [pad, gap, fs] = CO_FIT_STEPS[i];
+      ol.style.setProperty('--co-pad', pad + 'px');
+      ol.style.setProperty('--co-gap', gap + 'px');
+      ol.style.setProperty('--co-fs', fs + 'pt');
+    }
+    if (over()) stillOver = true;
+  });
+  // 끝까지 줄여도 넘치면 인쇄 확인 화면에 경고(조용히 겹쳐 인쇄되지 않게)
+  const gate = document.getElementById('print-gate');
+  const old = document.getElementById('gate-order-fit');
+  if (old) old.remove();
+  if (gate && stillOver) {
+    const w = PE('div', 'gate-order is-warn');
+    w.id = 'gate-order-fit';
+    w.textContent = '⚠️ 예배순서가 표지 칸을 넘칩니다 — 글자를 줄여도 아래 안내 문구와 겹쳐 인쇄됩니다. '
+      + '이번 주 순서를 줄이거나 내용을 짧게 해 주세요.';
+    gate.appendChild(w);
+  }
 }
 
 // 화면 폭에 맞춰 주보를 축소한다 — 폭 구간을 손으로 적지 않고 그때그때 계산(기기 무관).
