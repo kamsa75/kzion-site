@@ -7,8 +7,26 @@
   "book": "",
   "scripturePhrase": "",
   "coreQuestion": "강도 만난 사람을 보고도 그냥 지나치지 못하는 마음은 어디서 오며, 그것이 왜 내 삶이 진짜라는 증거가 될까?",
-  "topics": [],
-  "shorts": [],
+  "topics": [
+    "변화",
+    "자기성장",
+    "마음"
+  ],
+  "shorts": [
+    {
+      "id": "jQwK_eF3ZD8",
+      "title": "용서받으면 내가 정말 달라질까?",
+      "description": "용서받아도 내가 정말 달라질 수 있을지 의심스러울 때가 있죠. 이 영상은 그 사랑이 우리 마음 자체를 어떻게 새롭게 바꾸는지 이야기해요.",
+      "start": 2788,
+      "end": 2833,
+      "topics": [
+        "변화",
+        "자기성장",
+        "마음"
+      ],
+      "thumb": "short-jQwK_eF3ZD8.jpg"
+    }
+  ],
   "reels": [],
   "passages": [],
   "replay": false
