@@ -13,7 +13,9 @@
     "마음",
     "공감",
     "시선",
-    "이웃"
+    "이웃",
+    "외로움",
+    "고립감"
   ],
   "shorts": [
     {
@@ -43,7 +45,42 @@
       "thumb": "short-YnPhOf-cu20.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "F",
+      "color": "teal",
+      "instagram": "https://www.instagram.com/reel/DfWCoq-AaaJ/",
+      "highlight": "",
+      "question": "혼자 사는 열 명 중 다섯은 외로워요",
+      "hint": "그 마음, 당신만 그런 게 아니에요",
+      "scenes": [
+        {
+          "big": "이걸 ‘외로움과 건강’이라 해요",
+          "small": "마음이 아프면 몸도 아파요",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "쓰러진 사람도 누군가의 이웃",
+          "small": "외로운 당신도 이웃으로 보여요",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "그럼 누가 그 이웃이 되어줄까요?",
+          "small": "답은 설교 속에 있어요",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "외로움",
+        "고립감",
+        "혼자있음",
+        "마음건강",
+        "위로"
+      ],
+      "statK": 5
+    }
+  ],
   "passages": [],
   "replay": false
 }
