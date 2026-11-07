@@ -92,6 +92,45 @@
         "위로"
       ],
       "statK": 5
+    },
+    {
+      "n": 2,
+      "format": "E",
+      "color": "amber",
+      "instagram": "https://www.instagram.com/reel/DfbMCW2jBIs/",
+      "highlight": "잘하고 있어",
+      "question": "‘잘하고 있어’는 무슨 뜻일까요",
+      "hint": "그 말 뒤엔 불안한 마음이 있어요",
+      "scenes": [
+        {
+          "big": "심리학에선 이걸 ‘가면 증후군’이라 불러요",
+          "small": "잘하면서도 들킬까 두려운 마음",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "증명하려 하지 않아도 괜찮아요",
+          "small": "그냥 손을 내밀면 되는 거예요",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "그럼 진짜 괜찮아지는 법은?",
+          "small": "나머지는 설교에 있어요",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "자존감",
+        "완벽주의",
+        "가면",
+        "인정욕구",
+        "마음건강"
+      ],
+      "word": "잘하고 있어",
+      "meanings": [
+        "사실은 인정받고 싶다는 뜻",
+        "들킬까 봐 먼저 하는 말",
+        "사실 나도 자신없다는 뜻"
+      ]
     }
   ],
   "passages": [],
