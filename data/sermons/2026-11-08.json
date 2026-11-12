@@ -13,7 +13,9 @@
     "자기위로",
     "완벽주의",
     "자기객관화",
-    "자존감"
+    "자존감",
+    "소유욕",
+    "집착"
   ],
   "shorts": [
     {
@@ -43,7 +45,49 @@
       "thumb": "short-wpi2nWf5u5I.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "A",
+      "color": "cobalt",
+      "instagram": "https://www.instagram.com/reel/DfoDzYZTJ8A/",
+      "highlight": "소유냐 존재냐",
+      "question": "요즘 이런 적 있나요?",
+      "hint": "",
+      "scenes": [
+        {
+          "big": "이걸 ‘소유냐 존재냐’라고 불러요",
+          "small": "손에 쥔 것들, 다시 보게 돼요",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "‘내 것’을 쥐면 안심될 줄 알았는데",
+          "small": "사라질까 봐 마음이 더 불안해요",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "지금 꽉 쥔 그것\n정말 영원할까요?",
+          "small": "답은 설교 속에 있어요",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "소유욕",
+        "집착",
+        "불안",
+        "자존감",
+        "마음챙김"
+      ],
+      "items": [
+        "못 버리는 물건이 쌓임",
+        "돈 모으는 게 목표가 됨",
+        "잃을까 봐 늘 불안함",
+        "가진 걸 자랑하고 싶음",
+        "비교하다 작아지는 느낌"
+      ],
+      "threshold": 2
+    }
+  ],
   "passages": [],
   "replay": false
 }
