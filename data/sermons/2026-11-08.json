@@ -99,6 +99,43 @@
         "비교하다 작아지는 느낌"
       ],
       "threshold": 2
+    },
+    {
+      "n": 2,
+      "format": "D",
+      "color": "sky",
+      "instagram": "https://www.instagram.com/reel/DftNgjkIjrE/",
+      "highlight": "",
+      "question": "둘 다 내키지 않지만 하나만 고른다면?",
+      "hint": "다 가진 것 같은데 뭔가 허전한 날, 다들 있어요",
+      "scenes": [
+        {
+          "big": "다 가졌는데 허전한 밤, 있죠",
+          "small": "기분 좋은 것과 잘 사는 건 달라요",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "조건을 다 갖춰도 비어있을 수 있어요",
+          "small": "그 청년도 완벽해 보였지만 근심하다 떠났대요",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "완벽해 보였던 사람이\n왜 슬피 떠났을까요?",
+          "small": "나머지 답은 이 설교 속에",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "허전함",
+        "공허감",
+        "인정욕구",
+        "비교",
+        "자기이해"
+      ],
+      "options": [
+        "더 채우려 애쓰기",
+        "괜찮은 척 넘기기"
+      ]
     }
   ],
   "passages": [],
