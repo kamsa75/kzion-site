@@ -13,7 +13,9 @@
     "인생고민",
     "힘든시기",
     "위로",
-    "마음"
+    "마음",
+    "불안감",
+    "생활고"
   ],
   "shorts": [
     {
@@ -43,7 +45,43 @@
       "thumb": "short-Ovu_C1QwYVM.jpg"
     }
   ],
-  "reels": [],
+  "reels": [
+    {
+      "n": 1,
+      "format": "B",
+      "color": "mint",
+      "instagram": "https://www.instagram.com/reel/DgMHgSdBhei/",
+      "highlight": "바닥나면",
+      "question": "통이 바닥나면 다 끝난 걸까요?",
+      "hint": "그 순간이 제일 막막하죠",
+      "scenes": [
+        {
+          "big": "월급 들어오자마자 다 빠져나간 통장",
+          "small": "그 순간 마음이 철렁하죠",
+          "image": "reel1-2.jpg"
+        },
+        {
+          "big": "바닥을 보여도 다시 채워지는 약속",
+          "small": "매일 아침 비어있던 통이 다시 찼대요",
+          "image": "reel1-3.jpg"
+        },
+        {
+          "big": "조금씩, 하지만 끊이지 않게",
+          "small": "나머지는, 설교에서",
+          "image": "reel1-4.jpg"
+        }
+      ],
+      "topics": [
+        "돈걱정",
+        "불안감",
+        "생활고",
+        "위로",
+        "마음챙김"
+      ],
+      "cover": "reel1-1.jpg",
+      "options": []
+    }
+  ],
   "passages": [],
   "replay": false
 }
