@@ -80,6 +80,44 @@
       ],
       "cover": "reel1-1.jpg",
       "options": []
+    },
+    {
+      "n": 2,
+      "format": "C",
+      "color": "teal",
+      "instagram": "https://www.instagram.com/reel/DgRPiZUBV8m/",
+      "highlight": "",
+      "question": "요즘 마음이 힘들 때 뭘 가장 먼저 찾나요?",
+      "hint": "고른 것이 요즘 마음 상태일 수 있어요",
+      "scenes": [
+        {
+          "big": "편의점에서 로또를 사보는 밤",
+          "small": "이번엔 혹시, 하는 마음으로",
+          "image": "reel2-2.jpg"
+        },
+        {
+          "big": "다 채워지면 오히려 멀어지는 게 있대요",
+          "small": "넉넉해질수록 덜 찾게 된다는 거죠",
+          "image": "reel2-3.jpg"
+        },
+        {
+          "big": "그럼 뭘 의지해야 할까?",
+          "small": "답은 이 설교에 있어요",
+          "image": "reel2-4.jpg"
+        }
+      ],
+      "topics": [
+        "돈걱정",
+        "불안",
+        "인생고민",
+        "위로",
+        "마음"
+      ],
+      "options": [
+        "돈이나 물건",
+        "혼자 버티기",
+        "사람 만나기"
+      ]
     }
   ],
   "passages": [],
